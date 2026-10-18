@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
-import { CheckCircle2, Swords, X } from 'lucide-react';
+import { CheckCircle2, Swords, X, AlertTriangle } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import BetSlip from '../components/BetSlip';
+import apiClient from '@/services/apiClient';
 
 /**
  * MmaEventsPage — Cartelera MMA con layout de dos columnas.
@@ -152,10 +153,45 @@ export default function MmaEventsPage() {
     setSelections((prev) => prev.filter((item) => item.id !== selectionId));
   }, []);
 
-  /** Envío simulado: reemplazar por `apiClient.post('/bets', payload)` cuando exista backend. */
-  const placeBet = useCallback(async ({ selections: picks, stake, totalOdds, potentialPayout }) => {
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    setLastBet({ count: picks.length, stake, totalOdds, potentialPayout });
+  /** Envío real hacia la Web API C# con transacción ACID y Shadow-Banning */
+  const placeBet = useCallback(async ({ selections: picks, stake, totalOdds, potentialPayout, termsAccepted }) => {
+    let savedUser = null;
+    try {
+      const rawUser = localStorage.getItem('zenbet_user');
+      if (rawUser) savedUser = JSON.parse(rawUser);
+    } catch {
+      // Fallback
+    }
+
+    const payload = {
+      userId: savedUser?.id || 1,
+      eventId: picks.map((p) => p.id || p.selection || 'mma-event').join('+'),
+      amount: stake,
+      odds: totalOdds,
+      termsAccepted: Boolean(termsAccepted),
+    };
+
+    const result = await apiClient.post('/bet/place', payload);
+
+    const effectiveOdds = result?.effectiveOdds ?? totalOdds;
+    const finalPayout = stake * effectiveOdds;
+
+    setLastBet({
+      count: picks.length,
+      stake,
+      totalOdds,
+      effectiveOdds,
+      potentialPayout: finalPayout,
+      ledgerId: result?.ledgerId,
+      newBalance: result?.newBalance,
+      shadowBanned: result?.shadowBanned,
+      appliedDelayMs: result?.appliedDelayMs,
+    });
+
+    if (result?.newBalance !== undefined) {
+      window.dispatchEvent(new CustomEvent('zenbet_balance_updated', { detail: result.newBalance }));
+    }
+
     setSelections([]);
   }, []);
 
@@ -200,37 +236,52 @@ export default function MmaEventsPage() {
           </div>
         </header>
 
-        {/* Confirmación de apuesta */}
+        {/* Confirmación de apuesta con detalles de Ledger y Slippage */}
         {lastBet && (
           <div
             role='status'
-            className='border-brutal-gold relative flex flex-wrap items-center justify-between gap-3 px-4 py-3'
+            className='border-brutal-gold relative flex flex-col gap-2 bg-obsidian-surface p-4'
           >
-            <div className='flex items-center gap-3'>
-              <CheckCircle2 size={18} className='shrink-0 text-gold' aria-hidden='true' />
-              <div>
-                <p className='font-display text-xs font-extrabold uppercase tracking-brutal text-gold'>
-                  Apuesta confirmada
-                </p>
-                <p className='mt-0.5 font-mono text-[10px] tabular-nums text-metallic-titanium'>
-                  {lastBet.count} {lastBet.count === 1 ? 'selección' : 'selecciones'} · Stake{' '}
-                  {MONEY_FORMATTER.format(lastBet.stake)} · Cuota ×{lastBet.totalOdds.toFixed(2)}
-                </p>
+            <div className='flex flex-wrap items-center justify-between gap-3'>
+              <div className='flex items-center gap-3'>
+                <CheckCircle2 size={18} className='shrink-0 text-emerald-400' aria-hidden='true' />
+                <div>
+                  <p className='font-display text-xs font-extrabold uppercase tracking-brutal text-white'>
+                    Apuesta confirmada en Ledger {lastBet.ledgerId ? `(ID #${lastBet.ledgerId})` : ''}
+                  </p>
+                  <p className='mt-0.5 font-mono text-[10px] tabular-nums text-metallic-titanium'>
+                    {lastBet.count} {lastBet.count === 1 ? 'selección' : 'selecciones'} · Stake{' '}
+                    {MONEY_FORMATTER.format(lastBet.stake)} · Cuota final: ×{Number(lastBet.effectiveOdds || lastBet.totalOdds).toFixed(2)}
+                    {lastBet.newBalance !== undefined && (
+                      <span className='ml-2 text-gold-specular'>· Nuevo Saldo: {MONEY_FORMATTER.format(lastBet.newBalance)}</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className='flex items-center gap-3'>
+                <span className='font-mono text-sm font-extrabold tabular-nums text-gold'>
+                  Retorno: {MONEY_FORMATTER.format(lastBet.potentialPayout)}
+                </span>
+                <button
+                  type='button'
+                  onClick={handleDismissConfirmation}
+                  aria-label='Descartar confirmación'
+                  className='border border-transparent p-1 text-metallic-slate transition-colors hover:border-gold/50 hover:text-gold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold'
+                >
+                  <X size={14} aria-hidden='true' />
+                </button>
               </div>
             </div>
-            <div className='flex items-center gap-3'>
-              <span className='font-mono text-sm font-extrabold tabular-nums text-gold'>
-                {MONEY_FORMATTER.format(lastBet.potentialPayout)}
-              </span>
-              <button
-                type='button'
-                onClick={handleDismissConfirmation}
-                aria-label='Descartar confirmación'
-                className='border border-transparent p-1 text-metallic-slate transition-colors hover:border-gold/50 hover:text-gold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold'
-              >
-                <X size={14} aria-hidden='true' />
-              </button>
-            </div>
+
+            {/* Aviso ético transparente si se aplicó ajuste algorítmico */}
+            {lastBet.shadowBanned && (
+              <div className='flex items-center gap-2 border border-obsidian-border bg-obsidian-void px-3 py-1.5 font-mono text-[10px] text-metallic-slate'>
+                <AlertTriangle size={12} className='text-crimson shrink-0' aria-hidden='true' />
+                <span>
+                  Cuota base: ×{Number(lastBet.totalOdds).toFixed(2)} → Ajustada por volatilidad a ×{Number(lastBet.effectiveOdds).toFixed(2)} ({lastBet.appliedDelayMs}ms latencia aplicada y registrada en auditoría).
+                </span>
+              </div>
+            )}
           </div>
         )}
 

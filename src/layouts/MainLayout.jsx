@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
+import CookieBanner from '@/components/common/CookieBanner';
 
 export default function MainLayout() {
   return (
@@ -19,6 +20,9 @@ export default function MainLayout() {
 
       {/* Footer */}
       <Footer />
+
+      {/* Banner flotante de consentimiento de cookies */}
+      <CookieBanner />
     </div>
   );
 }

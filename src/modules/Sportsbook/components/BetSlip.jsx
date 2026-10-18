@@ -1,4 +1,5 @@
 import { useId, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AlertCircle, Coins, Loader2, Ticket, X, Zap } from 'lucide-react';
 
 /**
@@ -78,6 +79,7 @@ export default function BetSlip({
 }) {
   const stakeInputId = useId();
   const [stakeInput, setStakeInput] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
@@ -121,7 +123,7 @@ export default function BetSlip({
   const stakeIsValid = stake !== null && stakeError === null && stake > 0;
   const potentialPayout = stakeIsValid ? stake * totalOdds : 0;
   const canShowPayout = hasSelections && stakeIsValid;
-  const canSubmit = hasSelections && stakeIsValid && !isSubmitting;
+  const canSubmit = hasSelections && stakeIsValid && !isSubmitting && termsAccepted;
   const currencySymbol = useMemo(() => resolveCurrencySymbol(locale, currency), [locale, currency]);
 
   /* ------------------------------------------------------------------ */
@@ -147,6 +149,7 @@ export default function BetSlip({
         stake,
         totalOdds,
         potentialPayout,
+        termsAccepted: true,
       });
     } catch (error) {
       setSubmitError(error?.message || 'No se pudo procesar la apuesta. Inténtalo de nuevo.');
@@ -159,7 +162,7 @@ export default function BetSlip({
     ? 'cursor-wait bg-crimson-600 text-white'
     : canSubmit
       ? 'bg-crimson text-white shadow-glow-crimson hover:bg-crimson-600 active:translate-y-[1px]'
-      : 'cursor-not-allowed border border-obsidian-border bg-obsidian-elevated text-metallic-slate';
+      : 'cursor-not-allowed border border-obsidian-border bg-obsidian-elevated text-metallic-slate opacity-70';
 
   /* ------------------------------------------------------------------ */
   /* Render                                                              */
@@ -359,10 +362,47 @@ export default function BetSlip({
             </p>
           )}
 
+          {/* Consentimiento Legal Obligatorio */}
+          <div className='mt-3 border-t border-obsidian-border pt-3'>
+            <label
+              htmlFor='betslip-consent'
+              className='flex items-start gap-2.5 cursor-pointer text-xs select-none'
+            >
+              <input
+                id='betslip-consent'
+                type='checkbox'
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                aria-required='true'
+                aria-label='Acepto los Términos y Condiciones y la Política de Privacidad'
+                className='mt-0.5 h-4 w-4 rounded border-obsidian-border bg-obsidian-void text-crimson focus:ring-crimson cursor-pointer'
+              />
+              <span className='text-[11px] leading-tight text-metallic-slate'>
+                Acepto los{' '}
+                <Link
+                  to='/terms'
+                  target='_blank'
+                  className='text-metallic-platinum underline hover:text-crimson transition-colors'
+                >
+                  Términos y Condiciones
+                </Link>{' '}
+                y la{' '}
+                <Link
+                  to='/privacy'
+                  target='_blank'
+                  className='text-metallic-platinum underline hover:text-crimson transition-colors'
+                >
+                  Política de Privacidad
+                </Link>.
+              </span>
+            </label>
+          </div>
+
           <button
             type='button'
             onClick={handleSubmit}
             disabled={!canSubmit}
+            aria-disabled={!canSubmit}
             aria-busy={isSubmitting}
             className={`mt-4 flex w-full items-center justify-center gap-2 px-4 py-3.5 font-display text-sm font-extrabold uppercase tracking-brutal transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70 ${buttonStyles}`}
           >

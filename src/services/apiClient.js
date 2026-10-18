@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/zenbet/backend';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
 const apiClient = {
   async get(endpoint, options = {}) {
     return this.request(endpoint, { ...options, method: 'GET' });
@@ -20,19 +21,24 @@ const apiClient = {
       ...options.headers,
     };
 
-    const response = await fetch(API_BASE_URL + endpoint, { ...options, headers });
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const response = await fetch(`${API_BASE_URL}${cleanEndpoint}`, { ...options, headers });
+
+    const contentType = response.headers.get('content-type') || '';
+    const isJson = contentType.includes('application/json');
+    const payload = isJson ? await response.json() : await response.text();
 
     if (!response.ok) {
-      const error = new Error('API Error: ' + response.status);
+      const errorMessage = (typeof payload === 'object' && payload?.message)
+        ? payload.message
+        : `API Error: ${response.status}`;
+      const error = new Error(errorMessage);
       error.status = response.status;
+      error.data = payload;
       throw error;
     }
 
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-      return response.json();
-    }
-    return response.text();
+    return payload;
   },
 };
 

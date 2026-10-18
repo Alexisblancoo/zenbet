@@ -103,6 +103,19 @@ export default function Footer() {
                 <span>Cuotas transparentes sin spread abusivo</span>
               </div>
             </div>
+            <div className='mt-4 flex flex-wrap gap-2 text-xs'>
+              <Link to='/terms' className='text-metallic-platinum hover:text-crimson underline transition-colors'>
+                Términos
+              </Link>
+              <span>·</span>
+              <Link to='/privacy' className='text-metallic-platinum hover:text-crimson underline transition-colors'>
+                Privacidad
+              </Link>
+              <span>·</span>
+              <Link to='/refunds' className='text-metallic-platinum hover:text-crimson underline transition-colors'>
+                Reembolsos
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -111,7 +124,16 @@ export default function Footer() {
 
         {/* Barra inferior */}
         <div className='flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px] text-metallic-slate'>
-          <p>© 2026 Zenbet Interactive Ltd. Todos los derechos reservados.</p>
+          <div className='flex flex-wrap items-center gap-3'>
+            <p>© 2026 Zenbet Interactive Ltd. Todos los derechos reservados.</p>
+            <div className='flex items-center gap-2'>
+              <Link to='/terms' className='hover:text-white transition-colors'>Términos</Link>
+              <span>·</span>
+              <Link to='/privacy' className='hover:text-white transition-colors'>Privacidad</Link>
+              <span>·</span>
+              <Link to='/refunds' className='hover:text-white transition-colors'>Reembolsos</Link>
+            </div>
+          </div>
           <div className='flex items-center gap-4'>
             <span>TERMINAL V1.4</span>
             <span>·</span>

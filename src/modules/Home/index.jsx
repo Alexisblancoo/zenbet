@@ -322,7 +322,7 @@ export default function Home() {
               </h2>
               <p className='mt-2 font-sans text-xs sm:text-sm text-metallic-platinum leading-relaxed'>
                 Dricus du Plessis (1.85) + Islam Makhachev (1.45) + Alex Pereira (1.72).
-                Cuota estándar de 4.61 elevada automáticamente a cuota VIP con garantía de ganancia máxima.
+                Cuota estándar de 4.61 calculada algorítmicamente y elevada a cuota destacada con margen optimizado.
               </p>
 
               <div className='mt-4 flex items-center gap-6 font-mono text-xs'>
@@ -335,7 +335,7 @@ export default function Home() {
                   <span className='text-gold-specular font-black text-xl'>6.50</span>
                 </div>
                 <div>
-                  <span className='block text-emerald-400 text-[10px] uppercase'>Ganancia Extra</span>
+                  <span className='block text-emerald-400 text-[10px] uppercase'>Ganancia Extra Potencial</span>
                   <span className='text-emerald-400 font-bold'>+41.0%</span>
                 </div>
               </div>
@@ -350,7 +350,7 @@ export default function Home() {
                 <span>Apostar al Parlay 6.50</span>
               </button>
               <span className='font-mono text-[10px] text-center text-metallic-slate uppercase'>
-                Monto máximo: $500.00 USD · Bono Instantáneo
+                Monto máximo por orden: $500.00 USD · Multiplicador Transparente
               </span>
             </div>
           </div>
