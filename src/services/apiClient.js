@@ -1,5 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.zenbet.example.com';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/zenbet/backend';
 const apiClient = {
   async get(endpoint, options = {}) {
     return this.request(endpoint, { ...options, method: 'GET' });
