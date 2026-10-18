@@ -1,32 +1,17 @@
 {
-  "name": "zenbet",
+  "name": "zenbet-monorepo",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "description": "Zenbet monorepo containing .NET Clean Architecture backend and React Vite frontend",
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "oxlint",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@studio-freight/lenis": "^1.0.42",
-    "autoprefixer": "^10.6.1",
-    "clsx": "^2.1.1",
-    "gsap": "^3.15.0",
-    "lucide-react": "^1.59.0",
-    "postcss": "^8.5.30",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "react-router-dom": "^7.18.4",
-    "tailwind-merge": "^3.7.0"
-  },
-  "devDependencies": {
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7",
-    "@vitejs/plugin-react": "^6.1.1",
-    "oxlint": "^1.81.0",
-    "tailwindcss": "^3.4.19",
-    "vite": "^8.3.0"
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:backend": "dotnet build backend/Zenbet.EventsMarkets.sln",
+    "test:backend": "dotnet test backend/Zenbet.EventsMarkets.sln"
   }
 }

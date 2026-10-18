@@ -7,18 +7,32 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
 *.local
+.env.local
+.env.*.local
 
-# Editor directories and files
+# .NET / C# Build and Output
+[Bb]in/
+[Oo]bj/
+[Aa]pp[Hh]ost/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+.vs/
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+
+# Test Results
+TestResults/
+*.trx
+
+# Package cache
+*.nupkg
+packages/

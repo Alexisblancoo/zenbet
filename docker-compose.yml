@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: zenbet-events-markets-db
+    environment:
+      POSTGRES_DB: zenbet_events_markets
+      POSTGRES_USER: zenbet
+      POSTGRES_PASSWORD: zenbet_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zenbet -d zenbet_events_markets"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile
+    container_name: zenbet-events-markets-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__EventsMarkets: "Host=postgres;Database=zenbet_events_markets;Username=zenbet;Password=zenbet_secret"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  test-runner:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile.test
+    container_name: zenbet-events-markets-tests
+    environment:
+      ASPNETCORE_ENVIRONMENT: Testing
+      ConnectionStrings__EventsMarkets: "Host=postgres;Database=zenbet_events_markets_test;Username=zenbet;Password=zenbet_secret"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: dotnet test --no-build
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: zenbet-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    profiles:
+      - full
+
+volumes:
+  postgres_data:

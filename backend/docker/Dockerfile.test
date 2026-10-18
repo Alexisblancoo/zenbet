@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+WORKDIR /src
+
+COPY ["Zenbet.EventsMarkets.sln", "./"]
+COPY ["Directory.Build.props", "./"]
+COPY ["global.json", "./"]
+COPY ["src/Zenbet.EventsMarkets.Domain/Zenbet.EventsMarkets.Domain.csproj", "src/Zenbet.EventsMarkets.Domain/"]
+COPY ["src/Zenbet.EventsMarkets.Application/Zenbet.EventsMarkets.Application.csproj", "src/Zenbet.EventsMarkets.Application/"]
+COPY ["src/Zenbet.EventsMarkets.Infrastructure/Zenbet.EventsMarkets.Infrastructure.csproj", "src/Zenbet.EventsMarkets.Infrastructure/"]
+COPY ["src/Zenbet.EventsMarkets.Api/Zenbet.EventsMarkets.Api.csproj", "src/Zenbet.EventsMarkets.Api/"]
+COPY ["tests/Zenbet.EventsMarkets.Application.Tests/Zenbet.EventsMarkets.Application.Tests.csproj", "tests/Zenbet.EventsMarkets.Application.Tests/"]
+
+RUN dotnet restore "Zenbet.EventsMarkets.sln"
+
+COPY . .
+WORKDIR "/src/tests/Zenbet.EventsMarkets.Application.Tests"
+RUN dotnet build "Zenbet.EventsMarkets.Application.Tests.csproj" -c Release --no-restore
