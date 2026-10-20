@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { CalendarClock, Check, Swords } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { CalendarClock, Check, Swords, TrendingDown, TrendingUp } from 'lucide-react';
 import { Badge } from '../../../components/common/ui';
 
 /**
@@ -32,6 +32,9 @@ export function buildSelectionId(eventId, fighterId) {
   return `${eventId}::${fighterId}`;
 }
 
+/** Duración del destello de movimiento de cuota; debe coincidir con `odds-flash-*` (design-system.css). */
+const ODDS_FLASH_MS = 800;
+
 /** Formatea ISO-8601 a "18 OCT, 04:00 P.M."; si no es fecha válida, devuelve el string tal cual. */
 function formatEventTime(startTime, locale) {
   if (!startTime) return null;
@@ -48,18 +51,56 @@ function formatEventTime(startTime, locale) {
     .toUpperCase();
 }
 
-/** Esquina de un peleador: nombre, récord y botón Moneyline. */
-function FighterCorner({ fighter, side, isSelected, onToggle }) {
-  const odds = Number(fighter.odds);
+/**
+ * Esquina de un peleador: nombre, récord y botón Moneyline con feed en vivo.
+ *
+ * @param {Object} props
+ * @param {Fighter} props.fighter
+ * @param {'left' | 'right'} props.side
+ * @param {boolean} props.isSelected
+ * @param {(fighter: Fighter) => void} props.onToggle
+ * @param {import('@/domain/odds').OddsQuote} [props.quote] Última cotización recibida por SignalR.
+ */
+function FighterCorner({ fighter, side, isSelected, onToggle, quote }) {
+  const sequence = quote?.sequence ?? 0;
+  // El destello es estado local y temporal: no toca el layout ni el árbol de la página.
+  const [flash, setFlash] = useState(() => ({ sequence, trend: null }));
+
+  // Ajuste en render (no en efecto): cada tick del feed reinicia el destello.
+  if (flash.sequence !== sequence) {
+    setFlash({ sequence, trend: quote && quote.trend !== 'unchanged' ? quote.trend : null });
+  }
+
+  // Apagado diferido a 800ms; si llega otro tick, el cleanup cancela el timer previo.
+  useEffect(() => {
+    if (!flash.trend) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      setFlash((previous) =>
+        previous.sequence === flash.sequence ? { ...previous, trend: null } : previous,
+      );
+    }, ODDS_FLASH_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [flash]);
+
+  const odds = Number(quote?.odds ?? fighter.odds);
   const oddsValid = Number.isFinite(odds) && odds > 1;
   const isDisabled = Boolean(fighter.suspended) || !oddsValid;
   const meta = [fighter.record, fighter.country].filter(Boolean).join(' · ');
   const alignment = side === 'right' ? 'items-end text-right' : 'items-start text-left';
+  const trend = quote?.trend ?? 'unchanged';
+
   const stateStyles = isSelected
     ? 'border-crimson bg-crimson text-white shadow-glow-crimson'
     : isDisabled
       ? 'border-obsidian-border bg-obsidian-elevated text-metallic-chrome opacity-40'
       : 'border-obsidian-border bg-obsidian-elevated text-metallic-chrome hover:border-crimson/70 hover:bg-crimson/10 hover:text-crimson active:translate-y-[1px]';
+
+  const flashClass =
+    flash.trend === 'up' ? ' odds-flash-up' : flash.trend === 'down' ? ' odds-flash-down' : '';
+
+  const trendLabel = trend === 'up' ? ', en alza' : trend === 'down' ? ', a la baja' : '';
 
   return (
     <div className={`flex min-w-0 flex-col gap-1.5 ${alignment}`}>
@@ -71,15 +112,30 @@ function FighterCorner({ fighter, side, isSelected, onToggle }) {
       </p>
       <button
         type='button'
-        onClick={() => onToggle(fighter)}
+        onClick={() => onToggle(fighter, odds)}
         disabled={isDisabled}
         aria-pressed={isSelected}
-        aria-label={`Moneyline ${fighter.name}: cuota ${oddsValid ? odds.toFixed(2) : 'no disponible'}`}
+        aria-label={`Moneyline ${fighter.name}: cuota ${oddsValid ? odds.toFixed(2) : 'no disponible'}${trendLabel}`}
         className={`mt-1 flex w-full items-center justify-center gap-1.5 border px-3 py-2 font-mono text-sm font-bold tabular-nums transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60 ${
           isDisabled ? 'cursor-not-allowed' : ''
-        } ${stateStyles}`}
+        } ${stateStyles}${flashClass}`}
       >
         {isSelected && <Check size={14} strokeWidth={3} aria-hidden='true' />}
+        {oddsValid && trend !== 'unchanged' && (
+          trend === 'up' ? (
+            <TrendingUp
+              size={13}
+              className={isSelected ? 'text-white' : 'text-odds-up'}
+              aria-hidden='true'
+            />
+          ) : (
+            <TrendingDown
+              size={13}
+              className={isSelected ? 'text-white' : 'text-odds-down'}
+              aria-hidden='true'
+            />
+          )
+        )}
         {oddsValid ? odds.toFixed(2) : '—'}
       </button>
     </div>
@@ -98,6 +154,7 @@ function FighterCorner({ fighter, side, isSelected, onToggle }) {
  * @param {(string[] | Set<string>)} [props.selectedIds] Ids de selecciones activas en el BetSlip.
  * @param {(selection: Object) => void} [props.onAddSelection]    Agrega la selección al BetSlip.
  * @param {(selectionId: string) => void} [props.onRemoveSelection] Elimina la selección del BetSlip (toggle).
+ * @param {Record<string, import('@/domain/odds').OddsQuote>} [props.oddsMap] Cotizaciones en vivo por selectionId.
  * @param {string} [props.locale]                      Locale para el formateo de hora.
  * @param {string} [props.className]                   Clases extra para el contenedor.
  */
@@ -106,6 +163,7 @@ export default function EventCard({
   selectedIds,
   onAddSelection,
   onRemoveSelection,
+  oddsMap,
   locale = 'es-MX',
   className = '',
 }) {
@@ -129,8 +187,9 @@ export default function EventCard({
   const isControlled = Array.isArray(selectedIds) || selectedIds instanceof Set;
   const activeIds = isControlled ? new Set(selectedIds) : uncontrolledIds;
 
-  const handleToggle = (fighter) => {
-    const odds = Number(fighter.odds);
+  const handleToggle = (fighter, liveOdds) => {
+    // La selección viaja con la cuota vigente del feed, no con el valor del render inicial.
+    const odds = Number(liveOdds ?? fighter.odds);
     if (!Number.isFinite(odds) || odds <= 1) return;
 
     const selectionId = buildSelectionId(id, fighter.id);
@@ -228,6 +287,7 @@ export default function EventCard({
             side='left'
             isSelected={activeIds.has(buildSelectionId(id, fighterA.id))}
             onToggle={handleToggle}
+            quote={oddsMap?.[buildSelectionId(id, fighterA.id)]}
           />
         )}
 
@@ -245,6 +305,7 @@ export default function EventCard({
             side='right'
             isSelected={activeIds.has(buildSelectionId(id, fighterB.id))}
             onToggle={handleToggle}
+            quote={oddsMap?.[buildSelectionId(id, fighterB.id)]}
           />
         )}
       </div>

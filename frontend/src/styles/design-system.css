@@ -254,6 +254,16 @@
     animation: zb-odds-fall 720ms var(--zb-ease-out) both;
   }
 
+  /* Destello de movimiento en vivo: arranque inmediato, decaimiento suave (800ms).
+     Sin `fill-mode`: al terminar, el botón recupera su estilo base (seleccionado/hover). */
+  .odds-flash-up {
+    animation: zb-odds-flash-up 800ms var(--zb-ease-out);
+  }
+
+  .odds-flash-down {
+    animation: zb-odds-flash-down 800ms var(--zb-ease-out);
+  }
+
   .reveal-up {
     animation: zb-reveal-up var(--zb-duration-reveal) var(--zb-ease-out) both;
   }
@@ -326,6 +336,42 @@
 
   100% {
     background-color: transparent;
+  }
+}
+
+@keyframes zb-odds-flash-up {
+  0% {
+    background-color: rgb(var(--zb-odds-up) / 0.3);
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--zb-odds-up) / 0.55),
+      0 0 22px -8px rgb(var(--zb-odds-up) / 0.6);
+  }
+
+  55% {
+    background-color: rgb(var(--zb-odds-up) / 0.09);
+  }
+
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+@keyframes zb-odds-flash-down {
+  0% {
+    background-color: rgb(var(--zb-odds-down) / 0.3);
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--zb-odds-down) / 0.55),
+      0 0 22px -8px rgb(var(--zb-odds-down) / 0.6);
+  }
+
+  55% {
+    background-color: rgb(var(--zb-odds-down) / 0.09);
+  }
+
+  100% {
+    background-color: transparent;
+    box-shadow: none;
   }
 }
 

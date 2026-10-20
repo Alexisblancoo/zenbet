@@ -2,8 +2,10 @@ import { useCallback, useMemo, useState } from 'react';
 import { CheckCircle2, Swords, X, AlertTriangle } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import BetSlip from '../components/BetSlip';
+import HubStatusBadge from '../components/HubStatusBadge';
 import apiClient from '@/services/apiClient';
 import { BALANCE_UPDATED_EVENT, useAuth } from '@/context/authState';
+import { useOddsHub } from '@/hooks/useOddsHub';
 
 /**
  * MmaEventsPage — Cartelera MMA con layout de dos columnas.
@@ -101,6 +103,9 @@ const EVENTS = [...MOCK_EVENTS].sort((a, b) =>
 const LIVE_EVENTS = EVENTS.filter((event) => event.status === 'live');
 const SCHEDULED_EVENTS = EVENTS.filter((event) => event.status !== 'live');
 
+// Mercados suscritos al hub: solo los visibles en la cartelera (identidad estable para el hook).
+const MARKET_IDS = EVENTS.map((event) => event.id);
+
 /* -------------------------------------------------------------------------- */
 /* UI auxiliar                                                                 */
 /* -------------------------------------------------------------------------- */
@@ -139,6 +144,12 @@ export default function MmaEventsPage() {
   const { user } = useAuth();
   const [selections, setSelections] = useState([]);
   const [lastBet, setLastBet] = useState(null);
+
+  // Cuotas en vivo: el canal se abre con la sesión activa y solo para los mercados en pantalla.
+  const { status: hubStatus, quotes, lastUpdateAt } = useOddsHub({
+    markets: MARKET_IDS,
+    enabled: Boolean(user),
+  });
 
   const selectedIds = useMemo(() => selections.map((item) => item.id), [selections]);
 
@@ -195,6 +206,7 @@ export default function MmaEventsPage() {
     selectedIds,
     onAddSelection: addSelection,
     onRemoveSelection: removeSelection,
+    oddsMap: quotes,
   };
 
   return (
@@ -217,6 +229,7 @@ export default function MmaEventsPage() {
           </div>
 
           <div className='flex flex-wrap items-center gap-2'>
+            <HubStatusBadge status={hubStatus} lastUpdateAt={lastUpdateAt} />
             <span className='inline-flex items-center gap-2 border border-crimson/60 bg-crimson/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-brutal text-crimson'>
               <span className='relative flex h-1.5 w-1.5' aria-hidden='true'>
                 <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-crimson opacity-80' />
