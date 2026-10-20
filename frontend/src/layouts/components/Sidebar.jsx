@@ -6,7 +6,8 @@ import {
   Activity, 
   Zap, 
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Wallet
 } from 'lucide-react';
 
 const SPORTS_CATEGORIES = [
@@ -87,6 +88,22 @@ export default function Sidebar() {
       </div>
 
       <div className='flex flex-col gap-1.5'>
+        <NavLink
+          to='/wallet'
+          className={({ isActive }) =>
+            `flex items-center justify-between px-3 py-2 text-xs font-mono uppercase tracking-wider border transition-colors ${
+              isActive
+                ? 'border-gold/40 bg-gold/5 text-gold-specular'
+                : 'border-transparent text-metallic-titanium hover:text-white hover:bg-obsidian-elevated hover:border-obsidian-border'
+            }`
+          }
+        >
+          <span className='flex items-center gap-2'>
+            <Wallet size={13} className='text-gold-imperial' />
+            Mi Billetera
+          </span>
+          <ChevronRight size={14} />
+        </NavLink>
         <NavLink
           to='/sportsbook'
           className='flex items-center justify-between px-3 py-2 text-xs font-mono uppercase tracking-wider text-metallic-titanium hover:text-white hover:bg-obsidian-elevated border border-transparent hover:border-obsidian-border transition-colors'

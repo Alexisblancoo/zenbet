@@ -82,6 +82,12 @@ export interface BetReceipt {
   readonly selectionCount: number;
   readonly idempotentReplay: boolean;
   readonly placedAt: number;
+  /** Metadatos para el historial de billetera (no alteran el contrato de la API). */
+  readonly eventName?: string;
+  readonly selectionName?: string;
+  readonly marketLabel?: string;
+  /** Cuenta que originó el recibo; evita mezclar sesiones en la misma pestaña. */
+  readonly accountId?: string;
 }
 
 export interface BetFailureField {

@@ -10,6 +10,7 @@ import Privacy from '@/modules/Legal/Privacy';
 import Refunds from '@/modules/Legal/Refunds';
 import RegisterPage from '@/modules/Auth/RegisterPage';
 import LoginPage from '@/modules/Auth/LoginPage';
+import WalletPage from '@/pages/WalletPage';
 
 export default function AppRouter() {
   return (
@@ -24,6 +25,14 @@ export default function AppRouter() {
           <Route path='refunds' element={<Refunds />} />
           <Route path='register' element={<RegisterPage />} />
           <Route path='login' element={<LoginPage />} />
+          <Route
+            path='wallet'
+            element={
+              <ProtectedRoute>
+                <WalletPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path='perfil'
             element={

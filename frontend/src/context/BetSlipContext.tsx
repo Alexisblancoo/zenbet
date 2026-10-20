@@ -47,6 +47,7 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
   const [isPlacingBet, setIsPlacingBet] = useState(false);
   const [error, setError] = useState<BetFailure | null>(null);
   const [receipt, setReceipt] = useState<BetReceipt | null>(null);
+  const [receipts, setReceipts] = useState<readonly BetReceipt[]>([]);
 
   const attemptRef = useRef<AttemptKey | null>(null);
   const placingRef = useRef(false);
@@ -230,9 +231,20 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
           selectionCount: 1,
           idempotentReplay: result.idempotentReplay,
           placedAt: Date.now(),
+          eventName: selection.eventName,
+          selectionName: selection.selectionName,
+          marketLabel: selection.marketLabel,
+          accountId: String(user.id),
         };
 
         setReceipt(nextReceipt);
+
+        // Historial de la sesión para el dashboard de billetera. Un replay no
+        // vuelve a registrar el movimiento; ya existe en el backend.
+        if (!nextReceipt.idempotentReplay && (nextReceipt.betId || nextReceipt.transactionId)) {
+          setReceipts((previous) => [nextReceipt, ...previous].slice(0, 25));
+        }
+
         setSelections((previous) =>
           previous.filter((item) => item.selectionId !== selection.selectionId),
         );
@@ -269,6 +281,7 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
       isPlacingBet,
       error,
       receipt,
+      receipts,
       setVisibleMarkets,
       addSelection,
       removeSelection,
@@ -287,6 +300,7 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
       isPlacingBet,
       error,
       receipt,
+      receipts,
       setVisibleMarkets,
       addSelection,
       removeSelection,

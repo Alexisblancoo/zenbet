@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Wallet, Menu, X, User, LogOut, UserPlus, LogIn } from 'lucide-react';
+import { Wallet, Menu, X, User, LogOut, UserPlus, LogIn, ChevronRight } from 'lucide-react';
 import LoginModal from '@/modules/Auth/LoginModal';
 import RegisterModal from '@/modules/Auth/RegisterModal';
 import { useAuth } from '@/context/authState';
@@ -78,11 +78,20 @@ export default function Header() {
             </div>
 
             {/* Saldo / Billetera */}
-            <div className='flex items-center gap-2 border border-obsidian-border bg-obsidian-surface px-3 py-1 font-mono text-xs'>
+            <Link
+              to={user ? '/wallet' : '/login'}
+              title={user ? 'Abrir mi billetera' : 'Inicia sesión para ver tu billetera'}
+              className='group flex items-center gap-2 border border-obsidian-border bg-obsidian-surface px-3 py-1 font-mono text-xs transition-colors hover:border-gold/50 hover:bg-obsidian-elevated'
+            >
               <Wallet size={13} className='text-gold-imperial' aria-hidden='true' />
               <span className='text-metallic-titanium'>SALDO:</span>
               <span className='font-bold text-gold-specular tabular-nums'>{balanceLabel}</span>
-            </div>
+              <ChevronRight
+                size={12}
+                className='text-metallic-slate transition-colors group-hover:text-gold-imperial'
+                aria-hidden='true'
+              />
+            </Link>
 
             {/* Auth Buttons o Perfil */}
             {user ? (
@@ -154,6 +163,16 @@ export default function Header() {
             >
               Sportsbook Live
             </NavLink>
+            {user ? (
+              <Link
+                to='/wallet'
+                onClick={() => setMobileMenuOpen(false)}
+                className='flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-gold-specular py-1'
+              >
+                <Wallet size={14} aria-hidden='true' />
+                Mi billetera
+              </Link>
+            ) : null}
             <div className='border-t border-obsidian-border pt-3 flex flex-col gap-2 font-mono text-xs'>
               <div className='flex items-center justify-between text-metallic-titanium'>
                 <span>SALDO DISPONIBLE:</span>

@@ -39,6 +39,10 @@ domain/bets.ts                Selecciones, cuota/retorno, stake, GUID, errores
 6. Éxito: se muestra un recibo (con `betId`/`transactionId`), se vacía el pick y
    se emite `BALANCE_UPDATED_EVENT` con `newBalance` para que `AuthContext`
    actualice el saldo visible.
+7. El recibo también se guarda en `BetSlipContext.receipts` (máximo 25) con
+   `eventName`, `selectionName`, `marketLabel` y `accountId`. `/wallet` los cruza
+   con el historial y los muestra como apuestas `pending` de la sesión. El botón
+   **Billetera** del recibo abre el dashboard.
 
 La llave se reutiliza solo si el reintento conserva la misma intención
 (`selectionId + cuota aceptada + stake`). Un fallo de red/timeout conserva la
@@ -70,6 +74,8 @@ El backend de apuestas devuelve 422 como `{ success: false, error }`; por eso
 - No hay endpoint de billetera. `AuthUser.walletId` se normaliza si el login lo
   entrega (`walletId`, `wallet_id` o `wallet.id`). Solo en desarrollo se puede
   suplir con `VITE_DEV_WALLET_ID`.
+- El historial histórico de `/wallet` es demo hasta que existan endpoints GET;
+  ver `src/modules/Wallet/README.md`. Las apuestas de la sesión sí son reales.
 
 ## Variables de entorno
 

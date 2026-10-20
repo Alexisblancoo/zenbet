@@ -23,6 +23,8 @@ export interface BetSlipContextValue {
   readonly isPlacingBet: boolean;
   readonly error: BetFailure | null;
   readonly receipt: BetReceipt | null;
+  /** Recibos confirmados en esta sesión, del más reciente al más antiguo. */
+  readonly receipts: readonly BetReceipt[];
 
   /** Declara los mercados visibles para que el hub solo emita esos grupos. */
   setVisibleMarkets(markets: readonly string[]): void;

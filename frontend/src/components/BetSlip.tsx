@@ -15,6 +15,7 @@ import {
   Trash2,
   TrendingDown,
   TrendingUp,
+  Wallet,
   X,
   Zap,
 } from 'lucide-react';
@@ -346,14 +347,23 @@ export default function BetSlip({
             </p>
           )}
 
-          <button
-            type='button'
-            onClick={clearReceipt}
-            className='mt-5 flex w-full items-center justify-center gap-2 border border-crimson/60 bg-crimson/10 px-4 py-3 font-display text-xs font-extrabold uppercase tracking-brutal text-crimson transition-colors duration-150 hover:bg-crimson/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70'
-          >
-            <Plus size={14} aria-hidden='true' />
-            Nueva apuesta
-          </button>
+          <div className='mt-5 grid grid-cols-2 gap-2'>
+            <button
+              type='button'
+              onClick={clearReceipt}
+              className='flex items-center justify-center gap-2 border border-crimson/60 bg-crimson/10 px-3 py-3 font-display text-[11px] font-extrabold uppercase tracking-brutal text-crimson transition-colors duration-150 hover:bg-crimson/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70'
+            >
+              <Plus size={14} aria-hidden='true' />
+              Nueva
+            </button>
+            <Link
+              to='/wallet'
+              className='flex items-center justify-center gap-2 border border-obsidian-border bg-obsidian-surface/60 px-3 py-3 font-display text-[11px] font-extrabold uppercase tracking-brutal text-metallic-platinum transition-colors duration-150 hover:border-gold/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60'
+            >
+              <Wallet size={14} aria-hidden='true' />
+              Billetera
+            </Link>
+          </div>
         </div>
       ) : (
         <>
