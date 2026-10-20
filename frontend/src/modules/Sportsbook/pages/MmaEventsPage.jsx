@@ -3,6 +3,7 @@ import { CheckCircle2, Swords, X, AlertTriangle } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import BetSlip from '../components/BetSlip';
 import apiClient from '@/services/apiClient';
+import { BALANCE_UPDATED_EVENT, useAuth } from '@/context/authState';
 
 /**
  * MmaEventsPage — Cartelera MMA con layout de dos columnas.
@@ -135,6 +136,7 @@ function SectionHeading({ id, label, count, live = false }) {
 /* -------------------------------------------------------------------------- */
 
 export default function MmaEventsPage() {
+  const { user } = useAuth();
   const [selections, setSelections] = useState([]);
   const [lastBet, setLastBet] = useState(null);
 
@@ -155,16 +157,8 @@ export default function MmaEventsPage() {
 
   /** Envío real hacia la Web API C# con transacción ACID y Shadow-Banning */
   const placeBet = useCallback(async ({ selections: picks, stake, totalOdds, potentialPayout, termsAccepted }) => {
-    let savedUser = null;
-    try {
-      const rawUser = localStorage.getItem('zenbet_user');
-      if (rawUser) savedUser = JSON.parse(rawUser);
-    } catch {
-      // Fallback
-    }
-
     const payload = {
-      userId: savedUser?.id || 1,
+      userId: user?.id ?? 1,
       eventId: picks.map((p) => p.id || p.selection || 'mma-event').join('+'),
       amount: stake,
       odds: totalOdds,
@@ -189,11 +183,11 @@ export default function MmaEventsPage() {
     });
 
     if (result?.newBalance !== undefined) {
-      window.dispatchEvent(new CustomEvent('zenbet_balance_updated', { detail: result.newBalance }));
+      window.dispatchEvent(new CustomEvent(BALANCE_UPDATED_EVENT, { detail: result.newBalance }));
     }
 
     setSelections([]);
-  }, []);
+  }, [user]);
 
   const handleDismissConfirmation = useCallback(() => setLastBet(null), []);
 

@@ -1,0 +1,224 @@
+/* ==========================================================================
+   ZENBET / DESIGN TOKENS
+   Fuente de verdad del sistema visual. Los tokens primitivos se declaran como
+   canales RGB para que Tailwind pueda aplicar opacidad sin perder el matiz.
+   Dirección de arte: obsidiana profunda, cromo frío, glass y acentos de casa.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* ------------------------------------------------------------------------
+     Primitivos / superficies
+     Prohibido el negro puro: todos los neutros llevan una traza azul-violeta.
+     ------------------------------------------------------------------------ */
+  --zb-obsidian-1000: 4 5 8;
+  --zb-obsidian-950: 7 9 14;
+  --zb-obsidian-900: 11 14 21;
+  --zb-obsidian-850: 15 19 29;
+  --zb-obsidian-800: 17 22 33;
+  --zb-obsidian-750: 23 29 42;
+  --zb-obsidian-700: 30 37 53;
+  --zb-obsidian-600: 40 49 68;
+
+  /* Líneas y separadores */
+  --zb-line-subtle: 28 34 48;
+  --zb-line: 38 46 64;
+  --zb-line-strong: 54 65 88;
+  --zb-line-glass: 226 232 240;
+
+  /* Tinta */
+  --zb-ink-primary: 244 247 252;
+  --zb-ink-secondary: 185 195 212;
+  --zb-ink-muted: 132 144 165;
+  --zb-ink-faint: 91 102 122;
+  --zb-ink-inverse: 7 9 14;
+
+  /* ------------------------------------------------------------------------
+     Marca / Zenbet
+     ------------------------------------------------------------------------ */
+  --zb-crimson-50: 255 235 239;
+  --zb-crimson-100: 255 214 223;
+  --zb-crimson-200: 255 173 192;
+  --zb-crimson-300: 255 133 160;
+  --zb-crimson-400: 255 92 129;
+  --zb-crimson-500: 255 46 81;
+  --zb-crimson-600: 230 0 38;
+  --zb-crimson-700: 179 0 30;
+  --zb-crimson-800: 128 0 21;
+  --zb-crimson-900: 77 0 13;
+
+  --zb-gold-100: 253 243 199;
+  --zb-gold-400: 245 158 11;
+  --zb-gold-500: 212 175 55;
+  --zb-gold-700: 153 125 32;
+  --zb-gold-900: 82 67 16;
+
+  /* Metales fríos: soporte para cromo, titanio y acero */
+  --zb-metal-50: 242 245 250;
+  --zb-metal-100: 226 232 240;
+  --zb-metal-200: 203 213 225;
+  --zb-metal-300: 180 192 208;
+  --zb-metal-400: 148 163 184;
+  --zb-metal-500: 100 116 139;
+  --zb-metal-600: 51 65 85;
+  --zb-metal-700: 30 41 59;
+
+  /* ------------------------------------------------------------------------
+     Semántica de apuestas
+     Subida = verde neón; bajada = rojo fresco; live = ámbar; neutro = cian.
+     ------------------------------------------------------------------------ */
+  --zb-odds-up: 61 245 165;
+  --zb-odds-up-strong: 19 216 138;
+  --zb-odds-down: 255 77 109;
+  --zb-odds-down-strong: 224 35 74;
+  --zb-odds-live: 255 184 77;
+  --zb-odds-neutral: 125 211 252;
+  --zb-odds-draw: 167 139 250;
+
+  /* ------------------------------------------------------------------------
+     Alias semánticos (consumir estos en la UI, no los primitivos)
+     ------------------------------------------------------------------------ */
+  --zb-canvas: var(--zb-obsidian-1000);
+  --zb-canvas-raised: var(--zb-obsidian-950);
+  --zb-surface: var(--zb-obsidian-900);
+  --zb-surface-raised: var(--zb-obsidian-800);
+  --zb-surface-elevated: var(--zb-obsidian-750);
+  --zb-surface-interactive: var(--zb-obsidian-700);
+
+  --zb-border: var(--zb-line-subtle);
+  --zb-border-strong: var(--zb-line);
+  --zb-border-active: var(--zb-line-strong);
+
+  --zb-text: var(--zb-ink-primary);
+  --zb-text-secondary: var(--zb-ink-secondary);
+  --zb-text-muted: var(--zb-ink-muted);
+  --zb-text-faint: var(--zb-ink-faint);
+
+  --zb-accent: var(--zb-crimson-500);
+  --zb-accent-strong: var(--zb-crimson-600);
+  --zb-accent-soft: var(--zb-crimson-200);
+  --zb-positive: var(--zb-odds-up);
+  --zb-negative: var(--zb-odds-down);
+  --zb-warning: var(--zb-odds-live);
+  --zb-info: var(--zb-odds-neutral);
+
+  /* ------------------------------------------------------------------------
+     Tipografía
+     Display para titulares; sans para lectura; mono para cuotas y cifras.
+     ------------------------------------------------------------------------ */
+  --zb-font-display: 'Syne', 'Clash Display', 'Monument Extended', sans-serif;
+  --zb-font-sans: 'Space Grotesk', 'Noto Sans', 'Segoe UI', sans-serif;
+  --zb-font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', monospace;
+  --zb-font-odds: var(--zb-font-mono);
+
+  --zb-text-2xs: 0.625rem;
+  --zb-text-xs: 0.6875rem;
+  --zb-text-sm: 0.8125rem;
+  --zb-text-base: 0.9375rem;
+  --zb-text-md: 1rem;
+  --zb-text-lg: 1.125rem;
+  --zb-text-xl: 1.375rem;
+  --zb-text-2xl: 1.75rem;
+  --zb-text-3xl: 2.25rem;
+  --zb-text-4xl: 3rem;
+  --zb-text-5xl: 4rem;
+
+  /* ------------------------------------------------------------------------
+     Espaciado: rejilla base 4px, ritmo preferente 8px.
+     Los medios pasos (2/6/10/14px) son ajuste óptico, no estructura.
+     ------------------------------------------------------------------------ */
+  --zb-space-0: 0px;
+  --zb-space-half: 2px;
+  --zb-space-1: 4px;
+  --zb-space-1-5: 6px;
+  --zb-space-2: 8px;
+  --zb-space-2-5: 10px;
+  --zb-space-3: 12px;
+  --zb-space-3-5: 14px;
+  --zb-space-4: 16px;
+  --zb-space-5: 20px;
+  --zb-space-6: 24px;
+  --zb-space-7: 28px;
+  --zb-space-8: 32px;
+  --zb-space-9: 36px;
+  --zb-space-10: 40px;
+  --zb-space-11: 44px;
+  --zb-space-12: 48px;
+  --zb-space-14: 56px;
+  --zb-space-16: 64px;
+  --zb-space-18: 72px;
+  --zb-space-20: 80px;
+  --zb-space-24: 96px;
+  --zb-space-28: 112px;
+  --zb-space-32: 128px;
+
+  /* Dimensiones de producto */
+  --zb-control-sm: 32px;
+  --zb-control-md: 40px;
+  --zb-control-lg: 48px;
+  --zb-nav-height: 64px;
+  --zb-betslip-width: 380px;
+  --zb-content-max: 1440px;
+
+  /* ------------------------------------------------------------------------
+     Radios exactos
+     ------------------------------------------------------------------------ */
+  --zb-radius-none: 0px;
+  --zb-radius-xs: 2px;
+  --zb-radius-sm: 4px;
+  --zb-radius-md: 8px;
+  --zb-radius-lg: 12px;
+  --zb-radius-xl: 16px;
+  --zb-radius-2xl: 20px;
+  --zb-radius-full: 9999px;
+
+  /* ------------------------------------------------------------------------
+     Elevación / dispersión / glass
+     ------------------------------------------------------------------------ */
+  --zb-shadow-panel:
+    inset 0 1px 0 rgb(255 255 255 / 0.045),
+    0 18px 48px -28px rgb(0 0 0 / 0.95);
+  --zb-shadow-float:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 28px 80px -24px rgb(0 0 0 / 0.92),
+    0 0 0 1px rgb(255 255 255 / 0.035);
+  --zb-shadow-inset:
+    inset 0 1px 2px rgb(0 0 0 / 0.42),
+    inset 0 -1px 0 rgb(255 255 255 / 0.025);
+  --zb-shadow-focus:
+    0 0 0 2px rgb(7 9 14 / 1),
+    0 0 0 4px rgb(var(--zb-accent) / 0.55);
+  --zb-shadow-up: 0 0 28px -6px rgb(var(--zb-odds-up) / 0.34);
+  --zb-shadow-down: 0 0 28px -6px rgb(var(--zb-odds-down) / 0.34);
+  --zb-shadow-live: 0 0 32px -8px rgb(var(--zb-odds-live) / 0.36);
+
+  --zb-glass-bg: rgb(11 14 21 / 0.72);
+  --zb-glass-bg-strong: rgb(11 14 21 / 0.88);
+  --zb-glass-border: rgb(226 232 240 / 0.09);
+  --zb-glass-highlight: rgb(255 255 255 / 0.055);
+  --zb-glass-blur: 20px;
+
+  /* ------------------------------------------------------------------------
+     Movimiento: salida exponencial, sin rebote
+     ------------------------------------------------------------------------ */
+  --zb-duration-fast: 120ms;
+  --zb-duration-base: 180ms;
+  --zb-duration-slow: 280ms;
+  --zb-duration-reveal: 480ms;
+  --zb-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --zb-ease-snap: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --zb-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* ------------------------------------------------------------------------
+     Capas
+     ------------------------------------------------------------------------ */
+  --zb-z-base: 0;
+  --zb-z-sticky: 30;
+  --zb-z-header: 40;
+  --zb-z-betslip: 50;
+  --zb-z-overlay: 60;
+  --zb-z-modal: 70;
+  --zb-z-toast: 80;
+  --zb-z-max: 9999;
+}

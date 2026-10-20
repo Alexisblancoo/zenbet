@@ -1,56 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { Wallet, Menu, X, User, LogOut, UserPlus, LogIn } from 'lucide-react';
-import AuthModal from '@/modules/Auth/AuthModal';
+import LoginModal from '@/modules/Auth/LoginModal';
+import RegisterModal from '@/modules/Auth/RegisterModal';
+import { useAuth } from '@/context/authState';
 
 export default function Header() {
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('register');
-  const [user, setUser] = useState(null);
-  const [balance, setBalance] = useState(1450.00);
 
-  // Cargar usuario inicial y saldo desde localStorage
-  useEffect(() => {
-    try {
-      const rawUser = localStorage.getItem('zenbet_user');
-      if (rawUser) {
-        const parsed = JSON.parse(rawUser);
-        setUser(parsed);
-        if (parsed.balance !== undefined) {
-          setBalance(parsed.balance);
-        }
-      }
-    } catch (e) {
-      console.warn('Error leyendo usuario de localStorage', e);
-    }
-
-    // Escuchar eventos de actualización de saldo tras apuestas
-    const handleBalanceUpdate = (e) => {
-      if (typeof e.detail === 'number') {
-        setBalance(e.detail);
-        setUser((prev) => (prev ? { ...prev, balance: e.detail } : prev));
-      }
-    };
-
-    window.addEventListener('zenbet_balance_updated', handleBalanceUpdate);
-    return () => window.removeEventListener('zenbet_balance_updated', handleBalanceUpdate);
-  }, []);
-
-  const handleAuthSuccess = (authenticatedUser) => {
-    if (authenticatedUser) {
-      setUser(authenticatedUser);
-      if (authenticatedUser.balance !== undefined) {
-        setBalance(authenticatedUser.balance);
-      }
-    }
-  };
+  const balanceLabel = user ? `$${user.walletBalance.toFixed(2)}` : '$—';
 
   const handleLogout = () => {
-    localStorage.removeItem('zenbet_token');
-    localStorage.removeItem('zenbet_user');
-    setUser(null);
-    setBalance(1450.00);
+    logout();
+    setMobileMenuOpen(false);
+  };
+
+  const openAuthModal = (mode) => {
+    setAuthMode(mode);
+    setAuthModalOpen(true);
   };
 
   const navLinkClasses = ({ isActive }) =>
@@ -111,7 +81,7 @@ export default function Header() {
             <div className='flex items-center gap-2 border border-obsidian-border bg-obsidian-surface px-3 py-1 font-mono text-xs'>
               <Wallet size={13} className='text-gold-imperial' aria-hidden='true' />
               <span className='text-metallic-titanium'>SALDO:</span>
-              <span className='font-bold text-gold-specular tabular-nums'>${balance.toFixed(2)}</span>
+              <span className='font-bold text-gold-specular tabular-nums'>{balanceLabel}</span>
             </div>
 
             {/* Auth Buttons o Perfil */}
@@ -135,10 +105,7 @@ export default function Header() {
               <div className='flex items-center gap-2'>
                 <button
                   type='button'
-                  onClick={() => {
-                    setAuthMode('login');
-                    setAuthModalOpen(true);
-                  }}
+                  onClick={() => openAuthModal('login')}
                   className='border border-obsidian-border bg-obsidian-surface px-3 py-1 font-display text-xs font-bold uppercase tracking-wider text-metallic-titanium hover:text-white hover:border-metallic-titanium transition-all flex items-center gap-1.5'
                   aria-label='Iniciar sesión'
                 >
@@ -147,10 +114,7 @@ export default function Header() {
                 </button>
                 <button
                   type='button'
-                  onClick={() => {
-                    setAuthMode('register');
-                    setAuthModalOpen(true);
-                  }}
+                  onClick={() => openAuthModal('register')}
                   className='border-brutal-crimson bg-crimson px-3 py-1 font-display text-xs font-bold uppercase tracking-wider text-white shadow-brutal-crimson-sm transition-all hover:bg-crimson-pure active:translate-x-0.5 active:translate-y-0.5 flex items-center gap-1.5'
                   aria-label='Crear nueva cuenta'
                 >
@@ -193,7 +157,7 @@ export default function Header() {
             <div className='border-t border-obsidian-border pt-3 flex flex-col gap-2 font-mono text-xs'>
               <div className='flex items-center justify-between text-metallic-titanium'>
                 <span>SALDO DISPONIBLE:</span>
-                <span className='font-bold text-gold-specular'>${balance.toFixed(2)}</span>
+                <span className='font-bold text-gold-specular'>{balanceLabel}</span>
               </div>
               {!user ? (
                 <div className='grid grid-cols-2 gap-2 pt-2'>
@@ -201,8 +165,7 @@ export default function Header() {
                     type='button'
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      setAuthMode('login');
-                      setAuthModalOpen(true);
+                      openAuthModal('login');
                     }}
                     className='border border-obsidian-border bg-obsidian-void py-2 text-center text-xs font-bold uppercase text-white'
                   >
@@ -212,8 +175,7 @@ export default function Header() {
                     type='button'
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      setAuthMode('register');
-                      setAuthModalOpen(true);
+                      openAuthModal('register');
                     }}
                     className='bg-crimson py-2 text-center text-xs font-bold uppercase text-white'
                   >
@@ -237,13 +199,20 @@ export default function Header() {
         )}
       </header>
 
-      {/* Modal de Registro e Inicio de Sesión */}
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        initialMode={authMode}
-        onAuthSuccess={handleAuthSuccess}
-      />
+      {/* Modales de autenticación (estado global vía AuthContext) */}
+      {authMode === 'login' ? (
+        <LoginModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+          onSwitchToRegister={() => setAuthMode('register')}
+        />
+      ) : (
+        <RegisterModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+          onSwitchToLogin={() => setAuthMode('login')}
+        />
+      )}
     </>
   );
 }
