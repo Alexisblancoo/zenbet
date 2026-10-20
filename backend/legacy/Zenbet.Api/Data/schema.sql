@@ -102,7 +102,6 @@ CREATE TABLE IF NOT EXISTS matches (
 -- Índices de consulta de alta frecuencia para cartelera y filtrado
 CREATE INDEX IF NOT EXISTS idx_matches_start_time ON matches(start_time);
 CREATE INDEX IF NOT EXISTS idx_matches_league ON matches(league);
-CREATE INDEX IF NOT EXISTS idx_matches_active_upcoming ON matches(start_time) WHERE start_time > NOW();
 
 -- Semilla de partidos de fútbol de prueba (activos, start_time > NOW())
 INSERT INTO matches (home_team, away_team, league, start_time, odd_home, odd_draw, odd_away)

@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS matches (
 -- Optimización para consultas frecuentes de partidos activos y filtrado por liga
 CREATE INDEX IF NOT EXISTS idx_matches_start_time ON matches(start_time);
 CREATE INDEX IF NOT EXISTS idx_matches_league ON matches(league);
-CREATE INDEX IF NOT EXISTS idx_matches_active_upcoming ON matches(start_time) WHERE start_time > NOW();
 
 -- 3. INSERCIÓN DE PARTIDOS DE PRUEBA (ACTIVOS / FECHA FUTURA)
 -- Inserciones idempotentes (no duplican si ya existen los equipos)

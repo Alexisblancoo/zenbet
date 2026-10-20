@@ -21,8 +21,13 @@ export const AUTH_ENDPOINTS = {
  * (p. ej. la API legacy expone `/api/auth/*` mientras la nueva expone `/api/v1/auth/*`).
  */
 const AUTH_BASE_URL = (() => {
-  const trimmed = import.meta.env.VITE_AUTH_URL?.trim();
-  return trimmed ? trimmed.replace(/\/+$/, '') : undefined;
+  const explicit = import.meta.env.VITE_AUTH_URL?.trim();
+  if (explicit) return explicit.replace(/\/+$/, '');
+
+  const legacyBase = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (legacyBase) return legacyBase.replace(/\/+$/, '');
+
+  return undefined;
 })();
 
 function authRequestConfig(): { baseURL: string } | undefined {

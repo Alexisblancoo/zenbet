@@ -7,6 +7,7 @@ namespace Zenbet.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 public class AuthController : ControllerBase
 {
     private readonly DbConnectionFactory _connectionFactory;
@@ -96,7 +97,7 @@ public class AuthController : ControllerBase
                 // Token de sesión representativo (compatible con el formato local zenbet_token)
                 string simulatedToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + "." + user.Id;
 
-                return CreatedAtAction(nameof(GetBalance), new { userId = user.Id }, new AuthResponse
+                return StatusCode(StatusCodes.Status201Created, new AuthResponse
                 {
                     Status = "success",
                     Message = "Usuario registrado exitosamente con términos legales aceptados.",

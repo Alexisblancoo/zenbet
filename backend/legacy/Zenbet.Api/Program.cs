@@ -25,12 +25,19 @@ builder.Services.AddScoped<IShadowBanningEngine, ShadowBanningEngine>();
 builder.Services.AddScoped<IBetEngine, BetEngine>();
 builder.Services.AddScoped<DbInitializer>();
 
-// 4. Configuración de Política de CORS abierta para 'http://localhost:5173'
+// 4. Configuración de Política de CORS abierta para desarrollo
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ZenbetCorsPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "http://localhost:3000",
+                "http://localhost:4200",
+                "http://localhost:8080",
+                "https://localhost:5173",
+                "https://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
