@@ -200,7 +200,10 @@ export default function EventCard({
     } else {
       onAddSelection?.({
         id: selectionId,
+        selectionId,
         eventId: id,
+        // En la cartelera mock el combate ES el mercado Moneyline.
+        marketId: id,
         eventName: title,
         market: 'Moneyline',
         selection: fighter.name,

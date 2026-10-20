@@ -1,23 +1,21 @@
-import { useCallback, useMemo, useState } from 'react';
-import { CheckCircle2, Swords, X, AlertTriangle } from 'lucide-react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { Swords } from 'lucide-react';
 import EventCard from '../components/EventCard';
-import BetSlip from '../components/BetSlip';
 import HubStatusBadge from '../components/HubStatusBadge';
-import apiClient from '@/services/apiClient';
-import { BALANCE_UPDATED_EVENT, useAuth } from '@/context/authState';
-import { useOddsHub } from '@/hooks/useOddsHub';
+import BetSlip from '@/components/BetSlip';
+import { useBetSlip } from '@/context/betSlipState';
 
 /**
  * MmaEventsPage — Cartelera MMA con layout de dos columnas.
  *
  * Columna izquierda: listado de combates (en vivo primero) con cuotas Moneyline.
- * Columna derecha: boleto de apuestas sticky que sincroniza su estado con `selections`.
+ * Columna derecha: boleto de apuestas sticky. El boleto vive en un store global
+ * (`useBetSlip`) que también es dueño del canal SignalR: esta página solo
+ * declara los mercados visibles y consume las cuotas.
  *
- * Datos simulados: reemplazar `MOCK_EVENTS` por el feed real (services/apiClient.js
- * o el hook useOddsStream.js) manteniendo el mismo contrato `FightEvent`.
+ * Datos simulados: reemplazar `MOCK_EVENTS` por el feed real manteniendo el
+ * mismo contrato `FightEvent`.
  */
-
-const MONEY_FORMATTER = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'USD' });
 
 /* -------------------------------------------------------------------------- */
 /* Datos simulados de la cartelera                                             */
@@ -141,70 +139,46 @@ function SectionHeading({ id, label, count, live = false }) {
 /* -------------------------------------------------------------------------- */
 
 export default function MmaEventsPage() {
-  const { user } = useAuth();
-  const [selections, setSelections] = useState([]);
-  const [lastBet, setLastBet] = useState(null);
+  const {
+    selections,
+    quotes,
+    hubStatus,
+    lastUpdateAt,
+    setVisibleMarkets,
+    addSelection,
+    removeSelection,
+  } = useBetSlip();
 
-  // Cuotas en vivo: el canal se abre con la sesión activa y solo para los mercados en pantalla.
-  const { status: hubStatus, quotes, lastUpdateAt } = useOddsHub({
-    markets: MARKET_IDS,
-    enabled: Boolean(user),
-  });
+  // El provider comparte una sola conexión SignalR entre cartelera y boleto.
+  useEffect(() => {
+    setVisibleMarkets(MARKET_IDS);
+    return () => setVisibleMarkets([]);
+  }, [setVisibleMarkets]);
 
-  const selectedIds = useMemo(() => selections.map((item) => item.id), [selections]);
+  const selectedIds = useMemo(
+    () => selections.map((item) => item.selectionId),
+    [selections],
+  );
 
-  /** Agrega una selección al boleto. Regla de casa: un pick por combate (reemplaza la cuota previa del mismo evento). */
-  const addSelection = useCallback((selection) => {
-    setSelections((prev) => [
-      ...prev.filter((item) => item.eventId !== selection.eventId),
-      selection,
-    ]);
-  }, []);
-
-  /** Elimina una selección individual (disparado desde el BetSlip o al tocar la cuota activa). */
-  const removeSelection = useCallback((selectionId) => {
-    setSelections((prev) => prev.filter((item) => item.id !== selectionId));
-  }, []);
-
-  /** Envío real hacia la Web API C# con transacción ACID y Shadow-Banning */
-  const placeBet = useCallback(async ({ selections: picks, stake, totalOdds, potentialPayout, termsAccepted }) => {
-    const payload = {
-      userId: user?.id ?? 1,
-      eventId: picks.map((p) => p.id || p.selection || 'mma-event').join('+'),
-      amount: stake,
-      odds: totalOdds,
-      termsAccepted: Boolean(termsAccepted),
-    };
-
-    const result = await apiClient.post('/bet/place', payload);
-
-    const effectiveOdds = result?.effectiveOdds ?? totalOdds;
-    const finalPayout = stake * effectiveOdds;
-
-    setLastBet({
-      count: picks.length,
-      stake,
-      totalOdds,
-      effectiveOdds,
-      potentialPayout: finalPayout,
-      ledgerId: result?.ledgerId,
-      newBalance: result?.newBalance,
-      shadowBanned: result?.shadowBanned,
-      appliedDelayMs: result?.appliedDelayMs,
-    });
-
-    if (result?.newBalance !== undefined) {
-      window.dispatchEvent(new CustomEvent(BALANCE_UPDATED_EVENT, { detail: result.newBalance }));
-    }
-
-    setSelections([]);
-  }, [user]);
-
-  const handleDismissConfirmation = useCallback(() => setLastBet(null), []);
+  /** Normaliza el pick de EventCard al contrato del store global. */
+  const handleAddSelection = useCallback(
+    (selection) => {
+      addSelection({
+        selectionId: selection.selectionId ?? selection.id,
+        eventId: selection.eventId,
+        marketId: selection.marketId ?? selection.eventId,
+        selectionName: selection.selection,
+        eventName: selection.eventName,
+        marketLabel: selection.market,
+        odds: selection.odds,
+      });
+    },
+    [addSelection],
+  );
 
   const cardProps = {
     selectedIds,
-    onAddSelection: addSelection,
+    onAddSelection: handleAddSelection,
     onRemoveSelection: removeSelection,
     oddsMap: quotes,
   };
@@ -243,55 +217,6 @@ export default function MmaEventsPage() {
           </div>
         </header>
 
-        {/* Confirmación de apuesta con detalles de Ledger y Slippage */}
-        {lastBet && (
-          <div
-            role='status'
-            className='border-brutal-gold relative flex flex-col gap-2 bg-obsidian-surface p-4'
-          >
-            <div className='flex flex-wrap items-center justify-between gap-3'>
-              <div className='flex items-center gap-3'>
-                <CheckCircle2 size={18} className='shrink-0 text-emerald-400' aria-hidden='true' />
-                <div>
-                  <p className='font-display text-xs font-extrabold uppercase tracking-brutal text-white'>
-                    Apuesta confirmada en Ledger {lastBet.ledgerId ? `(ID #${lastBet.ledgerId})` : ''}
-                  </p>
-                  <p className='mt-0.5 font-mono text-[10px] tabular-nums text-metallic-titanium'>
-                    {lastBet.count} {lastBet.count === 1 ? 'selección' : 'selecciones'} · Stake{' '}
-                    {MONEY_FORMATTER.format(lastBet.stake)} · Cuota final: ×{Number(lastBet.effectiveOdds || lastBet.totalOdds).toFixed(2)}
-                    {lastBet.newBalance !== undefined && (
-                      <span className='ml-2 text-gold-specular'>· Nuevo Saldo: {MONEY_FORMATTER.format(lastBet.newBalance)}</span>
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className='flex items-center gap-3'>
-                <span className='font-mono text-sm font-extrabold tabular-nums text-gold'>
-                  Retorno: {MONEY_FORMATTER.format(lastBet.potentialPayout)}
-                </span>
-                <button
-                  type='button'
-                  onClick={handleDismissConfirmation}
-                  aria-label='Descartar confirmación'
-                  className='border border-transparent p-1 text-metallic-slate transition-colors hover:border-gold/50 hover:text-gold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold'
-                >
-                  <X size={14} aria-hidden='true' />
-                </button>
-              </div>
-            </div>
-
-            {/* Aviso ético transparente si se aplicó ajuste algorítmico */}
-            {lastBet.shadowBanned && (
-              <div className='flex items-center gap-2 border border-obsidian-border bg-obsidian-void px-3 py-1.5 font-mono text-[10px] text-metallic-slate'>
-                <AlertTriangle size={12} className='text-crimson shrink-0' aria-hidden='true' />
-                <span>
-                  Cuota base: ×{Number(lastBet.totalOdds).toFixed(2)} → Ajustada por volatilidad a ×{Number(lastBet.effectiveOdds).toFixed(2)} ({lastBet.appliedDelayMs}ms latencia aplicada y registrada en auditoría).
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Layout de dos columnas: cartelera + boleto sticky */}
         <div className='grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]'>
           <div className='flex min-w-0 flex-col gap-8'>
@@ -314,14 +239,13 @@ export default function MmaEventsPage() {
             </section>
           </div>
 
-          <BetSlip
-            selections={selections}
-            onRemoveSelection={removeSelection}
-            onPlaceBet={placeBet}
-            minStake={50}
-            maxStake={5000}
-            className='lg:sticky lg:top-6 lg:max-h-[calc(100vh_-_3rem)]'
-          />
+          <div className='betting-shell !px-0 lg:sticky lg:top-6'>
+            <BetSlip
+              minStake={50}
+              maxStake={5000}
+              className='lg:max-h-[calc(100vh_-_3rem)]'
+            />
+          </div>
         </div>
       </div>
     </div>

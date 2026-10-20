@@ -5,6 +5,8 @@ interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
   readonly VITE_AUTH_URL?: string;
   readonly VITE_HUB_URL?: string;
+  /** Solo desarrollo: walletId (GUID) cuando el login legacy no lo entrega. */
+  readonly VITE_DEV_WALLET_ID?: string;
 }
 
 interface ImportMeta {

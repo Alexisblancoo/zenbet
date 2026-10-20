@@ -304,6 +304,11 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  /* Recibo del boleto: entrada corta y firme, sin rebote. */
+  .slip-confirm-in {
+    animation: zb-slip-confirm 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
 }
 
 @keyframes zb-live-breathe {
@@ -379,6 +384,18 @@
   from {
     opacity: 0;
     transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes zb-slip-confirm {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
 
   to {

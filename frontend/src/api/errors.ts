@@ -19,6 +19,8 @@ const STANDARD_KEYS = new Set([
   'trace_id',
   'code',
   'errorCode',
+  'error',
+  'errorMessage',
   'errors',
   'message',
 ]);
@@ -326,7 +328,13 @@ export function normalizeApiError(error: unknown): ProblemDetailsException {
   const isTimeout = axiosCode === 'ECONNABORTED' || axiosCode === 'ETIMEDOUT';
   const isNetworkError = !response && !isCanceled && Boolean(axiosError);
 
-  const detail = readString(payload?.detail) ?? readString(payload?.message);
+  // El backend de apuestas devuelve 422 `{ success:false, error }` en lugar de
+  // ProblemDetails; sin este fallback el mensaje de saldo insuficiente se pierde.
+  const detail =
+    readString(payload?.detail) ??
+    readString(payload?.message) ??
+    readString(payload?.error) ??
+    readString(payload?.errorMessage);
   const fallbackCode = STATUS_CODES[status] ?? (axiosError ? `HTTP_${status}` : 'CLIENT_ERROR');
 
   const code =

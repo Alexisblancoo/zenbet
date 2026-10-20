@@ -61,6 +61,11 @@ Todo rechazo (incluidos timeout y caída de red) se convierte en
 | `retryAfterSeconds` / `retryAt` | Countdown en 429 |
 | `isNetworkError`, `isTimeout`, `isCanceled` | Estados no bloqueantes |
 
+El backend de apuestas devuelve los errores de negocio como
+`{ success: false, error }` (422) en lugar de ProblemDetails. El normalizador
+también lee `error`/`errorMessage` y los excluye de `extensions`, de modo que
+la UI recibe el mensaje de saldo insuficiente en `detail`.
+
 ## JWT e idempotencia
 
 - `authToken` mantiene el JWT en memoria y lo sincroniza con

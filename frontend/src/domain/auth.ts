@@ -15,6 +15,11 @@ export interface AuthUser {
   readonly walletBalance: number;
   readonly roles: readonly string[];
   readonly createdAt?: string;
+  /**
+   * GUID de la billetera que exige `POST /api/v1/bets`. Puede no venir del
+   * login legacy; en desarrollo se puede suplir con `VITE_DEV_WALLET_ID`.
+   */
+  readonly walletId?: string;
 }
 
 export interface LoginCredentials {
@@ -83,10 +88,20 @@ export function normalizeAuthUser(raw: unknown): AuthUser | null {
   // Se exige identidad estable (id o email); un usuario sin ella no es una sesión válida.
   if (resolvedId === undefined) return null;
 
+  const wallet = isRecord(raw.wallet) ? raw.wallet : undefined;
+
+  const walletId =
+    readString(raw.walletId) ??
+    readString(raw.wallet_id) ??
+    readString(wallet?.id) ??
+    readString(wallet?.walletId);
+
   const walletBalance =
     readNumber(raw.walletBalance) ??
     readNumber(raw.wallet_balance) ??
     readNumber(raw.balance) ??
+    readNumber(wallet?.balance) ??
+    readNumber(wallet?.walletBalance) ??
     0;
 
   const createdAt = readString(raw.createdAt) ?? readString(raw.created_at);
@@ -98,6 +113,7 @@ export function normalizeAuthUser(raw: unknown): AuthUser | null {
     walletBalance,
     roles: normalizeRoles(raw.roles),
     ...(createdAt ? { createdAt } : {}),
+    ...(walletId ? { walletId } : {}),
   };
 }
 
