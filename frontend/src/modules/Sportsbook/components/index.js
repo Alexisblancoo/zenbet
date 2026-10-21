@@ -1,1 +1,1 @@
-export { default as EventCard, buildSelectionId } from './EventCard.jsx';
+export { default as EventCard } from './EventCard';

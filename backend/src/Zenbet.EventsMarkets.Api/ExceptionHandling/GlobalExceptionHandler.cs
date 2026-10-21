@@ -106,6 +106,16 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                 ex.Message,
                 "https://tools.ietf.org/html/rfc9110#section-15.5.1"),
 
+            DivisionMismatchException ex => (StatusCodes.Status400BadRequest,
+                "Invalid MMA Bout",
+                ex.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.5.1"),
+
+            ArgumentException ex => (StatusCodes.Status400BadRequest,
+                "Invalid Request",
+                ex.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.5.1"),
+
             _ => (StatusCodes.Status500InternalServerError,
                 "Internal Server Error",
                 "An unexpected error occurred. Please try again later.",

@@ -33,6 +33,15 @@ public sealed class SelectionConfiguration : IEntityTypeConfiguration<Selection>
             .HasMaxLength(200)
             .IsRequired();
 
+        builder.Property(s => s.Code)
+            .HasColumnName("code")
+            .HasMaxLength(40);
+
+        builder.Property(s => s.DisplayOrder)
+            .HasColumnName("display_order")
+            .HasDefaultValue(0)
+            .IsRequired();
+
         builder.ComplexProperty(s => s.CurrentOdd, odd =>
         {
             odd.Property(o => o.Value)

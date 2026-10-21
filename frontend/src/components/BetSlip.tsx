@@ -431,8 +431,8 @@ export default function BetSlip({
                   Boleto vacío
                 </p>
                 <p className='max-w-[16rem] text-[11px] leading-relaxed text-metallic-slate'>
-                  Selecciona una cuota del mercado para comenzar. Las cuotas se actualizan en
-                  vivo.
+                  Selecciona una cuota del mercado para comenzar. Cada cuota muestra su última
+                  actualización disponible.
                 </p>
               </div>
             ) : (
@@ -697,7 +697,7 @@ export default function BetSlip({
                       >
                         {hasPendingOdds
                           ? 'Acepta las nuevas cuotas para habilitar la confirmación.'
-                          : 'La cuota total y la ganancia se recalculan con el feed en vivo.'}
+                          : 'La cuota total y la ganancia se recalculan antes de confirmar.'}
                       </p>
                     </div>
 

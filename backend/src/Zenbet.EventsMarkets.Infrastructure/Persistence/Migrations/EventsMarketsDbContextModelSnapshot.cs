@@ -82,9 +82,20 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("display_order");
+
                     b.Property<Guid>("EventId")
                         .HasColumnType("uuid")
                         .HasColumnName("event_id");
+
+                    b.Property<decimal?>("Line")
+                        .HasPrecision(4, 1)
+                        .HasColumnType("numeric(4,1)")
+                        .HasColumnName("line");
 
                     b.Property<int?>("MarketSettlementResult")
                         .HasColumnType("integer")
@@ -129,6 +140,17 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("code");
+
+                    b.Property<int>("DisplayOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("display_order");
 
                     b.Property<Guid>("MarketId")
                         .HasColumnType("uuid")
@@ -521,6 +543,174 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_settlement_audit_settled_at");
 
                     b.ToTable("settlement_audit", "events_markets");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Event", b =>
+                {
+                    b.OwnsOne("Zenbet.EventsMarkets.Domain.ValueObjects.MmaBout", "Bout", b1 =>
+                        {
+                            b1.Property<Guid>("EventId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Billing")
+                                .IsRequired()
+                                .HasMaxLength(24)
+                                .HasColumnType("character varying(24)")
+                                .HasColumnName("billing");
+
+                            b1.Property<int>("BillingOrder")
+                                .HasColumnType("integer")
+                                .HasColumnName("billing_order");
+
+                            b1.Property<string>("Division")
+                                .IsRequired()
+                                .HasMaxLength(32)
+                                .HasColumnType("character varying(32)")
+                                .HasColumnName("weight_division");
+
+                            b1.Property<bool>("IsTitleFight")
+                                .HasColumnType("boolean")
+                                .HasColumnName("is_title_fight");
+
+                            b1.Property<string>("Location")
+                                .IsRequired()
+                                .HasMaxLength(160)
+                                .HasColumnType("character varying(160)")
+                                .HasColumnName("location");
+
+                            b1.Property<int>("ScheduledRounds")
+                                .HasColumnType("integer")
+                                .HasColumnName("scheduled_rounds");
+
+                            b1.Property<string>("Venue")
+                                .IsRequired()
+                                .HasMaxLength(160)
+                                .HasColumnType("character varying(160)")
+                                .HasColumnName("venue");
+
+                            b1.HasKey("EventId");
+
+                            b1.ToTable("events", "events_markets");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EventId");
+
+                            b1.OwnsOne("Zenbet.EventsMarkets.Domain.ValueObjects.Fighter", "Blue", b2 =>
+                                {
+                                    b2.Property<Guid>("MmaBoutEventId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<string>("Country")
+                                        .IsRequired()
+                                        .HasMaxLength(80)
+                                        .HasColumnType("character varying(80)")
+                                        .HasColumnName("blue_country");
+
+                                    b2.Property<string>("CountryCode")
+                                        .IsRequired()
+                                        .HasMaxLength(8)
+                                        .HasColumnType("character varying(8)")
+                                        .HasColumnName("blue_country_code");
+
+                                    b2.Property<string>("Division")
+                                        .IsRequired()
+                                        .HasMaxLength(32)
+                                        .HasColumnType("character varying(32)")
+                                        .HasColumnName("blue_division");
+
+                                    b2.Property<string>("Id")
+                                        .IsRequired()
+                                        .HasMaxLength(80)
+                                        .HasColumnType("character varying(80)")
+                                        .HasColumnName("blue_fighter_id");
+
+                                    b2.Property<string>("Name")
+                                        .IsRequired()
+                                        .HasMaxLength(120)
+                                        .HasColumnType("character varying(120)")
+                                        .HasColumnName("blue_fighter_name");
+
+                                    b2.Property<string>("Rank")
+                                        .HasMaxLength(8)
+                                        .HasColumnType("character varying(8)")
+                                        .HasColumnName("blue_rank");
+
+                                    b2.Property<string>("Record")
+                                        .IsRequired()
+                                        .HasMaxLength(20)
+                                        .HasColumnType("character varying(20)")
+                                        .HasColumnName("blue_record");
+
+                                    b2.HasKey("MmaBoutEventId");
+
+                                    b2.ToTable("events", "events_markets");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("MmaBoutEventId");
+                                });
+
+                            b1.OwnsOne("Zenbet.EventsMarkets.Domain.ValueObjects.Fighter", "Red", b2 =>
+                                {
+                                    b2.Property<Guid>("MmaBoutEventId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<string>("Country")
+                                        .IsRequired()
+                                        .HasMaxLength(80)
+                                        .HasColumnType("character varying(80)")
+                                        .HasColumnName("red_country");
+
+                                    b2.Property<string>("CountryCode")
+                                        .IsRequired()
+                                        .HasMaxLength(8)
+                                        .HasColumnType("character varying(8)")
+                                        .HasColumnName("red_country_code");
+
+                                    b2.Property<string>("Division")
+                                        .IsRequired()
+                                        .HasMaxLength(32)
+                                        .HasColumnType("character varying(32)")
+                                        .HasColumnName("red_division");
+
+                                    b2.Property<string>("Id")
+                                        .IsRequired()
+                                        .HasMaxLength(80)
+                                        .HasColumnType("character varying(80)")
+                                        .HasColumnName("red_fighter_id");
+
+                                    b2.Property<string>("Name")
+                                        .IsRequired()
+                                        .HasMaxLength(120)
+                                        .HasColumnType("character varying(120)")
+                                        .HasColumnName("red_fighter_name");
+
+                                    b2.Property<string>("Rank")
+                                        .HasMaxLength(8)
+                                        .HasColumnType("character varying(8)")
+                                        .HasColumnName("red_rank");
+
+                                    b2.Property<string>("Record")
+                                        .IsRequired()
+                                        .HasMaxLength(20)
+                                        .HasColumnType("character varying(20)")
+                                        .HasColumnName("red_record");
+
+                                    b2.HasKey("MmaBoutEventId");
+
+                                    b2.ToTable("events", "events_markets");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("MmaBoutEventId");
+                                });
+
+                            b1.Navigation("Blue")
+                                .IsRequired();
+
+                            b1.Navigation("Red")
+                                .IsRequired();
+                        });
+
+                    b.Navigation("Bout");
                 });
 
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Market", b =>

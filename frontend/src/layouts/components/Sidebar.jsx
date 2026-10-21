@@ -1,7 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { 
   Swords, 
-  Flame, 
   Trophy, 
   Activity, 
   Zap, 
@@ -11,11 +10,11 @@ import {
 } from 'lucide-react';
 
 const SPORTS_CATEGORIES = [
-  { id: 'mma', name: 'UFC / MMA', icon: Swords, path: '/sportsbook', liveCount: 2, isHot: true },
-  { id: 'soccer', name: 'Fútbol', icon: Trophy, path: '/sportsbook', liveCount: 14, isHot: false },
-  { id: 'basketball', name: 'Baloncesto', icon: Activity, path: '/sportsbook', liveCount: 5, isHot: false },
-  { id: 'boxing', name: 'Boxeo Mundial', icon: Zap, path: '/sportsbook', liveCount: 1, isHot: false },
-  { id: 'esports', name: 'eSports CS2/LoL', icon: Sparkles, path: '/sportsbook', liveCount: 4, isHot: false },
+  { id: 'mma', name: 'UFC / MMA', icon: Swords, path: '/sportsbook', tag: 'UFC 333', isHot: true },
+  { id: 'soccer', name: 'Fútbol', icon: Trophy, path: '/sportsbook', tag: 'Pronto', isHot: false },
+  { id: 'basketball', name: 'Baloncesto', icon: Activity, path: '/sportsbook', tag: 'Pronto', isHot: false },
+  { id: 'boxing', name: 'Boxeo Mundial', icon: Zap, path: '/sportsbook', tag: 'Pronto', isHot: false },
+  { id: 'esports', name: 'eSports CS2/LoL', icon: Sparkles, path: '/sportsbook', tag: 'Pronto', isHot: false },
 ];
 
 export default function Sidebar() {
@@ -26,10 +25,7 @@ export default function Sidebar() {
         <span className='font-mono text-[10px] font-bold uppercase tracking-ultra text-metallic-titanium'>
           Cartelera Deportiva
         </span>
-        <span className='relative flex h-2 w-2'>
-          <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-crimson opacity-75' />
-          <span className='relative inline-flex h-2 w-2 rounded-full bg-crimson' />
-        </span>
+        <span className='h-2 w-2 border border-crimson/60 bg-crimson/20' aria-hidden='true' />
       </div>
 
       {/* Lista de deportes */}
@@ -62,15 +58,15 @@ export default function Sidebar() {
                 </span>
               </div>
 
-              {cat.liveCount > 0 && (
+              {cat.tag && (
                 <span
-                  className={`font-mono text-[10px] font-bold px-1.5 py-0.5 border ${
+                  className={`font-mono text-[9px] font-bold px-1.5 py-0.5 border uppercase tracking-wide ${
                     cat.isHot
                       ? 'border-crimson/40 bg-crimson/20 text-crimson'
-                      : 'border-obsidian-border bg-obsidian text-metallic-titanium'
+                      : 'border-obsidian-border bg-obsidian text-metallic-slate'
                   }`}
                 >
-                  {cat.liveCount} LIVE
+                  {cat.tag}
                 </span>
               )}
             </NavLink>
@@ -118,27 +114,6 @@ export default function Sidebar() {
           <span>Estadísticas</span>
           <ChevronRight size={14} />
         </NavLink>
-      </div>
-
-      {/* Tarjeta de Boost Imperial al fondo */}
-      <div className='mt-auto pt-6'>
-        <div className='border-brutal-gold p-3.5 bg-obsidian-card relative overflow-hidden'>
-          <div className='flex items-center gap-2 text-gold-imperial mb-1'>
-            <Flame size={14} />
-            <span className='font-display text-[11px] font-extrabold uppercase tracking-wider'>
-              Zenbet Imperial Boost
-            </span>
-          </div>
-          <p className='font-sans text-[11px] text-metallic-titanium leading-relaxed'>
-            Combina 3 o más combates estelares y recibe hasta <span className='text-gold-specular font-bold'>+25%</span> de ganancia extra.
-          </p>
-          <div className='mt-2.5 flex items-center justify-between'>
-            <span className='font-mono text-[9px] uppercase tracking-ultra text-metallic-slate'>
-              Automático en boleto
-            </span>
-            <span className='font-mono text-xs font-bold text-gold-imperial'>VIP</span>
-          </div>
-        </div>
       </div>
     </aside>
   );

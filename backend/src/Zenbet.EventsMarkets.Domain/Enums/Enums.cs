@@ -36,6 +36,7 @@ public enum SportType
     AmericanFootball = 6,
     Cricket = 7,
     Esports = 8,
+    MixedMartialArts = 9,
     Other = 99
 }
 
@@ -49,7 +50,37 @@ public enum MarketType
     HalfTimeFullTime = 6,
     AsianHandicap = 7,
     PlayerProps = 8,
+    MmaMoneyline = 100,
+    MmaMethodOfVictory = 101,
+    MmaTotalRounds = 102,
+    MmaGoToDecision = 103,
     Other = 99
+}
+
+/// <summary>
+/// Divisiones oficiales de UFC. El valor numérico no se persiste: el mapeo
+/// relacional usa el slug de <see cref="WeightDivisionCatalog"/>.
+/// </summary>
+public enum WeightDivision
+{
+    Flyweight = 1,
+    Bantamweight = 2,
+    Featherweight = 3,
+    Lightweight = 4,
+    Welterweight = 5,
+    Middleweight = 6,
+    LightHeavyweight = 7,
+    Heavyweight = 8,
+    WomensStrawweight = 9,
+    WomensFlyweight = 10,
+    WomensBantamweight = 11
+}
+
+public enum FightBilling
+{
+    EarlyPrelims = 1,
+    Prelims = 2,
+    Main = 3
 }
 
 public enum TransactionType

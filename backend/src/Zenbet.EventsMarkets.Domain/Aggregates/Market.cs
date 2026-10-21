@@ -17,12 +17,21 @@ public sealed class Market : AggregateRoot<MarketId>
     private Market() { } // EF Core
 
     [SetsRequiredMembers]
-    public Market(MarketId id, EventId eventId, string name, MarketType type, IReadOnlyList<Selection> selections)
+    public Market(
+        MarketId id,
+        EventId eventId,
+        string name,
+        MarketType type,
+        IReadOnlyList<Selection> selections,
+        decimal? line = null,
+        int displayOrder = 0)
         : base(id)
     {
         EventId = eventId;
         Name = name ?? throw new ArgumentNullException(nameof(name));
         Type = type;
+        Line = line;
+        DisplayOrder = displayOrder;
         _status = MarketStatus.Open;
         _selections.AddRange(selections ?? throw new ArgumentNullException(nameof(selections)));
 
@@ -32,6 +41,8 @@ public sealed class Market : AggregateRoot<MarketId>
     public EventId EventId { get; private set; }
     public required string Name { get; init; }
     public required MarketType Type { get; init; }
+    public decimal? Line { get; init; }
+    public int DisplayOrder { get; init; }
     public MarketStatus Status => _status;
     public SettlementResult? MarketSettlementResult => _settlementResultValue;
     public SelectionId? WinnerSelectionId => _winnerSelectionId;
@@ -115,15 +126,19 @@ public sealed class Selection : Entity<SelectionId>
     private Selection() { } // EF Core
 
     [SetsRequiredMembers]
-    public Selection(SelectionId id, string name, Odd initialOdd)
+    public Selection(SelectionId id, string name, Odd initialOdd, string? code = null, int displayOrder = 0)
         : base(id)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
+        Code = code;
+        DisplayOrder = displayOrder;
         CurrentOdd = initialOdd;
         SettlementResult = null;
     }
 
     public required string Name { get; init; }
+    public string? Code { get; init; }
+    public int DisplayOrder { get; init; }
     public Odd CurrentOdd { get; private set; }
     public SettlementResult? SettlementResult { get; private set; }
 

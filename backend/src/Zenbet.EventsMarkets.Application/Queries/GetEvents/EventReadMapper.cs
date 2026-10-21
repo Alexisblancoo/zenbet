@@ -1,0 +1,149 @@
+namespace Zenbet.EventsMarkets.Application.Queries.GetEvents;
+
+using Zenbet.EventsMarkets.Application.DTOs;
+using Zenbet.EventsMarkets.Domain.Aggregates;
+using Zenbet.EventsMarkets.Domain.Enums;
+using Zenbet.EventsMarkets.Domain.ValueObjects;
+
+internal static class EventReadMapper
+{
+    public static EventDto ToDto(Event @event)
+    {
+        var markets = @event.Markets
+            .OrderBy(market => market.DisplayOrder)
+            .ThenBy(market => market.Name, StringComparer.Ordinal)
+            .Select(ToDto)
+            .ToList();
+
+        var lastOddsUpdate = @event.Markets
+            .SelectMany(market => market.Selections)
+            .Select(selection => selection.CurrentOdd.Timestamp)
+            .DefaultIfEmpty()
+            .Max();
+
+        return new EventDto(
+            @event.Id.Value,
+            @event.Name,
+            SportLabel(@event.SportType),
+            SportKey(@event.SportType),
+            @event.Status.ToString().ToLowerInvariant(),
+            @event.StartTime,
+            @event.Competition,
+            @event.Bout is null ? null : ToDto(@event.Bout),
+            markets,
+            lastOddsUpdate == default ? null : lastOddsUpdate);
+    }
+
+    private static MmaBoutDto ToDto(MmaBout bout)
+    {
+        var division = WeightDivisionCatalog.Get(bout.Division);
+
+        return new MmaBoutDto(
+            division.Slug,
+            division.Label,
+            division.LimitLbs,
+            bout.ScheduledRounds,
+            bout.IsTitleFight,
+            BillingKey(bout.Billing),
+            BillingLabel(bout.Billing),
+            bout.BillingOrder,
+            bout.Venue,
+            bout.Location,
+            ToDto(bout.Red),
+            ToDto(bout.Blue));
+    }
+
+    private static FighterDto ToDto(Fighter fighter)
+    {
+        var division = WeightDivisionCatalog.Get(fighter.Division);
+
+        return new FighterDto(
+            fighter.Id,
+            fighter.Name,
+            fighter.CountryCode,
+            fighter.Country,
+            fighter.Record,
+            fighter.Rank,
+            division.Slug,
+            division.Label);
+    }
+
+    private static MarketDto ToDto(Market market)
+    {
+        var selections = market.Selections
+            .OrderBy(selection => selection.DisplayOrder)
+            .ThenBy(selection => selection.Name, StringComparer.Ordinal)
+            .Select(ToDto)
+            .ToList();
+
+        return new MarketDto(
+            market.Id.Value,
+            market.Type.ToString(),
+            MarketTypeKey(market.Type),
+            market.Name,
+            market.Line,
+            market.DisplayOrder,
+            market.Status.ToString().ToLowerInvariant(),
+            selections.Select(selection => selection.Provider).FirstOrDefault(provider => provider is not null),
+            selections.Select(selection => selection.UpdatedAt).Where(timestamp => timestamp.HasValue).Max(),
+            selections);
+    }
+
+    private static SelectionDto ToDto(Selection selection) =>
+        new(
+            selection.Id.Value,
+            selection.Code,
+            selection.Name,
+            selection.CurrentOdd.Value,
+            AmericanOdds.FromDecimal(selection.CurrentOdd.Value),
+            selection.DisplayOrder,
+            selection.SettlementResult.HasValue,
+            selection.CurrentOdd.Provider,
+            selection.CurrentOdd.Timestamp);
+
+    private static string SportLabel(SportType sportType) => sportType switch
+    {
+        SportType.MixedMartialArts => "MMA",
+        SportType.Football => "Fútbol",
+        SportType.Tennis => "Tenis",
+        SportType.Basketball => "Baloncesto",
+        SportType.IceHockey => "Hockey sobre hielo",
+        SportType.Baseball => "Béisbol",
+        SportType.AmericanFootball => "Fútbol americano",
+        SportType.Cricket => "Críquet",
+        SportType.Esports => "eSports",
+        _ => "Otros"
+    };
+
+    private static string SportKey(SportType sportType) => sportType switch
+    {
+        SportType.MixedMartialArts => "mma",
+        _ => sportType.ToString().ToLowerInvariant()
+    };
+
+    private static string MarketTypeKey(MarketType type) => type switch
+    {
+        MarketType.MmaMoneyline => "moneyline",
+        MarketType.MmaMethodOfVictory => "method_of_victory",
+        MarketType.MmaTotalRounds => "total_rounds",
+        MarketType.MmaGoToDecision => "go_to_decision",
+        MarketType.MatchWinner => "match_winner",
+        _ => "other"
+    };
+
+    private static string BillingKey(FightBilling billing) => billing switch
+    {
+        FightBilling.Main => "main",
+        FightBilling.Prelims => "prelims",
+        FightBilling.EarlyPrelims => "early_prelims",
+        _ => "other"
+    };
+
+    private static string BillingLabel(FightBilling billing) => billing switch
+    {
+        FightBilling.Main => "Cartelera estelar",
+        FightBilling.Prelims => "Preliminares",
+        FightBilling.EarlyPrelims => "Preliminares tempranas",
+        _ => "Otros combates"
+    };
+}

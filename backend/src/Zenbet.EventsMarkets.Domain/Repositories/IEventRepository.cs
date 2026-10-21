@@ -8,6 +8,7 @@ public interface IEventRepository
 {
     Task<Event?> GetByIdAsync(EventId id, CancellationToken cancellationToken = default);
     Task<Event?> GetByIdWithMarketsAsync(EventId id, CancellationToken cancellationToken = default);
+    Task<Event?> GetByIdWithDetailsAsync(EventId id, CancellationToken cancellationToken = default);
     Task AddAsync(Event @event, CancellationToken cancellationToken = default);
     Task UpdateAsync(Event @event, uint expectedVersion, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(EventId id, CancellationToken cancellationToken = default);
@@ -18,6 +19,22 @@ public interface IEventRepository
         DateTimeOffset? toDate = null,
         int page = 1,
         int pageSize = 50,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Event>> ListWithDetailsAsync(
+        EventStatus? status,
+        SportType? sportType,
+        DateTimeOffset? fromDate,
+        DateTimeOffset? toDate,
+        string? competition,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+    Task<int> CountAsync(
+        EventStatus? status,
+        SportType? sportType,
+        DateTimeOffset? fromDate,
+        DateTimeOffset? toDate,
+        string? competition,
         CancellationToken cancellationToken = default);
 }
 

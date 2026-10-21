@@ -39,7 +39,7 @@ export default function Header() {
             <Link to='/' className='group flex items-center gap-2.5' aria-label='Zenbet Inicio'>
               <div className='relative flex h-8 w-8 items-center justify-center border border-crimson/80 bg-crimson/10 font-display font-black text-crimson shadow-brutal-crimson-sm transition-transform duration-200 group-hover:scale-105'>
                 <span className='text-sm tracking-tighter'>Z</span>
-                <span className='absolute -right-0.5 -top-0.5 h-1.5 w-1.5 bg-crimson animate-ping' />
+                <span className='absolute -right-0.5 -top-0.5 h-1.5 w-1.5 bg-gold' aria-hidden='true' />
               </div>
               <div className='flex flex-col'>
                 <span className='font-display text-lg font-black tracking-tightest uppercase text-white group-hover:text-crimson transition-colors'>
@@ -57,13 +57,10 @@ export default function Header() {
                 Inicio
               </NavLink>
               <NavLink to='/sportsbook' className={navLinkClasses}>
-                <span className='relative flex h-1.5 w-1.5' aria-hidden='true'>
-                  <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-crimson opacity-75' />
-                  <span className='relative inline-flex h-1.5 w-1.5 rounded-full bg-crimson' />
-                </span>
+                <span className='h-1.5 w-1.5 bg-crimson' aria-hidden='true' />
                 Sportsbook
-                <span className='ml-1 border border-crimson/40 bg-crimson/20 px-1 py-0.5 font-mono text-[9px] font-bold text-crimson'>
-                  LIVE
+                <span className='ml-1 border border-crimson/40 bg-crimson/10 px-1 py-0.5 font-mono text-[9px] font-bold text-crimson'>
+                  UFC
                 </span>
               </NavLink>
             </nav>
@@ -71,10 +68,10 @@ export default function Header() {
 
           {/* Acciones y Saldo de Usuario */}
           <div className='hidden sm:flex items-center gap-3'>
-            {/* Indicador de conexión en tiempo real */}
+            {/* Contexto de la cartelera publicada */}
             <div className='flex items-center gap-1.5 border border-obsidian-border bg-obsidian-surface px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-metallic-titanium'>
-              <span className='h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse' aria-hidden='true' />
-              <span>Feed 14ms</span>
+              <span className='h-1.5 w-1.5 bg-gold' aria-hidden='true' />
+              <span>UFC 333</span>
             </div>
 
             {/* Saldo / Billetera */}
@@ -161,7 +158,7 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(false)}
               className='flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-crimson py-1'
             >
-              Sportsbook Live
+              Sportsbook UFC
             </NavLink>
             {user ? (
               <Link

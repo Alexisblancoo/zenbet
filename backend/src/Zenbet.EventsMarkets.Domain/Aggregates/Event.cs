@@ -14,13 +14,24 @@ public sealed class Event : AggregateRoot<EventId>
     private Event() { } // EF Core
 
     [SetsRequiredMembers]
-    public Event(EventId id, string name, SportType sportType, DateTimeOffset startTime, string? competition = null)
+    public Event(
+        EventId id,
+        string name,
+        SportType sportType,
+        DateTimeOffset startTime,
+        string? competition = null,
+        MmaBout? bout = null)
         : base(id)
     {
         Name = name ?? throw new ArgumentNullException(nameof(name));
+
+        if (bout is not null && sportType != SportType.MixedMartialArts)
+            throw new ArgumentException("Solo los eventos de MMA pueden tener metadatos de combate.", nameof(bout));
+
         SportType = sportType;
         StartTime = startTime;
         Competition = competition;
+        Bout = bout;
         Status = EventStatus.Scheduled;
         Version = 0; // Optimistic concurrency
     }
@@ -29,19 +40,31 @@ public sealed class Event : AggregateRoot<EventId>
     public required SportType SportType { get; init; }
     public required DateTimeOffset StartTime { get; init; }
     public string? Competition { get; init; }
+    public MmaBout? Bout { get; private set; }
     public EventStatus Status { get; private set; }
     public uint Version { get; private set; } // Optimistic concurrency token
     public IReadOnlyCollection<Market> Markets => _markets.AsReadOnly();
 
     public Market AddMarket(string name, MarketType type, IReadOnlyList<Selection> selections)
+        => AddMarket(MarketId.New(), name, type, selections);
+
+    public Market AddMarket(
+        MarketId id,
+        string name,
+        MarketType type,
+        IReadOnlyList<Selection> selections,
+        decimal? line = null,
+        int displayOrder = 0)
     {
         if (Status == EventStatus.Finished || Status == EventStatus.Cancelled || Status == EventStatus.Void)
             throw new InvalidOperationException($"Cannot add market to event in status {Status}");
 
-        var market = new Market(MarketId.New(), Id, name, type, selections)
+        var market = new Market(id, Id, name, type, selections, line, displayOrder)
         {
             Name = name,
-            Type = type
+            Type = type,
+            Line = line,
+            DisplayOrder = displayOrder
         };
         _markets.Add(market);
 

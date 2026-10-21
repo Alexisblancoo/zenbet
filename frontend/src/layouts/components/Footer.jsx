@@ -18,7 +18,8 @@ export default function Footer() {
               </span>
             </div>
             <p className='mt-3 font-sans text-xs text-metallic-titanium leading-relaxed'>
-              Motor monolítico de apuestas deportivas de alta frecuencia. Cotizaciones en tiempo real y liquidaciones instantáneas.
+              Sportsbook de combate con cuotas decimales y americanas, mercados de UFC y un boleto
+              conectado a una API con persistencia PostgreSQL.
             </p>
             <div className='mt-4 flex items-center gap-3 font-mono text-[10px] text-metallic-slate'>
               <span className='border border-obsidian-border px-1.5 py-0.5 text-crimson font-bold'>+18</span>
@@ -29,27 +30,27 @@ export default function Footer() {
           {/* Columna Carteleras */}
           <div>
             <h3 className='font-mono text-[11px] font-bold uppercase tracking-ultra text-white'>
-              Carteleras Live
+              Cartelera
             </h3>
             <ul className='mt-3 space-y-2 font-sans text-xs'>
               <li>
                 <Link to='/sportsbook' className='hover:text-crimson transition-colors'>
-                  UFC 312: Du Plessis vs. Strickland 2
+                  UFC 333: Volkanovski vs. Evloev
                 </Link>
               </li>
               <li>
                 <Link to='/sportsbook' className='hover:text-crimson transition-colors'>
-                  UFC Fight Night: Makhachev vs. Tsarukyan
+                  Cartelera estelar · 5 combates
                 </Link>
               </li>
               <li>
                 <Link to='/sportsbook' className='hover:text-crimson transition-colors'>
-                  UFC 313: Pereira vs. Ankalaev
+                  Preliminares · 4 combates
                 </Link>
               </li>
               <li>
                 <Link to='/sportsbook' className='hover:text-crimson transition-colors'>
-                  UFC 313: Adesanya vs. Imavov
+                  Preliminares tempranas · 5 combates
                 </Link>
               </li>
             </ul>
@@ -72,14 +73,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <span className='cursor-pointer hover:text-white transition-colors'>
+                <Link to='/terms' className='hover:text-white transition-colors'>
                   Reglas de Apuesta Moneyline
-                </span>
+                </Link>
               </li>
               <li>
-                <span className='cursor-pointer hover:text-white transition-colors'>
-                  API de Cotizaciones en Vivo
-                </span>
+                <span>API de Cuotas v1</span>
               </li>
             </ul>
           </div>
@@ -92,15 +91,15 @@ export default function Footer() {
             <div className='mt-3 space-y-2.5 font-sans text-xs'>
               <div className='flex items-center gap-2'>
                 <Lock size={14} className='text-gold-imperial' />
-                <span>Cifrado TLS 256-bit de grado militar</span>
+                <span>Sesión autenticada con JWT</span>
               </div>
               <div className='flex items-center gap-2'>
                 <Zap size={14} className='text-crimson' />
-                <span>Liquidación algorítmica instantánea</span>
+                <span>Persistencia PostgreSQL y migraciones EF Core</span>
               </div>
               <div className='flex items-center gap-2'>
                 <ShieldCheck size={14} className='text-emerald-400' />
-                <span>Cuotas transparentes sin spread abusivo</span>
+                <span>Proveedor de cuotas declarado por mercado</span>
               </div>
             </div>
             <div className='mt-4 flex flex-wrap gap-2 text-xs'>
@@ -134,12 +133,12 @@ export default function Footer() {
               <Link to='/refunds' className='hover:text-white transition-colors'>Reembolsos</Link>
             </div>
           </div>
-          <div className='flex items-center gap-4'>
-            <span>TERMINAL V1.4</span>
+          <div className='flex flex-wrap items-center gap-4'>
+            <span>API V1</span>
             <span>·</span>
-            <span>LATENCIA: 12MS</span>
+            <span>POSTGRESQL</span>
             <span>·</span>
-            <span className='text-emerald-400'>ONLINE</span>
+            <span className='text-metallic-titanium'>ZENBET</span>
           </div>
         </div>
       </div>

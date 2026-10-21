@@ -83,11 +83,14 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
             var wallet = await _walletRepository.GetByIdAsync(request.WalletId, cancellationToken)
                 ?? throw new WalletNotFoundException(request.WalletId);
 
-            // 4. Execute domain logic - PlaceBet validates balance and creates transaction
+            // 4. Execute domain logic - PlaceBet validates balance and creates transaction.
+            // La versión debe capturarse antes de mutar el agregado: PlaceBet la
+            // incrementa y EF la usa como token de concurrencia.
+            var expectedVersion = wallet.Version;
             var transaction = wallet.PlaceBet(request.Amount, request.SelectionId, request.Description, request.IdempotencyKey.ToString());
 
             // 5. Persist wallet changes
-            await _walletRepository.UpdateAsync(wallet, wallet.Version, cancellationToken);
+            await _walletRepository.UpdateAsync(wallet, expectedVersion, cancellationToken);
 
             // 6. Save transaction
             await _transactionRepository.AddAsync(transaction, cancellationToken);

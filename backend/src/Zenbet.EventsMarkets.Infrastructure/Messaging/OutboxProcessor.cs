@@ -97,11 +97,16 @@ public sealed class OutboxProcessor : BackgroundService
                     var oddsEvent = JsonSerializer.Deserialize<OddsChangedDomainEvent>(message.Payload, JsonOptions);
                     if (oddsEvent != null)
                     {
+                        // Contrato plano para el cliente: IDs como string y cuota
+                        // como número. Serializar los structs completos rompía
+                        // el parser de la UI ({ value, timestamp, provider }).
                         var oddsUpdate = new
                         {
-                            oddsEvent.SelectionId,
-                            oddsEvent.NewOdd,
-                            oddsEvent.Timestamp
+                            selectionId = oddsEvent.SelectionId.Value,
+                            newOdd = oddsEvent.NewOdd.Value,
+                            marketId = oddsEvent.MarketId.Value,
+                            timestamp = oddsEvent.NewOdd.Timestamp,
+                            occurredAt = oddsEvent.Timestamp
                         };
                         await notificationService.NotifyOddsUpdateAsync(oddsEvent.MarketId, oddsUpdate, cancellationToken);
                     }

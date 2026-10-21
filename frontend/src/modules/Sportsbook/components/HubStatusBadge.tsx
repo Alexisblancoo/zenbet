@@ -27,7 +27,7 @@ const STATUS_PRESENTATION: Record<OddsHubStatus, StatusPresentation> = {
     pulsing: true,
   },
   disconnected: {
-    label: 'Feed inactivo',
+    label: 'Cuotas de referencia',
     tone: 'border-obsidian-border text-metallic-titanium',
     dot: 'bg-metallic-gunmetal',
     pulsing: false,

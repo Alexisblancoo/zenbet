@@ -47,6 +47,11 @@ public sealed class InvalidOddsTransitionException : DomainException
     public InvalidOddsTransitionException(string message) : base(message) { }
 }
 
+public sealed class DivisionMismatchException : DomainException
+{
+    public DivisionMismatchException(string message) : base(message) { }
+}
+
 public sealed class WalletNotFoundException : DomainException
 {
     public WalletId WalletId { get; }

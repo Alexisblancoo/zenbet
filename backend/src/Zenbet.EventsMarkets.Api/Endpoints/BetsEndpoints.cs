@@ -20,7 +20,7 @@ public static class BetsEndpoints
             .RequireRateLimiting("BettingPolicy");
 
         // Place a bet
-        group.MapPost("/", async (
+        group.MapPost("", async (
             [FromBody] PlaceBetRequest request,
             IMediator mediator,
             CancellationToken cancellationToken) =>

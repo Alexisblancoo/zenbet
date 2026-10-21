@@ -44,6 +44,15 @@ public sealed class MarketConfiguration : IEntityTypeConfiguration<Market>
             .HasDefaultValue(MarketStatus.Open)
             .IsRequired();
 
+        builder.Property(m => m.Line)
+            .HasColumnName("line")
+            .HasPrecision(4, 1);
+
+        builder.Property(m => m.DisplayOrder)
+            .HasColumnName("display_order")
+            .HasDefaultValue(0)
+            .IsRequired();
+
         builder.Property(m => m.MarketSettlementResult)
             .HasField("_settlementResultValue")
             .HasColumnName("settlement_result")

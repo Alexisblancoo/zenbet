@@ -123,30 +123,32 @@ public sealed class EfRiskManagementService : IRiskManagementService
         if (!selections.Any())
             return Money.Zero;
 
-        // Get all pending bets on these selections
-        var selectionIds = selections.Select(s => s.Id).ToList();
-        
+        // Get all pending bets, then filter by the selections in this market.
+        // El filtro se hace con Guid para evitar que Npgsql intente mapear un
+        // array de SelectionId a una columna nullable.
+        var selectionIds = selections.Select(s => s.Id.Value).ToHashSet();
         var pendingBets = await _dbContext.Transactions
             .Where(t => t.Type == TransactionType.BetPlacement
                      && t.Status == TransactionStatus.Pending
-                     && selectionIds.Contains(t.SelectionId!.Value))
+                     && t.SelectionId != null)
             .ToListAsync(cancellationToken);
 
-        if (!pendingBets.Any())
+        var marketBets = pendingBets
+            .Where(t => t.SelectionId.HasValue && selectionIds.Contains(t.SelectionId.Value.Value))
+            .ToList();
+
+        if (marketBets.Count == 0)
             return Money.Zero;
 
         // Calculate total potential payout = sum of (bet amount * odd) for each selection
         decimal totalExposure = 0;
         
-        foreach (var bet in pendingBets)
+        foreach (var bet in marketBets)
         {
-            if (bet.SelectionId.HasValue)
+            var selection = selections.FirstOrDefault(s => s.Id == bet.SelectionId!.Value);
+            if (selection != null)
             {
-                var selection = selections.FirstOrDefault(s => s.Id == bet.SelectionId.Value);
-                if (selection != null)
-                {
-                    totalExposure += bet.Amount.Amount * selection.CurrentOdd.Value;
-                }
+                totalExposure += bet.Amount.Amount * selection.CurrentOdd.Value;
             }
         }
 

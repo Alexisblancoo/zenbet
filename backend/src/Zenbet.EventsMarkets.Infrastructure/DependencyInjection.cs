@@ -11,6 +11,7 @@ using Zenbet.EventsMarkets.Infrastructure.Messaging;
 using Zenbet.EventsMarkets.Infrastructure.Persistence;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Outbox;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Repositories;
+using Zenbet.EventsMarkets.Infrastructure.Persistence.Seeding;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Services;
 
 public static class DependencyInjection
@@ -25,7 +26,11 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(typeof(EventsMarketsDbContext).Assembly.FullName);
-                npgsqlOptions.EnableRetryOnFailure(3, TimeSpan.FromSeconds(5), null);
+
+                // PlaceBet y SettleMarket abren transacciones manuales mediante
+                // IUnitOfWork. Una execution strategy con reintentos no permite
+                // transacciones iniciadas por el usuario; mantenerla activa hacía
+                // fallar SaveChanges con NpgsqlRetryingExecutionStrategy.
             });
 
             // Enable detailed errors in development
@@ -66,6 +71,10 @@ public static class DependencyInjection
         services.AddHostedService<OutboxProcessor>();
         services.AddHostedService<InboxProcessor>();
         services.AddHostedService<PayoutWorker>();
+
+        // Idempotent UFC card seed, configurable per environment.
+        services.Configure<UfcSeedOptions>(configuration.GetSection("Seeding:Ufc"));
+        services.AddHostedService<UfcCardSeeder>();
 
         return services;
     }

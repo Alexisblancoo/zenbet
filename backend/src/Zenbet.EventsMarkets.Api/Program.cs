@@ -101,7 +101,11 @@ builder.Services.AddProblemDetails(options =>
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(Zenbet.EventsMarkets.Application.Queries.GetEvents.GetEventsQuery).Assembly);
+});
 
 // Override notification service with SignalR implementation
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
@@ -131,10 +135,10 @@ app.UseHttpsRedirection();
 // Map SignalR hub
 app.MapHub<OddsHub>("/odds-hub");
 
-// Apply rate limiting policy to betting endpoints
-app.MapGroup("/api/v1/bets")
-    .RequireRateLimiting("BettingPolicy")
-    .MapBetsEndpoints();
+// Los grupos de endpoints declaran su propio prefijo y sus políticas. No
+// envolverlos con otro MapGroup: eso duplicaba /api/v1/bets en la ruta real.
+app.MapBetsEndpoints();
+app.MapEventsEndpoints();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
