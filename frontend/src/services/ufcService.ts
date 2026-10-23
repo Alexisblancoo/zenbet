@@ -1,7 +1,13 @@
 import { apiClient, isProblemDetailsException } from '@/api';
-import { normalizeEventsPage, type UfcEventsPage } from '@/domain/ufc';
+import {
+  normalizeEventsPage,
+  normalizeFighterComparison,
+  type UfcEventsPage,
+  type UfcFighterComparison,
+} from '@/domain/ufc';
 
 export const UFC_EVENTS_ENDPOINT = '/events';
+export const UFC_FIGHTER_COMPARE_ENDPOINT = '/fighters/compare';
 export const UFC_DEFAULT_PAGE_SIZE = 50;
 
 export interface ListUfcEventsOptions {
@@ -37,6 +43,27 @@ export async function listUfcEvents({
   });
 
   return normalizeEventsPage(payload);
+}
+
+/**
+ * Ficha técnica de las dos esquinas del combate. El evento es el identificador
+ * estable: el backend resuelve el par y devuelve ambos perfiles y mercados.
+ */
+export async function compareFighters(
+  eventId: string,
+  signal?: AbortSignal,
+): Promise<UfcFighterComparison> {
+  const payload = await apiClient.get<unknown>(UFC_FIGHTER_COMPARE_ENDPOINT, {
+    params: { eventId },
+    signal,
+  });
+
+  const comparison = normalizeFighterComparison(payload);
+  if (!comparison) {
+    throw new Error('La API devolvió una ficha Head-to-Head incompleta.');
+  }
+
+  return comparison;
 }
 
 export function describeUfcLoadError(error: unknown): string {

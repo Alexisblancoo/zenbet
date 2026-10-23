@@ -92,6 +92,17 @@ public enum FightBilling
     Main = 3
 }
 
+/// <summary>
+/// Guardia declarada del peleador. Se persiste por nombre para que el contrato
+/// HTTP no dependa del valor numérico del enum.
+/// </summary>
+public enum FighterStance
+{
+    Orthodox = 1,
+    Southpaw = 2,
+    Switch = 3
+}
+
 public enum TransactionType
 {
     Deposit = 1,

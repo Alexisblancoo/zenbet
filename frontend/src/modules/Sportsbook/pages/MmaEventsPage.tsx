@@ -39,6 +39,7 @@ import CardNav, { type CardSectionKey } from '../components/CardNav';
 import CardSelector from '../components/CardSelector';
 import FightCard from '../components/FightCard';
 import FighterAvatar from '../components/FighterAvatar';
+import FighterComparisonModal from '../components/FighterComparisonModal';
 import HubStatusBadge from '../components/HubStatusBadge';
 import SourceBadge from '../components/SourceBadge';
 
@@ -428,6 +429,7 @@ export default function MmaEventsPage() {
   } = useBetSlip();
 
   const [activeSection, setActiveSection] = useState<CardSectionKey>('all');
+  const [comparisonEvent, setComparisonEvent] = useState<UfcEvent | null>(null);
 
   const cards = useMemo(() => buildUfcCards(events), [events]);
   const activeCard = findUfcCard(cards, searchParams.get('card'));
@@ -436,6 +438,7 @@ export default function MmaEventsPage() {
 
   useEffect(() => {
     setActiveSection('all');
+    setComparisonEvent(null);
   }, [activeKey]);
 
   const handleSelectCard = useCallback(
@@ -468,6 +471,10 @@ export default function MmaEventsPage() {
     },
     [addSelection],
   );
+
+  const handleOpenComparison = useCallback((event: UfcEvent) => {
+    setComparisonEvent(event);
+  }, []);
 
   const mainEvent = activeCard?.mainEvent;
 
@@ -595,6 +602,7 @@ export default function MmaEventsPage() {
                       selectedIds={selectedIds}
                       onAddSelection={handleAddSelection}
                       onRemoveSelection={removeSelection}
+                      onOpenComparison={handleOpenComparison}
                       oddsMap={quotes}
                     />
                   ))}
@@ -662,6 +670,17 @@ export default function MmaEventsPage() {
           </div>
         </div>
       </div>
+
+      {comparisonEvent && (
+        <FighterComparisonModal
+          event={comparisonEvent}
+          selectedIds={selectedIds}
+          oddsMap={quotes}
+          onAddSelection={handleAddSelection}
+          onRemoveSelection={removeSelection}
+          onClose={() => setComparisonEvent(null)}
+        />
+      )}
     </div>
   );
 }

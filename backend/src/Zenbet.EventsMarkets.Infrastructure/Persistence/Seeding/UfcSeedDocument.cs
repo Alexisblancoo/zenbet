@@ -1,9 +1,10 @@
 namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Seeding;
 
 /// <summary>
-/// Contrato de un snapshot UFC. La versión 3 añade la clave estable de la
-/// cartelera y las fotos de presentación de ambos peleadores. Cada archivo
-/// describe una cartelera completa y se descubre automáticamente al arrancar.
+/// Contrato de un snapshot UFC. La versión 4 añade las métricas técnicas de
+/// ambos peleadores (alcance, guardia, defensa de derribos y precisión de
+/// golpeo) a la ficha que ya incluía fotos y clave estable de cartelera. Cada
+/// archivo describe una cartelera completa y se descubre automáticamente.
 /// </summary>
 internal sealed class UfcSeedDocument
 {
@@ -61,6 +62,10 @@ internal sealed class UfcSeedFighter
     public string? Rank { get; init; }
     public string Division { get; init; } = string.Empty;
     public string? ImageUrl { get; init; }
+    public int? ReachInches { get; init; }
+    public string? Stance { get; init; }
+    public decimal? TakedownDefensePercent { get; init; }
+    public decimal? StrikingAccuracyPercent { get; init; }
 }
 
 internal sealed class UfcSeedMarket

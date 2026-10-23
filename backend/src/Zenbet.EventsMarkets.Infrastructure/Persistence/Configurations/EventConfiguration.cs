@@ -83,6 +83,17 @@ public sealed class EventConfiguration : IEntityTypeConfiguration<Event>
                 red.Property(f => f.Record).HasColumnName("red_record").HasMaxLength(20);
                 red.Property(f => f.Rank).HasColumnName("red_rank").HasMaxLength(8);
                 red.Property(f => f.ImageUrl).HasColumnName("red_image_url").HasMaxLength(512);
+                red.Property(f => f.ReachInches).HasColumnName("red_reach_inches");
+                red.Property(f => f.Stance)
+                    .HasColumnName("red_stance")
+                    .HasConversion<string>()
+                    .HasMaxLength(16);
+                red.Property(f => f.TakedownDefensePercent)
+                    .HasColumnName("red_takedown_defense_percent")
+                    .HasPrecision(5, 2);
+                red.Property(f => f.StrikingAccuracyPercent)
+                    .HasColumnName("red_striking_accuracy_percent")
+                    .HasPrecision(5, 2);
                 red.Property(f => f.Division)
                     .HasColumnName("red_division")
                     .HasConversion<string>()
@@ -98,6 +109,17 @@ public sealed class EventConfiguration : IEntityTypeConfiguration<Event>
                 blue.Property(f => f.Record).HasColumnName("blue_record").HasMaxLength(20);
                 blue.Property(f => f.Rank).HasColumnName("blue_rank").HasMaxLength(8);
                 blue.Property(f => f.ImageUrl).HasColumnName("blue_image_url").HasMaxLength(512);
+                blue.Property(f => f.ReachInches).HasColumnName("blue_reach_inches");
+                blue.Property(f => f.Stance)
+                    .HasColumnName("blue_stance")
+                    .HasConversion<string>()
+                    .HasMaxLength(16);
+                blue.Property(f => f.TakedownDefensePercent)
+                    .HasColumnName("blue_takedown_defense_percent")
+                    .HasPrecision(5, 2);
+                blue.Property(f => f.StrikingAccuracyPercent)
+                    .HasColumnName("blue_striking_accuracy_percent")
+                    .HasPrecision(5, 2);
                 blue.Property(f => f.Division)
                     .HasColumnName("blue_division")
                     .HasConversion<string>()

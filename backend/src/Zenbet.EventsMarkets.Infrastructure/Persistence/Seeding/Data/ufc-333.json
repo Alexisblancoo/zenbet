@@ -1,5 +1,5 @@
 {
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "card": {
         "competition": "UFC 333",
         "title": "UFC 333: Volkanovski vs. Evloev",
@@ -140,7 +140,11 @@
                 "country": "Australia",
                 "record": "28-4-0",
                 "rank": "C",
-                "division": "featherweight"
+                "division": "featherweight",
+                "reachInches": 71,
+                "stance": "orthodox",
+                "takedownDefensePercent": 73.4,
+                "strikingAccuracyPercent": 57.2
             },
             "blue": {
                 "id": "movsar-evloev",
@@ -149,7 +153,11 @@
                 "country": "Rusia",
                 "record": "20-0-0",
                 "rank": "#1",
-                "division": "featherweight"
+                "division": "featherweight",
+                "reachInches": 70,
+                "stance": "orthodox",
+                "takedownDefensePercent": 79.1,
+                "strikingAccuracyPercent": 50.4
             },
             "markets": [
                 {
@@ -286,7 +294,11 @@
                 "country": "Rusia",
                 "record": "20-5-0",
                 "rank": "C",
-                "division": "bantamweight"
+                "division": "bantamweight",
+                "reachInches": 67,
+                "stance": "orthodox",
+                "takedownDefensePercent": 75.8,
+                "strikingAccuracyPercent": 54.1
             },
             "blue": {
                 "id": "merab-dvalishvili",
@@ -295,7 +307,11 @@
                 "country": "Georgia",
                 "record": "21-5-0",
                 "rank": "#1",
-                "division": "bantamweight"
+                "division": "bantamweight",
+                "reachInches": 68,
+                "stance": "orthodox",
+                "takedownDefensePercent": 82.3,
+                "strikingAccuracyPercent": 47.2
             },
             "markets": [
                 {
@@ -432,7 +448,11 @@
                 "country": "Inglaterra",
                 "record": "10-2-0",
                 "rank": "#6",
-                "division": "flyweight"
+                "division": "flyweight",
+                "reachInches": 68,
+                "stance": "orthodox",
+                "takedownDefensePercent": 50,
+                "strikingAccuracyPercent": 41
             },
             "blue": {
                 "id": "ramazan-temirov",
@@ -441,7 +461,11 @@
                 "country": "Uzbekistán",
                 "record": "20-2-0",
                 "rank": "#10",
-                "division": "flyweight"
+                "division": "flyweight",
+                "reachInches": 66,
+                "stance": "orthodox",
+                "takedownDefensePercent": 54,
+                "strikingAccuracyPercent": 49
             },
             "markets": [
                 {
@@ -578,7 +602,11 @@
                 "country": "Rusia",
                 "record": "40-11-0",
                 "rank": "#2",
-                "division": "heavyweight"
+                "division": "heavyweight",
+                "reachInches": 80,
+                "stance": "orthodox",
+                "takedownDefensePercent": 62,
+                "strikingAccuracyPercent": 41
             },
             "blue": {
                 "id": "rizvan-kuniev",
@@ -587,7 +615,11 @@
                 "country": "Rusia",
                 "record": "15-3-1",
                 "rank": "#7",
-                "division": "heavyweight"
+                "division": "heavyweight",
+                "reachInches": 78,
+                "stance": "orthodox",
+                "takedownDefensePercent": 49,
+                "strikingAccuracyPercent": 57
             },
             "markets": [
                 {
@@ -724,7 +756,11 @@
                 "country": "Estados Unidos",
                 "record": "14-5-0",
                 "rank": "#11",
-                "division": "featherweight"
+                "division": "featherweight",
+                "reachInches": 70,
+                "stance": "orthodox",
+                "takedownDefensePercent": 72.1,
+                "strikingAccuracyPercent": 53.3
             },
             "blue": {
                 "id": "losene-keita",
@@ -733,7 +769,11 @@
                 "country": "Bélgica",
                 "record": "17-2-0",
                 "rank": null,
-                "division": "featherweight"
+                "division": "featherweight",
+                "reachInches": 71,
+                "stance": "orthodox",
+                "takedownDefensePercent": 78,
+                "strikingAccuracyPercent": 46
             },
             "markets": [
                 {
@@ -870,7 +910,11 @@
                 "country": "Rusia",
                 "record": "16-1-0",
                 "rank": "#7",
-                "division": "light-heavyweight"
+                "division": "light-heavyweight",
+                "reachInches": 76,
+                "stance": "orthodox",
+                "takedownDefensePercent": 59,
+                "strikingAccuracyPercent": 50
             },
             "blue": {
                 "id": "dominick-reyes",
@@ -879,7 +923,11 @@
                 "country": "Estados Unidos",
                 "record": "16-5-0",
                 "rank": "#8",
-                "division": "light-heavyweight"
+                "division": "light-heavyweight",
+                "reachInches": 77,
+                "stance": "southpaw",
+                "takedownDefensePercent": 66,
+                "strikingAccuracyPercent": 48
             },
             "markets": [
                 {
@@ -1016,7 +1064,11 @@
                 "country": "Ucrania",
                 "record": "31-12-0",
                 "rank": "#15",
-                "division": "light-heavyweight"
+                "division": "light-heavyweight",
+                "reachInches": 75,
+                "stance": "orthodox",
+                "takedownDefensePercent": 53,
+                "strikingAccuracyPercent": 51
             },
             "blue": {
                 "id": "abdul-rakhman-yakhyaev",
@@ -1025,7 +1077,11 @@
                 "country": "Turquía",
                 "record": "10-0-0",
                 "rank": null,
-                "division": "light-heavyweight"
+                "division": "light-heavyweight",
+                "reachInches": 75,
+                "stance": "orthodox",
+                "takedownDefensePercent": 56,
+                "strikingAccuracyPercent": 56
             },
             "markets": [
                 {
@@ -1162,7 +1218,11 @@
                 "country": "Alemania",
                 "record": "29-7-1",
                 "rank": "#12",
-                "division": "middleweight"
+                "division": "middleweight",
+                "reachInches": 76,
+                "stance": "orthodox",
+                "takedownDefensePercent": 81,
+                "strikingAccuracyPercent": 46
             },
             "blue": {
                 "id": "cam-rowston",
@@ -1171,7 +1231,11 @@
                 "country": "Australia",
                 "record": "15-3-0",
                 "rank": null,
-                "division": "middleweight"
+                "division": "middleweight",
+                "reachInches": 75,
+                "stance": "orthodox",
+                "takedownDefensePercent": 74,
+                "strikingAccuracyPercent": 55
             },
             "markets": [
                 {
@@ -1308,7 +1372,11 @@
                 "country": "Estados Unidos",
                 "record": "24-3-1",
                 "rank": null,
-                "division": "lightweight"
+                "division": "lightweight",
+                "reachInches": 72,
+                "stance": "orthodox",
+                "takedownDefensePercent": 80.2,
+                "strikingAccuracyPercent": 48.3
             },
             "blue": {
                 "id": "nurullo-aliev",
@@ -1317,7 +1385,11 @@
                 "country": "Tayikistán",
                 "record": "12-0-0",
                 "rank": null,
-                "division": "lightweight"
+                "division": "lightweight",
+                "reachInches": 71,
+                "stance": "orthodox",
+                "takedownDefensePercent": 77.4,
+                "strikingAccuracyPercent": 45.1
             },
             "markets": [
                 {
@@ -1454,7 +1526,11 @@
                 "country": "Australia",
                 "record": "9-1-0",
                 "rank": null,
-                "division": "bantamweight"
+                "division": "bantamweight",
+                "reachInches": 68,
+                "stance": "orthodox",
+                "takedownDefensePercent": 67,
+                "strikingAccuracyPercent": 52
             },
             "blue": {
                 "id": "asaf-chopurov",
@@ -1463,7 +1539,11 @@
                 "country": "Azerbaiyán",
                 "record": "11-0-0",
                 "rank": null,
-                "division": "bantamweight"
+                "division": "bantamweight",
+                "reachInches": 69,
+                "stance": "orthodox",
+                "takedownDefensePercent": 59,
+                "strikingAccuracyPercent": 43
             },
             "markets": [
                 {
@@ -1600,7 +1680,11 @@
                 "country": "Rusia",
                 "record": "25-4-0",
                 "rank": null,
-                "division": "middleweight"
+                "division": "middleweight",
+                "reachInches": 74,
+                "stance": "orthodox",
+                "takedownDefensePercent": 68,
+                "strikingAccuracyPercent": 47
             },
             "blue": {
                 "id": "jacob-malkoun",
@@ -1609,7 +1693,11 @@
                 "country": "Australia",
                 "record": "10-3-0",
                 "rank": null,
-                "division": "middleweight"
+                "division": "middleweight",
+                "reachInches": 74,
+                "stance": "orthodox",
+                "takedownDefensePercent": 80.1,
+                "strikingAccuracyPercent": 44.2
             },
             "markets": [
                 {
@@ -1746,7 +1834,11 @@
                 "country": "Bélgica",
                 "record": "10-4-0",
                 "rank": null,
-                "division": "featherweight"
+                "division": "featherweight",
+                "reachInches": 70,
+                "stance": "orthodox",
+                "takedownDefensePercent": 69,
+                "strikingAccuracyPercent": 38
             },
             "blue": {
                 "id": "daniel-santos",
@@ -1755,7 +1847,11 @@
                 "country": "Brasil",
                 "record": "13-3-0",
                 "rank": null,
-                "division": "featherweight"
+                "division": "featherweight",
+                "reachInches": 70,
+                "stance": "orthodox",
+                "takedownDefensePercent": 58,
+                "strikingAccuracyPercent": 51
             },
             "markets": [
                 {
@@ -1892,7 +1988,11 @@
                 "country": "Estados Unidos",
                 "record": "8-1-0",
                 "rank": null,
-                "division": "lightweight"
+                "division": "lightweight",
+                "reachInches": 71,
+                "stance": "orthodox",
+                "takedownDefensePercent": 67,
+                "strikingAccuracyPercent": 43
             },
             "blue": {
                 "id": "noah-gugnon",
@@ -1901,7 +2001,11 @@
                 "country": "Francia",
                 "record": "10-2-0",
                 "rank": null,
-                "division": "lightweight"
+                "division": "lightweight",
+                "reachInches": 71,
+                "stance": "orthodox",
+                "takedownDefensePercent": 52,
+                "strikingAccuracyPercent": 48
             },
             "markets": [
                 {
@@ -2038,7 +2142,11 @@
                 "country": "Brasil",
                 "record": "18-6-0",
                 "rank": null,
-                "division": "womens-strawweight"
+                "division": "womens-strawweight",
+                "reachInches": 64,
+                "stance": "orthodox",
+                "takedownDefensePercent": 65,
+                "strikingAccuracyPercent": 53
             },
             "blue": {
                 "id": "nicolle-caliari",
@@ -2047,7 +2155,11 @@
                 "country": "Brasil",
                 "record": "9-4-0",
                 "rank": null,
-                "division": "womens-strawweight"
+                "division": "womens-strawweight",
+                "reachInches": 65,
+                "stance": "orthodox",
+                "takedownDefensePercent": 65,
+                "strikingAccuracyPercent": 48
             },
             "markets": [
                 {

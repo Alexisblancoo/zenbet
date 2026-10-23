@@ -1,4 +1,5 @@
 import { useId, useMemo } from 'react';
+import { BarChart3 } from 'lucide-react';
 
 import type { SelectionInput } from '@/domain/bets';
 import type { OddsQuote } from '@/domain/odds';
@@ -18,6 +19,7 @@ interface FightCardProps {
   readonly selectedIds: readonly string[];
   readonly onAddSelection: (selection: SelectionInput) => void;
   readonly onRemoveSelection: (selectionId: string) => void;
+  readonly onOpenComparison: (event: UfcEvent) => void;
   readonly oddsMap: Readonly<Record<string, OddsQuote>>;
   readonly featured?: boolean;
 }
@@ -32,6 +34,7 @@ export default function FightCard({
   selectedIds,
   onAddSelection,
   onRemoveSelection,
+  onOpenComparison,
   oddsMap,
   featured = false,
 }: FightCardProps) {
@@ -127,9 +130,20 @@ export default function FightCard({
               ? 'Consenso snapshot · referencia, no cuota ejecutable'
               : 'Precio informativo · verifica la fuente antes de apostar'}
         </p>
-        <span className='shrink-0 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
-          {bout.venue || 'Sede por confirmar'}
-        </span>
+        <div className='flex shrink-0 items-center gap-2'>
+          <button
+            type='button'
+            onClick={() => onOpenComparison(event)}
+            aria-label={`Abrir ficha técnica de ${bout.red.name} vs ${bout.blue.name}`}
+            className='inline-flex items-center gap-1.5 border border-[#D4AF37]/30 bg-[#D4AF37]/[0.055] px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wide text-[#FFD700] transition-colors duration-150 hover:border-[#D4AF37]/55 hover:bg-[#D4AF37]/[0.11] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D4AF37]'
+          >
+            <BarChart3 size={10} aria-hidden='true' />
+            Ficha H2H
+          </button>
+          <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
+            {bout.venue || 'Sede por confirmar'}
+          </span>
+        </div>
       </footer>
     </article>
   );

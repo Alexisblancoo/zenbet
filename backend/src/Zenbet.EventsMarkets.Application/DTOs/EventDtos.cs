@@ -43,7 +43,39 @@ public sealed record FighterDto(
     string? Rank,
     string Division,
     string DivisionLabel,
-    string? ImageUrl);
+    string? ImageUrl,
+    int Wins,
+    int Losses,
+    int Draws,
+    decimal WinRate,
+    int? ReachInches,
+    string? Stance,
+    decimal? TakedownDefensePercent,
+    decimal? StrikingAccuracyPercent);
+
+/// <summary>
+/// Ficha Head-to-Head de un combate. Incluye perfiles completos y los mercados
+/// publicados para que la UI pueda comparar y añadir cuotas sin otra consulta.
+/// </summary>
+public sealed record FighterComparisonDto(
+    Guid EventId,
+    string EventName,
+    string? Competition,
+    string Status,
+    DateTimeOffset StartTime,
+    string WeightDivision,
+    string WeightDivisionLabel,
+    int ScheduledRounds,
+    bool IsTitleFight,
+    string Billing,
+    string BillingLabel,
+    int BillingOrder,
+    string Venue,
+    string Location,
+    FighterDto Red,
+    FighterDto Blue,
+    IReadOnlyList<MarketDto> Markets,
+    DateTimeOffset? OddsUpdatedAt);
 
 public sealed record MarketDto(
     Guid Id,

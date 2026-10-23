@@ -1,6 +1,7 @@
 export { default as EventCard } from './EventCard';
 export { default as FightCard } from './FightCard';
 export { default as FightHeader } from './FightHeader';
+export { default as FighterComparisonModal } from './FighterComparisonModal';
 export { default as FighterAvatar } from './FighterAvatar';
 export { default as MarketMatrix } from './MarketMatrix';
 export { default as SourceBadge } from './SourceBadge';

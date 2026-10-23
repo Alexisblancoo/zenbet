@@ -1,5 +1,5 @@
 {
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "card": {
         "seedKey": "ufc-334",
         "competition": "UFC 334: Gane vs. Hokit",
@@ -38,7 +38,11 @@
                 "country": "Azerbaijan",
                 "record": "11-3-1",
                 "rank": null,
-                "division": "lightweight"
+                "division": "lightweight",
+                "reachInches": 72,
+                "stance": "orthodox",
+                "takedownDefensePercent": 79,
+                "strikingAccuracyPercent": 54
             },
             "blue": {
                 "id": "jefferson-nascimento",
@@ -47,7 +51,11 @@
                 "country": "Brazil",
                 "record": "13-1-0",
                 "rank": null,
-                "division": "lightweight"
+                "division": "lightweight",
+                "reachInches": 71,
+                "stance": "orthodox",
+                "takedownDefensePercent": 69,
+                "strikingAccuracyPercent": 57
             },
             "markets": [
                 {
@@ -184,7 +192,11 @@
                 "country": "USA",
                 "record": "18-6-1",
                 "rank": null,
-                "division": "bantamweight"
+                "division": "bantamweight",
+                "reachInches": 68,
+                "stance": "orthodox",
+                "takedownDefensePercent": 60.2,
+                "strikingAccuracyPercent": 49.3
             },
             "blue": {
                 "id": "juan-diaz",
@@ -193,7 +205,11 @@
                 "country": "Peru",
                 "record": "16-1-1",
                 "rank": null,
-                "division": "bantamweight"
+                "division": "bantamweight",
+                "reachInches": 67,
+                "stance": "southpaw",
+                "takedownDefensePercent": 80,
+                "strikingAccuracyPercent": 41
             },
             "markets": [
                 {
@@ -330,7 +346,11 @@
                 "country": "USA",
                 "record": "11-6-0",
                 "rank": null,
-                "division": "womens-bantamweight"
+                "division": "womens-bantamweight",
+                "reachInches": 72,
+                "stance": "orthodox",
+                "takedownDefensePercent": 65,
+                "strikingAccuracyPercent": 51
             },
             "blue": {
                 "id": "bia-mesquita",
@@ -339,7 +359,11 @@
                 "country": "Brazil",
                 "record": "8-0-0",
                 "rank": null,
-                "division": "womens-bantamweight"
+                "division": "womens-bantamweight",
+                "reachInches": 70,
+                "stance": "orthodox",
+                "takedownDefensePercent": 53,
+                "strikingAccuracyPercent": 50
             },
             "markets": [
                 {
@@ -476,7 +500,11 @@
                 "country": "USA",
                 "record": "9-0-0",
                 "rank": null,
-                "division": "middleweight"
+                "division": "middleweight",
+                "reachInches": 75,
+                "stance": "orthodox",
+                "takedownDefensePercent": 62,
+                "strikingAccuracyPercent": 51
             },
             "blue": {
                 "id": "baisangur-susurkaev",
@@ -485,7 +513,11 @@
                 "country": "Russia",
                 "record": "12-0-0",
                 "rank": null,
-                "division": "middleweight"
+                "division": "middleweight",
+                "reachInches": 74,
+                "stance": "orthodox",
+                "takedownDefensePercent": 71,
+                "strikingAccuracyPercent": 45
             },
             "markets": [
                 {
@@ -622,7 +654,11 @@
                 "country": "USA",
                 "record": "39-19-0",
                 "rank": null,
-                "division": "lightweight"
+                "division": "lightweight",
+                "reachInches": 71,
+                "stance": "orthodox",
+                "takedownDefensePercent": 55.1,
+                "strikingAccuracyPercent": 48.4
             },
             "blue": {
                 "id": "terrance-mckinney",
@@ -631,7 +667,11 @@
                 "country": "USA",
                 "record": "18-9-0",
                 "rank": null,
-                "division": "lightweight"
+                "division": "lightweight",
+                "reachInches": 73,
+                "stance": "orthodox",
+                "takedownDefensePercent": 54,
+                "strikingAccuracyPercent": 38
             },
             "markets": [
                 {
@@ -768,7 +808,11 @@
                 "country": "USA",
                 "record": "29-15-0",
                 "rank": null,
-                "division": "lightweight"
+                "division": "lightweight",
+                "reachInches": 72,
+                "stance": "orthodox",
+                "takedownDefensePercent": 58.3,
+                "strikingAccuracyPercent": 52.1
             },
             "blue": {
                 "id": "chris-duncan",
@@ -777,7 +821,11 @@
                 "country": "Scotland",
                 "record": "15-3-0",
                 "rank": null,
-                "division": "lightweight"
+                "division": "lightweight",
+                "reachInches": 72,
+                "stance": "orthodox",
+                "takedownDefensePercent": 68,
+                "strikingAccuracyPercent": 49
             },
             "markets": [
                 {
@@ -914,7 +962,11 @@
                 "country": "USA",
                 "record": "17-9-1",
                 "rank": null,
-                "division": "welterweight"
+                "division": "welterweight",
+                "reachInches": 74,
+                "stance": "orthodox",
+                "takedownDefensePercent": 62.4,
+                "strikingAccuracyPercent": 52.2
             },
             "blue": {
                 "id": "charles-radtke",
@@ -923,7 +975,11 @@
                 "country": "USA",
                 "record": "12-5-0",
                 "rank": null,
-                "division": "welterweight"
+                "division": "welterweight",
+                "reachInches": 73,
+                "stance": "southpaw",
+                "takedownDefensePercent": 60,
+                "strikingAccuracyPercent": 42
             },
             "markets": [
                 {
@@ -1060,7 +1116,11 @@
                 "country": "France",
                 "record": "14-2-0",
                 "rank": null,
-                "division": "heavyweight"
+                "division": "heavyweight",
+                "reachInches": 81,
+                "stance": "orthodox",
+                "takedownDefensePercent": 70.1,
+                "strikingAccuracyPercent": 55.3
             },
             "blue": {
                 "id": "josh-hokit",
@@ -1069,7 +1129,11 @@
                 "country": "USA",
                 "record": "10-0-0",
                 "rank": null,
-                "division": "heavyweight"
+                "division": "heavyweight",
+                "reachInches": 78,
+                "stance": "orthodox",
+                "takedownDefensePercent": 52,
+                "strikingAccuracyPercent": 48
             },
             "markets": [
                 {
@@ -1206,7 +1270,11 @@
                 "country": "USA",
                 "record": "19-1-0",
                 "rank": null,
-                "division": "womens-bantamweight"
+                "division": "womens-bantamweight",
+                "reachInches": 68,
+                "stance": "orthodox",
+                "takedownDefensePercent": 80.4,
+                "strikingAccuracyPercent": 52.1
             },
             "blue": {
                 "id": "amanda-nunes",
@@ -1215,7 +1283,11 @@
                 "country": "Brazil",
                 "record": "23-5-0",
                 "rank": null,
-                "division": "womens-bantamweight"
+                "division": "womens-bantamweight",
+                "reachInches": 69,
+                "stance": "orthodox",
+                "takedownDefensePercent": 78.2,
+                "strikingAccuracyPercent": 51.3
             },
             "markets": [
                 {
@@ -1352,7 +1424,11 @@
                 "country": "Brazil",
                 "record": "18-2-0",
                 "rank": null,
-                "division": "middleweight"
+                "division": "middleweight",
+                "reachInches": 74,
+                "stance": "orthodox",
+                "takedownDefensePercent": 52,
+                "strikingAccuracyPercent": 43
             },
             "blue": {
                 "id": "yousri-belgaroui",
@@ -1361,7 +1437,11 @@
                 "country": "Netherlands",
                 "record": "11-3-0",
                 "rank": null,
-                "division": "middleweight"
+                "division": "middleweight",
+                "reachInches": 77,
+                "stance": "orthodox",
+                "takedownDefensePercent": 52,
+                "strikingAccuracyPercent": 52
             },
             "markets": [
                 {
@@ -1498,7 +1578,11 @@
                 "country": "Serbia",
                 "record": "14-3-0",
                 "rank": null,
-                "division": "welterweight"
+                "division": "welterweight",
+                "reachInches": 72,
+                "stance": "orthodox",
+                "takedownDefensePercent": 76,
+                "strikingAccuracyPercent": 56
             },
             "blue": {
                 "id": "kevin-holland",
@@ -1507,7 +1591,11 @@
                 "country": "USA",
                 "record": "29-15-0",
                 "rank": null,
-                "division": "welterweight"
+                "division": "welterweight",
+                "reachInches": 81,
+                "stance": "switch",
+                "takedownDefensePercent": 55.2,
+                "strikingAccuracyPercent": 52.4
             },
             "markets": [
                 {
@@ -1644,7 +1732,11 @@
                 "country": "Indonesia",
                 "record": "10-0-0",
                 "rank": null,
-                "division": "flyweight"
+                "division": "flyweight",
+                "reachInches": 66,
+                "stance": "orthodox",
+                "takedownDefensePercent": 79,
+                "strikingAccuracyPercent": 49
             },
             "blue": {
                 "id": "luis-gurule",
@@ -1653,7 +1745,11 @@
                 "country": "USA",
                 "record": "11-4-0",
                 "rank": null,
-                "division": "flyweight"
+                "division": "flyweight",
+                "reachInches": 65,
+                "stance": "orthodox",
+                "takedownDefensePercent": 55,
+                "strikingAccuracyPercent": 39
             },
             "markets": [
                 {

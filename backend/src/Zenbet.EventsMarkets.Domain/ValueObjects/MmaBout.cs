@@ -19,7 +19,11 @@ public sealed class Fighter
         string record,
         string? rank,
         WeightDivision division,
-        string? imageUrl)
+        string? imageUrl,
+        int? reachInches,
+        FighterStance? stance,
+        decimal? takedownDefensePercent,
+        decimal? strikingAccuracyPercent)
     {
         Id = id;
         Name = name;
@@ -29,6 +33,10 @@ public sealed class Fighter
         Rank = rank;
         Division = division;
         ImageUrl = imageUrl;
+        ReachInches = reachInches;
+        Stance = stance;
+        TakedownDefensePercent = takedownDefensePercent;
+        StrikingAccuracyPercent = strikingAccuracyPercent;
     }
 
     public string Id { get; private set; } = string.Empty;
@@ -40,6 +48,18 @@ public sealed class Fighter
     public WeightDivision Division { get; private set; }
     public string? ImageUrl { get; private set; }
 
+    /// <summary>Alcance de combate en pulgadas (punta a punta).</summary>
+    public int? ReachInches { get; private set; }
+
+    /// <summary>Guardia principal: orthodox, southpaw o switch.</summary>
+    public FighterStance? Stance { get; private set; }
+
+    /// <summary>Porcentaje de derribos defendidos (0-100).</summary>
+    public decimal? TakedownDefensePercent { get; private set; }
+
+    /// <summary>Porcentaje de golpes significativos conectados (0-100).</summary>
+    public decimal? StrikingAccuracyPercent { get; private set; }
+
     public static Fighter Create(
         string id,
         string name,
@@ -48,7 +68,11 @@ public sealed class Fighter
         string record,
         string? rank,
         WeightDivision division,
-        string? imageUrl = null)
+        string? imageUrl = null,
+        int? reachInches = null,
+        FighterStance? stance = null,
+        decimal? takedownDefensePercent = null,
+        decimal? strikingAccuracyPercent = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("El peleador necesita un identificador estable.", nameof(id));
@@ -66,6 +90,7 @@ public sealed class Fighter
             throw new ArgumentException("El peleador necesita un récord.", nameof(record));
 
         WeightDivisionCatalog.Get(division); // Valida que la división exista en el catálogo.
+        ValidateMetrics(reachInches, stance, takedownDefensePercent, strikingAccuracyPercent);
 
         return new Fighter(
             id.Trim(),
@@ -75,10 +100,60 @@ public sealed class Fighter
             record.Trim(),
             string.IsNullOrWhiteSpace(rank) ? null : rank.Trim(),
             division,
-            NormalizeImageUrl(imageUrl));
+            NormalizeImageUrl(imageUrl),
+            reachInches,
+            stance,
+            takedownDefensePercent,
+            strikingAccuracyPercent);
     }
 
+    /// <summary>Desglose estable del récord textual en victorias, derrotas y empates.</summary>
+    public FighterRecord GetRecordBreakdown() => FighterRecord.Parse(Record);
+
     public void UpdateImageUrl(string? imageUrl) => ImageUrl = NormalizeImageUrl(imageUrl);
+
+    /// <summary>
+    /// Actualiza solo las métricas técnicas. El seed usa este método para
+    /// refrescar fichas existentes sin tocar cuotas ni metadatos del combate.
+    /// </summary>
+    public void UpdateMetrics(
+        int? reachInches,
+        FighterStance? stance,
+        decimal? takedownDefensePercent,
+        decimal? strikingAccuracyPercent)
+    {
+        ValidateMetrics(reachInches, stance, takedownDefensePercent, strikingAccuracyPercent);
+
+        ReachInches = reachInches;
+        Stance = stance;
+        TakedownDefensePercent = takedownDefensePercent;
+        StrikingAccuracyPercent = strikingAccuracyPercent;
+    }
+
+    private static void ValidateMetrics(
+        int? reachInches,
+        FighterStance? stance,
+        decimal? takedownDefensePercent,
+        decimal? strikingAccuracyPercent)
+    {
+        if (reachInches is < 50 or > 90)
+            throw new ArgumentOutOfRangeException(
+                nameof(reachInches),
+                "El alcance del peleador debe estar entre 50 y 90 pulgadas.");
+
+        if (stance.HasValue && !Enum.IsDefined(stance.Value))
+            throw new ArgumentOutOfRangeException(nameof(stance), "La guardia del peleador no es válida.");
+
+        if (takedownDefensePercent is < 0 or > 100)
+            throw new ArgumentOutOfRangeException(
+                nameof(takedownDefensePercent),
+                "La defensa de derribos debe estar entre 0 y 100.");
+
+        if (strikingAccuracyPercent is < 0 or > 100)
+            throw new ArgumentOutOfRangeException(
+                nameof(strikingAccuracyPercent),
+                "La precisión de golpeo debe estar entre 0 y 100.");
+    }
 
     private static string? NormalizeImageUrl(string? imageUrl)
     {
@@ -193,5 +268,31 @@ public sealed class MmaBout
     {
         Red.UpdateImageUrl(redImageUrl);
         Blue.UpdateImageUrl(blueImageUrl);
+    }
+
+    /// <summary>
+    /// Refresca las métricas técnicas de ambas esquinas. Se mantiene separado
+    /// de las imágenes para que cada snapshot actualice solo lo que declara.
+    /// </summary>
+    public void UpdateFighterMetrics(
+        int? redReachInches,
+        FighterStance? redStance,
+        decimal? redTakedownDefensePercent,
+        decimal? redStrikingAccuracyPercent,
+        int? blueReachInches,
+        FighterStance? blueStance,
+        decimal? blueTakedownDefensePercent,
+        decimal? blueStrikingAccuracyPercent)
+    {
+        Red.UpdateMetrics(
+            redReachInches,
+            redStance,
+            redTakedownDefensePercent,
+            redStrikingAccuracyPercent);
+        Blue.UpdateMetrics(
+            blueReachInches,
+            blueStance,
+            blueTakedownDefensePercent,
+            blueStrikingAccuracyPercent);
     }
 }

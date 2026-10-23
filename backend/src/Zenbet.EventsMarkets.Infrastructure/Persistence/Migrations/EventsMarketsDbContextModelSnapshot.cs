@@ -728,11 +728,30 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                                         .HasColumnType("character varying(8)")
                                         .HasColumnName("blue_rank");
 
+                                    b2.Property<int?>("ReachInches")
+                                        .HasColumnType("integer")
+                                        .HasColumnName("blue_reach_inches");
+
                                     b2.Property<string>("Record")
                                         .IsRequired()
                                         .HasMaxLength(20)
                                         .HasColumnType("character varying(20)")
                                         .HasColumnName("blue_record");
+
+                                    b2.Property<string>("Stance")
+                                        .HasMaxLength(16)
+                                        .HasColumnType("character varying(16)")
+                                        .HasColumnName("blue_stance");
+
+                                    b2.Property<decimal?>("StrikingAccuracyPercent")
+                                        .HasPrecision(5, 2)
+                                        .HasColumnType("numeric(5,2)")
+                                        .HasColumnName("blue_striking_accuracy_percent");
+
+                                    b2.Property<decimal?>("TakedownDefensePercent")
+                                        .HasPrecision(5, 2)
+                                        .HasColumnType("numeric(5,2)")
+                                        .HasColumnName("blue_takedown_defense_percent");
 
                                     b2.HasKey("MmaBoutEventId");
 
@@ -787,11 +806,30 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                                         .HasColumnType("character varying(8)")
                                         .HasColumnName("red_rank");
 
+                                    b2.Property<int?>("ReachInches")
+                                        .HasColumnType("integer")
+                                        .HasColumnName("red_reach_inches");
+
                                     b2.Property<string>("Record")
                                         .IsRequired()
                                         .HasMaxLength(20)
                                         .HasColumnType("character varying(20)")
                                         .HasColumnName("red_record");
+
+                                    b2.Property<string>("Stance")
+                                        .HasMaxLength(16)
+                                        .HasColumnType("character varying(16)")
+                                        .HasColumnName("red_stance");
+
+                                    b2.Property<decimal?>("StrikingAccuracyPercent")
+                                        .HasPrecision(5, 2)
+                                        .HasColumnType("numeric(5,2)")
+                                        .HasColumnName("red_striking_accuracy_percent");
+
+                                    b2.Property<decimal?>("TakedownDefensePercent")
+                                        .HasPrecision(5, 2)
+                                        .HasColumnType("numeric(5,2)")
+                                        .HasColumnName("red_takedown_defense_percent");
 
                                     b2.HasKey("MmaBoutEventId");
 

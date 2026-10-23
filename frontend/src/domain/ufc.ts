@@ -17,6 +17,14 @@ export interface UfcFighter {
   readonly division: string;
   readonly divisionLabel: string;
   readonly imageUrl: string | null;
+  readonly wins: number;
+  readonly losses: number;
+  readonly draws: number;
+  readonly winRate: number;
+  readonly reachInches: number | null;
+  readonly stance: string | null;
+  readonly takedownDefensePercent: number | null;
+  readonly strikingAccuracyPercent: number | null;
 }
 
 export interface UfcBout {
@@ -88,6 +96,31 @@ export interface UfcEventsPage {
   readonly total: number;
   readonly page: number;
   readonly pageSize: number;
+}
+
+/**
+ * Ficha Head-to-Head que devuelve `/fighters/compare`. Es autosuficiente:
+ * incluye perfiles, contexto del combate y mercados publicados.
+ */
+export interface UfcFighterComparison {
+  readonly eventId: string;
+  readonly eventName: string;
+  readonly competition: string | null;
+  readonly status: string;
+  readonly startTime: string;
+  readonly weightDivision: string;
+  readonly weightDivisionLabel: string;
+  readonly scheduledRounds: number;
+  readonly isTitleFight: boolean;
+  readonly billing: string;
+  readonly billingLabel: string;
+  readonly billingOrder: number;
+  readonly venue: string;
+  readonly location: string;
+  readonly red: UfcFighter;
+  readonly blue: UfcFighter;
+  readonly markets: readonly UfcMarket[];
+  readonly oddsUpdatedAt: string | null;
 }
 
 /**
@@ -194,6 +227,53 @@ function readBoolean(value: unknown): boolean {
   return value === true;
 }
 
+export interface FighterRecordBreakdown {
+  readonly wins: number;
+  readonly losses: number;
+  readonly draws: number;
+  readonly total: number;
+  readonly winRate: number;
+}
+
+/**
+ * Interpreta el récord editorial W-L-D. Si el formato no es reconocible
+ * devuelve ceros; la UI muestra el texto original en cualquier caso.
+ */
+export function parseFighterRecord(value: string | null | undefined): FighterRecordBreakdown {
+  const parts = (value ?? '').trim().split('-');
+  if (parts.length < 2 || parts.length > 3) {
+    return { wins: 0, losses: 0, draws: 0, total: 0, winRate: 0 };
+  }
+
+  const wins = Number(parts[0]);
+  const losses = Number(parts[1]);
+  const draws = parts.length === 3 ? Number(parts[2]) : 0;
+
+  if (![wins, losses, draws].every((part) => Number.isInteger(part) && part >= 0)) {
+    return { wins: 0, losses: 0, draws: 0, total: 0, winRate: 0 };
+  }
+
+  const total = wins + losses + draws;
+  return {
+    wins,
+    losses,
+    draws,
+    total,
+    winRate: total === 0 ? 0 : Math.round((wins * 1000) / total) / 10,
+  };
+}
+
+const STANCE_LABELS: Readonly<Record<string, string>> = {
+  orthodox: 'Ortodoxa',
+  southpaw: 'Zurda',
+  switch: 'Cambio',
+};
+
+export function formatFighterStance(stance: string | null): string {
+  if (!stance) return 'Sin dato';
+  return STANCE_LABELS[stance.toLowerCase()] ?? stance;
+}
+
 function normalizeFighter(value: unknown): UfcFighter | null {
   const raw = asRecord(value);
   if (!raw) return null;
@@ -203,16 +283,27 @@ function normalizeFighter(value: unknown): UfcFighter | null {
   const division = readString(raw.division);
   if (!id || !name || !division) return null;
 
+  const record = readString(raw.record) ?? '—';
+  const recordBreakdown = parseFighterRecord(record);
+
   return {
     id,
     name,
     countryCode: readString(raw.countryCode) ?? '',
     country: readString(raw.country) ?? '',
-    record: readString(raw.record) ?? '—',
+    record,
     rank: readString(raw.rank),
     division,
     divisionLabel: readString(raw.divisionLabel) ?? division,
     imageUrl: readString(raw.imageUrl),
+    wins: readNumber(raw.wins) ?? recordBreakdown.wins,
+    losses: readNumber(raw.losses) ?? recordBreakdown.losses,
+    draws: readNumber(raw.draws) ?? recordBreakdown.draws,
+    winRate: readNumber(raw.winRate) ?? recordBreakdown.winRate,
+    reachInches: readNumber(raw.reachInches),
+    stance: readString(raw.stance),
+    takedownDefensePercent: readNumber(raw.takedownDefensePercent),
+    strikingAccuracyPercent: readNumber(raw.strikingAccuracyPercent),
   };
 }
 
@@ -364,6 +455,46 @@ export function normalizeEventsPage(payload: unknown): UfcEventsPage {
     total: readNumber(raw.total) ?? items.length,
     page: readNumber(raw.page) ?? 1,
     pageSize: readNumber(raw.pageSize) ?? 50,
+  };
+}
+
+export function normalizeFighterComparison(payload: unknown): UfcFighterComparison | null {
+  const raw = asRecord(payload);
+  if (!raw) return null;
+
+  const eventId = readString(raw.eventId);
+  const eventName = readString(raw.eventName);
+  const startTime = readString(raw.startTime);
+  const red = normalizeFighter(raw.red);
+  const blue = normalizeFighter(raw.blue);
+  if (!eventId || !eventName || !startTime || !red || !blue) return null;
+
+  const markets = Array.isArray(raw.markets)
+    ? raw.markets
+        .map(normalizeMarket)
+        .filter((market): market is UfcMarket => market !== null)
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+    : [];
+
+  return {
+    eventId,
+    eventName,
+    competition: readString(raw.competition),
+    status: readString(raw.status) ?? 'scheduled',
+    startTime,
+    weightDivision: readString(raw.weightDivision) ?? red.division,
+    weightDivisionLabel: readString(raw.weightDivisionLabel) ?? red.divisionLabel,
+    scheduledRounds: readNumber(raw.scheduledRounds) ?? 3,
+    isTitleFight: readBoolean(raw.isTitleFight),
+    billing: readString(raw.billing) ?? 'prelims',
+    billingLabel: readString(raw.billingLabel) ?? 'Preliminares',
+    billingOrder: readNumber(raw.billingOrder) ?? 99,
+    venue: readString(raw.venue) ?? '',
+    location: readString(raw.location) ?? '',
+    red,
+    blue,
+    markets,
+    oddsUpdatedAt: readString(raw.oddsUpdatedAt),
   };
 }
 

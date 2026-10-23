@@ -9,18 +9,6 @@ internal static class EventReadMapper
 {
     public static EventDto ToDto(Event @event)
     {
-        var markets = @event.Markets
-            .OrderBy(market => market.DisplayOrder)
-            .ThenBy(market => market.Name, StringComparer.Ordinal)
-            .Select(ToDto)
-            .ToList();
-
-        var lastOddsUpdate = @event.Markets
-            .SelectMany(market => market.Selections)
-            .Select(selection => selection.CurrentOdd.Timestamp)
-            .DefaultIfEmpty()
-            .Max();
-
         return new EventDto(
             @event.Id.Value,
             @event.Name,
@@ -30,8 +18,59 @@ internal static class EventReadMapper
             @event.StartTime,
             @event.Competition,
             @event.Bout is null ? null : ToDto(@event.Bout),
-            markets,
-            lastOddsUpdate == default ? null : lastOddsUpdate);
+            MapMarkets(@event),
+            LastOddsUpdate(@event));
+    }
+
+    /// <summary>
+    /// Proyección Head-to-Head. Devuelve null para eventos sin metadatos de
+    /// combate; la capa HTTP lo traduce a 404.
+    /// </summary>
+    public static FighterComparisonDto? ToFighterComparisonDto(Event @event)
+    {
+        if (@event.Bout is null)
+            return null;
+
+        var bout = @event.Bout;
+        var division = WeightDivisionCatalog.Get(bout.Division);
+
+        return new FighterComparisonDto(
+            @event.Id.Value,
+            @event.Name,
+            @event.Competition,
+            @event.Status.ToString().ToLowerInvariant(),
+            @event.StartTime,
+            division.Slug,
+            division.Label,
+            bout.ScheduledRounds,
+            bout.IsTitleFight,
+            BillingKey(bout.Billing),
+            BillingLabel(bout.Billing),
+            bout.BillingOrder,
+            bout.Venue,
+            bout.Location,
+            ToDto(bout.Red),
+            ToDto(bout.Blue),
+            MapMarkets(@event),
+            LastOddsUpdate(@event));
+    }
+
+    private static IReadOnlyList<MarketDto> MapMarkets(Event @event) =>
+        @event.Markets
+            .OrderBy(market => market.DisplayOrder)
+            .ThenBy(market => market.Name, StringComparer.Ordinal)
+            .Select(ToDto)
+            .ToList();
+
+    private static DateTimeOffset? LastOddsUpdate(Event @event)
+    {
+        var lastOddsUpdate = @event.Markets
+            .SelectMany(market => market.Selections)
+            .Select(selection => selection.CurrentOdd.Timestamp)
+            .DefaultIfEmpty()
+            .Max();
+
+        return lastOddsUpdate == default ? null : lastOddsUpdate;
     }
 
     private static MmaBoutDto ToDto(MmaBout bout)
@@ -58,6 +97,7 @@ internal static class EventReadMapper
     private static FighterDto ToDto(Fighter fighter)
     {
         var division = WeightDivisionCatalog.Get(fighter.Division);
+        var record = fighter.GetRecordBreakdown();
 
         return new FighterDto(
             fighter.Id,
@@ -68,7 +108,15 @@ internal static class EventReadMapper
             fighter.Rank,
             division.Slug,
             division.Label,
-            fighter.ImageUrl);
+            fighter.ImageUrl,
+            record.Wins,
+            record.Losses,
+            record.Draws,
+            record.WinRate,
+            fighter.ReachInches,
+            StanceKey(fighter.Stance),
+            fighter.TakedownDefensePercent,
+            fighter.StrikingAccuracyPercent);
     }
 
     private static MarketDto ToDto(Market market)
@@ -162,5 +210,13 @@ internal static class EventReadMapper
         FightBilling.Prelims => "Preliminares",
         FightBilling.EarlyPrelims => "Preliminares tempranas",
         _ => "Otros combates"
+    };
+
+    private static string? StanceKey(FighterStance? stance) => stance switch
+    {
+        FighterStance.Orthodox => "orthodox",
+        FighterStance.Southpaw => "southpaw",
+        FighterStance.Switch => "switch",
+        _ => null
     };
 }

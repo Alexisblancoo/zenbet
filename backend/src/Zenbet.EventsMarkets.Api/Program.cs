@@ -156,6 +156,7 @@ app.MapAuthEndpoints();
 app.MapBetsEndpoints();
 app.MapWalletEndpoints();
 app.MapEventsEndpoints();
+app.MapFightersEndpoints();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 

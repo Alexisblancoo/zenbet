@@ -234,7 +234,7 @@ public sealed class UfcCardSeeder : IHostedService
 
     private static IReadOnlyDictionary<string, UfcSeedSource> Validate(UfcSeedDocument document)
     {
-        if (document.SchemaVersion != 3)
+        if (document.SchemaVersion != 4)
             throw new InvalidOperationException($"Versión de seed UFC no soportada: {document.SchemaVersion}.");
 
         if (string.IsNullOrWhiteSpace(document.Card.SeedKey) ||
@@ -280,6 +280,8 @@ public sealed class UfcCardSeeder : IHostedService
 
             ValidateImageUrl(bout.Id, "red", bout.Fighter1ImageUrl ?? bout.Red.ImageUrl);
             ValidateImageUrl(bout.Id, "blue", bout.Fighter2ImageUrl ?? bout.Blue.ImageUrl);
+            ValidateFighterMetrics(bout.Id, "red", bout.Red);
+            ValidateFighterMetrics(bout.Id, "blue", bout.Blue);
 
             var division = WeightDivisionCatalog.Parse(bout.Division);
             var redDivision = WeightDivisionCatalog.Parse(bout.Red.Division);
@@ -398,6 +400,40 @@ public sealed class UfcCardSeeder : IHostedService
         }
     }
 
+    private static void ValidateFighterMetrics(string boutId, string corner, UfcSeedFighter fighter)
+    {
+        if (fighter.ReachInches is < 50 or > 90)
+            throw new InvalidOperationException(
+                $"El alcance {corner} del bout {boutId} debe estar entre 50 y 90 pulgadas.");
+
+        if (!string.IsNullOrWhiteSpace(fighter.Stance) && ParseStance(fighter.Stance) is null)
+            throw new InvalidOperationException(
+                $"La guardia {corner} del bout {boutId} no es válida: '{fighter.Stance}'.");
+
+        if (fighter.TakedownDefensePercent is < 0 or > 100)
+            throw new InvalidOperationException(
+                $"La defensa de derribos {corner} del bout {boutId} debe estar entre 0 y 100.");
+
+        if (fighter.StrikingAccuracyPercent is < 0 or > 100)
+            throw new InvalidOperationException(
+                $"La precisión de golpeo {corner} del bout {boutId} debe estar entre 0 y 100.");
+    }
+
+    private static Fighter BuildFighter(UfcSeedFighter seed, string? imageUrl) =>
+        Fighter.Create(
+            seed.Id,
+            seed.Name,
+            seed.CountryCode,
+            seed.Country,
+            seed.Record,
+            seed.Rank,
+            WeightDivisionCatalog.Parse(seed.Division).Division,
+            imageUrl,
+            seed.ReachInches,
+            ParseStance(seed.Stance),
+            seed.TakedownDefensePercent,
+            seed.StrikingAccuracyPercent);
+
     private static Event BuildEvent(
         UfcSeedBout boutSeed,
         UfcSeedDocument document,
@@ -406,24 +442,8 @@ public sealed class UfcCardSeeder : IHostedService
         out int selectionCount)
     {
         var division = WeightDivisionCatalog.Parse(boutSeed.Division);
-        var red = Fighter.Create(
-            boutSeed.Red.Id,
-            boutSeed.Red.Name,
-            boutSeed.Red.CountryCode,
-            boutSeed.Red.Country,
-            boutSeed.Red.Record,
-            boutSeed.Red.Rank,
-            WeightDivisionCatalog.Parse(boutSeed.Red.Division).Division,
-            boutSeed.Fighter1ImageUrl ?? boutSeed.Red.ImageUrl);
-        var blue = Fighter.Create(
-            boutSeed.Blue.Id,
-            boutSeed.Blue.Name,
-            boutSeed.Blue.CountryCode,
-            boutSeed.Blue.Country,
-            boutSeed.Blue.Record,
-            boutSeed.Blue.Rank,
-            WeightDivisionCatalog.Parse(boutSeed.Blue.Division).Division,
-            boutSeed.Fighter2ImageUrl ?? boutSeed.Blue.ImageUrl);
+        var red = BuildFighter(boutSeed.Red, boutSeed.Fighter1ImageUrl ?? boutSeed.Red.ImageUrl);
+        var blue = BuildFighter(boutSeed.Blue, boutSeed.Fighter2ImageUrl ?? boutSeed.Blue.ImageUrl);
         var billing = ParseBilling(boutSeed.Billing)
             ?? throw new InvalidOperationException($"Billing inválido: {boutSeed.Billing}.");
         var bout = MmaBout.Create(
@@ -482,6 +502,15 @@ public sealed class UfcCardSeeder : IHostedService
         @event.Bout?.UpdateFighterImages(
             boutSeed.Fighter1ImageUrl ?? boutSeed.Red.ImageUrl,
             boutSeed.Fighter2ImageUrl ?? boutSeed.Blue.ImageUrl);
+        @event.Bout?.UpdateFighterMetrics(
+            boutSeed.Red.ReachInches,
+            ParseStance(boutSeed.Red.Stance),
+            boutSeed.Red.TakedownDefensePercent,
+            boutSeed.Red.StrikingAccuracyPercent,
+            boutSeed.Blue.ReachInches,
+            ParseStance(boutSeed.Blue.Stance),
+            boutSeed.Blue.TakedownDefensePercent,
+            boutSeed.Blue.StrikingAccuracyPercent);
 
         var seedMarketIds = new HashSet<Guid>();
         foreach (var marketSeed in boutSeed.Markets)
@@ -620,4 +649,18 @@ public sealed class UfcCardSeeder : IHostedService
         "early" => FightBilling.EarlyPrelims,
         _ => null
     };
+
+    private static FighterStance? ParseStance(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "orthodox" => FighterStance.Orthodox,
+            "southpaw" => FighterStance.Southpaw,
+            "switch" => FighterStance.Switch,
+            _ => null
+        };
+    }
 }
