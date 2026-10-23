@@ -7,10 +7,12 @@
 
 @layer base {
   :root {
-    --bg-void: #040405;
-    --bg-obsidian: #0A0B0E;
-    --accent-crimson: #FF0033;
-    --accent-gold: #E5A93C;
+    --bg-void: #07090E;
+    --bg-obsidian: #0A0E16;
+    --accent-crimson: #FF2A55;
+    --accent-money: #10B981;
+    --accent-electric: #3B82F6;
+    --accent-gold: #CBD5E1;
     --metallic-chrome: #E2E8F0;
     --metallic-titanium: #94A3B8;
     --metallic-dark: #1E293B;
@@ -18,8 +20,8 @@
 
   body {
     background-color: var(--bg-void);
-    color: #F8FAFC;
-    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #FFFFFF;
+    font-family: var(--zb-font-sans);
     overflow-x: hidden;
     position: relative;
     -webkit-font-smoothing: antialiased;
@@ -98,7 +100,7 @@
   position: relative;
   border: 1px solid transparent;
   background: 
-    linear-gradient(#0A0B0E, #0A0B0E) padding-box,
+    linear-gradient(#07090E, #07090E) padding-box,
     linear-gradient(135deg, rgba(248, 250, 252, 0.45) 0%, rgba(148, 163, 184, 0.15) 35%, rgba(30, 41, 59, 0.8) 70%, rgba(226, 232, 240, 0.4) 100%) border-box;
   box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
@@ -126,26 +128,25 @@
   position: relative;
   border: 1px solid transparent;
   background: 
-    linear-gradient(#0A0B0E, #0A0B0E) padding-box,
-    linear-gradient(135deg, #FF0033 0%, rgba(148, 163, 184, 0.4) 30%, #3D000C 70%, #FF1E47 100%) border-box;
+    linear-gradient(#07090E, #07090E) padding-box,
+    linear-gradient(135deg, #FF2A55 0%, rgba(148, 163, 184, 0.4) 30%, #3D000C 70%, #EF4444 100%) border-box;
   box-shadow: 
-    0 0 16px -4px rgba(255, 0, 51, 0.25),
-    inset 0 1px 0 0 rgba(255, 0, 51, 0.3);
+    0 0 16px -4px rgba(255, 42, 85, 0.25),
+    inset 0 1px 0 0 rgba(255, 42, 85, 0.3);
 }
 
 /**
- * Borde Metálico Oro Bruñido (Imperial Bullion Edge)
- * Ideal para saldos, cuotas especiales, boosts VIP y multiplicadores Zenbet.
+ * Borde Metálico Verde Dinero (saldos y ganancias)
  */
 .border-metallic-gold {
   position: relative;
   border: 1px solid transparent;
   background: 
-    linear-gradient(#0A0B0E, #0A0B0E) padding-box,
-    linear-gradient(135deg, #FFF1CC 0%, #E5A93C 35%, #5C3802 70%, #FFD066 100%) border-box;
+    linear-gradient(#07090E, #07090E) padding-box,
+    linear-gradient(135deg, #D1FAE5 0%, #10B981 35%, #064E3B 70%, #00FF87 100%) border-box;
   box-shadow: 
-    0 0 16px -4px rgba(229, 169, 60, 0.22),
-    inset 0 1px 0 0 rgba(255, 241, 204, 0.2);
+    0 0 16px -4px rgba(16, 185, 129, 0.22),
+    inset 0 1px 0 0 rgba(209, 250, 229, 0.2);
 }
 
 /* ==========================================================================

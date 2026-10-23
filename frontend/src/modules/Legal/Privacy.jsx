@@ -72,7 +72,7 @@ export default function Privacy() {
             <div className='mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <div className='border border-obsidian-border bg-obsidian-void p-4'>
                 <div className='flex items-center gap-2 text-white font-mono text-xs uppercase font-bold'>
-                  <ShieldCheck size={16} className='text-emerald-400' aria-hidden='true' />
+                  <ShieldCheck size={16} className='text-money' aria-hidden='true' />
                   <span>Cifrado en Tránsito TLS 1.3</span>
                 </div>
                 <p className='mt-2 text-xs text-metallic-slate'>

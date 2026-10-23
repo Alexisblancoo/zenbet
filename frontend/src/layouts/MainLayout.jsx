@@ -2,11 +2,12 @@ import { Outlet } from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
+import MobileDock from './components/MobileDock';
 import ConsentNotice from '@/components/common/ConsentNotice';
 
 export default function MainLayout() {
   return (
-    <div className='min-h-screen bg-obsidian-void text-slate-100 flex flex-col font-sans selection:bg-crimson selection:text-white'>
+    <div className='min-h-screen bg-obsidian-void text-slate-100 flex flex-col font-sans selection:bg-crimson selection:text-white pb-[calc(64px+env(safe-area-inset-bottom))] min-[1400px]:pb-0'>
       {/* Header Fijo */}
       <Header />
 
@@ -20,6 +21,9 @@ export default function MainLayout() {
 
       {/* Footer */}
       <Footer />
+
+      {/* Accesos rápidos en pantallas pequeñas */}
+      <MobileDock />
 
       {/* Banner flotante de consentimiento legal */}
       <ConsentNotice />

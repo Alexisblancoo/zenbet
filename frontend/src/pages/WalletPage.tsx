@@ -16,6 +16,7 @@ import { useWalletDashboard } from '@/hooks/useWalletDashboard';
 import { BetHistoryPanel } from '@/modules/Wallet/components/BetHistoryPanel';
 import { TransactionHistoryPanel } from '@/modules/Wallet/components/TransactionHistoryPanel';
 import { WalletBalanceHero } from '@/modules/Wallet/components/WalletBalanceHero';
+import { WalletDepositPanel } from '@/modules/Wallet/components/WalletDepositPanel';
 import { WalletMetrics } from '@/modules/Wallet/components/WalletMetrics';
 import { WalletPerformancePanel } from '@/modules/Wallet/components/WalletPerformancePanel';
 import { WalletSkeleton } from '@/modules/Wallet/components/WalletSkeleton';
@@ -52,12 +53,12 @@ export default function WalletPage() {
     return (
       <div className='mx-auto flex min-h-[60vh] w-full max-w-7xl items-center justify-center px-4'>
         <div className='surface-panel px-6 py-8 text-center'>
-          <p className='font-display text-sm font-extrabold uppercase tracking-brutal text-white'>
+          <p className='font-display text-sm font-bold uppercase tracking-wide text-white'>
             Inicia sesión para ver tu billetera
           </p>
           <Link
             to='/login'
-            className='mt-4 inline-flex items-center gap-2 rounded-sm border border-crimson/60 bg-crimson/10 px-4 py-2 font-display text-[10px] font-extrabold uppercase tracking-brutal text-crimson transition-colors hover:bg-crimson/15'
+            className='mt-4 inline-flex items-center gap-2 rounded-sm border border-crimson/60 bg-crimson/10 px-4 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-crimson transition-colors hover:bg-crimson/15'
           >
             Ir a iniciar sesión
             <ArrowRight size={12} aria-hidden='true' />
@@ -67,20 +68,20 @@ export default function WalletPage() {
     );
   }
 
-  const balance = user.walletBalance;
+  const balance = snapshot?.balance ?? user.walletBalance;
   const isInitialLoading =
     !snapshot && (status === 'loading' || status === 'refreshing');
   const isDemo = snapshot?.mode === 'demo';
 
   return (
-    <div className='relative isolate min-h-full overflow-hidden bg-obsidian-void'>
+    <div className='relative isolate min-h-full overflow-hidden bg-canvas'>
       <div
         aria-hidden='true'
         className='pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-gradient-ambient-crimson opacity-80'
       />
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[radial-gradient(ellipse_at_18%_0%,rgb(var(--zb-gold-500)/0.08),transparent_55%)]'
+        className='pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[radial-gradient(ellipse_at_18%_0%,rgb(var(--zb-electric-500)/0.09),transparent_55%)]'
       />
 
       <div className='relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8'>
@@ -98,7 +99,7 @@ export default function WalletPage() {
               <span className='text-metallic-titanium'>Billetera</span>
             </div>
 
-            <h1 className='mt-2 font-display text-2xl font-black uppercase tracking-tightest text-white sm:text-3xl'>
+            <h1 className='mt-2 font-display text-2xl font-bold uppercase tracking-tight text-white sm:text-3xl'>
               Tu billetera
             </h1>
             <p className='mt-1.5 max-w-xl text-xs leading-relaxed text-metallic-titanium'>
@@ -110,15 +111,15 @@ export default function WalletPage() {
           <div className='flex flex-wrap items-center gap-2'>
             {isDemo ? (
               <span
-                title='El backend aún no expone consultas de billetera; el historial histórico es de demostración.'
-                className='inline-flex items-center gap-1.5 rounded-sm border border-gold/25 bg-gold/5 px-2 py-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-gold-imperial'
+                title='Historial de demostración; las consultas ampliadas estarán disponibles próximamente.'
+                className='inline-flex items-center gap-1.5 rounded-sm border border-electric/25 bg-electric/5 px-2 py-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-electric-soft'
               >
                 <FlaskConical size={11} aria-hidden='true' />
                 Modo demo
               </span>
             ) : snapshot ? (
-              <span className='inline-flex items-center gap-1.5 rounded-sm border border-odds-up/25 bg-odds-up/5 px-2 py-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-odds-up'>
-                <span className='h-1.5 w-1.5 rounded-full bg-odds-up' aria-hidden='true' />
+              <span className='inline-flex items-center gap-1.5 rounded-sm border border-crimson/30 bg-crimson/[0.07] px-2 py-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-crimson'>
+                <span className='h-1.5 w-1.5 rounded-full bg-crimson' aria-hidden='true' />
                 Datos en vivo
               </span>
             ) : null}
@@ -131,7 +132,7 @@ export default function WalletPage() {
 
             <Link
               to='/sportsbook'
-              className='inline-flex items-center gap-2 rounded-sm border border-crimson/60 bg-crimson/10 px-3 py-1.5 font-display text-[10px] font-extrabold uppercase tracking-brutal text-crimson transition-colors hover:bg-crimson/15'
+              className='inline-flex items-center gap-2 rounded-sm border border-crimson/60 bg-crimson/10 px-3 py-1.5 font-display text-[10px] font-bold uppercase tracking-wide text-crimson transition-colors hover:bg-crimson/15'
             >
               Apostar ahora
               <ArrowRight size={12} aria-hidden='true' />
@@ -148,7 +149,7 @@ export default function WalletPage() {
             <span className='grid h-11 w-11 place-items-center rounded-md border border-odds-down/30 bg-odds-down/5 text-odds-down'>
               <TriangleAlert size={19} strokeWidth={1.8} aria-hidden='true' />
             </span>
-            <h2 className='mt-4 font-display text-sm font-extrabold uppercase tracking-brutal text-white'>
+            <h2 className='mt-4 font-display text-sm font-bold uppercase tracking-wide text-white'>
               No pudimos cargar tu billetera
             </h2>
             <p className='mt-1.5 max-w-sm text-xs leading-relaxed text-metallic-titanium'>
@@ -157,7 +158,7 @@ export default function WalletPage() {
             <button
               type='button'
               onClick={refresh}
-              className='mt-4 inline-flex items-center gap-2 rounded-sm border border-obsidian-border bg-obsidian-surface/60 px-4 py-2 font-display text-[10px] font-extrabold uppercase tracking-brutal text-metallic-platinum transition-colors hover:border-metallic-slate hover:text-white'
+              className='mt-4 inline-flex items-center gap-2 rounded-sm border border-obsidian-border bg-obsidian-surface/60 px-4 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-metallic-platinum transition-colors hover:border-metallic-slate hover:text-white'
             >
               <RefreshCw size={12} aria-hidden='true' />
               Reintentar
@@ -205,6 +206,11 @@ export default function WalletPage() {
               className='reveal-up stagger-2 mt-4'
             />
 
+            <WalletDepositPanel
+              onDeposited={() => refresh()}
+              className='reveal-up mt-4'
+            />
+
             <div className='mt-6 flex flex-col gap-6'>
               <BetHistoryPanel
                 bets={snapshot.bets}
@@ -226,14 +232,14 @@ export default function WalletPage() {
               />
               <p className='text-[10px] leading-relaxed text-metallic-slate'>
                 {isDemo
-                  ? 'Saldo sincronizado con tu sesión. El historial extendido se muestra en modo demo hasta que la API de billetera exponga consultas; las apuestas confirmadas en esta sesión sí se reflejan al instante.'
+                  ? 'Saldo sincronizado con tu sesión. El historial ampliado estará disponible próximamente; las apuestas confirmadas en esta sesión ya se reflejan al instante.'
                   : 'Saldo e historial sincronizados con la billetera de Zenbet.'}
               </p>
             </div>
           </>
         ) : (
           <div className='surface-panel mt-6 flex flex-col items-center justify-center px-6 py-16 text-center'>
-            <p className='font-display text-sm font-extrabold uppercase tracking-brutal text-white'>
+            <p className='font-display text-sm font-bold uppercase tracking-wide text-white'>
               Sin datos de billetera
             </p>
             <p className='mt-1.5 text-xs text-metallic-titanium'>
@@ -242,7 +248,7 @@ export default function WalletPage() {
             <button
               type='button'
               onClick={refresh}
-              className='mt-4 inline-flex items-center gap-2 rounded-sm border border-obsidian-border bg-obsidian-surface/60 px-4 py-2 font-display text-[10px] font-extrabold uppercase tracking-brutal text-metallic-platinum transition-colors hover:border-metallic-slate hover:text-white'
+              className='mt-4 inline-flex items-center gap-2 rounded-sm border border-obsidian-border bg-obsidian-surface/60 px-4 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-metallic-platinum transition-colors hover:border-metallic-slate hover:text-white'
             >
               <RefreshCw size={12} aria-hidden='true' />
               Reintentar

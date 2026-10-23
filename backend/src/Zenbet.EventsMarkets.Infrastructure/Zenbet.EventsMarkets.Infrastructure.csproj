@@ -17,9 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Persistence\Seeding\Data\ufc-333.json">
-      <LogicalName>Zenbet.EventsMarkets.Infrastructure.Persistence.Seeding.Data.ufc-333.json</LogicalName>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Persistence\Seeding\Data\*.json" />
   </ItemGroup>
 
   <ItemGroup>

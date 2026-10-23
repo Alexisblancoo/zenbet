@@ -34,15 +34,15 @@ export function WalletBalanceHero({
       className={`glass-panel relative isolate overflow-hidden p-5 sm:p-6 ${className}`}
     >
       <div aria-hidden='true' className='pointer-events-none absolute inset-0'>
-        <div className='absolute -right-20 -top-28 h-64 w-64 rounded-full bg-gold/10 blur-3xl' />
-        <div className='absolute -bottom-28 left-1/4 h-64 w-64 rounded-full bg-crimson/10 blur-3xl' />
+        <div className='absolute -right-20 -top-28 h-64 w-64 rounded-full bg-money/10 blur-3xl' />
+        <div className='absolute -bottom-28 left-1/4 h-64 w-64 rounded-full bg-electric/10 blur-3xl' />
         <div className='absolute inset-0 bg-grid-hairline opacity-[0.12] [mask-image:radial-gradient(ellipse_at_top,black,transparent_72%)]' />
       </div>
 
       <div className='relative'>
         <div className='flex flex-wrap items-center justify-between gap-3'>
           <div className='inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-ultra text-metallic-titanium'>
-            <span className='grid h-5 w-5 place-items-center rounded-sm border border-gold/25 bg-gold/5 text-gold-imperial'>
+            <span className='grid h-5 w-5 place-items-center rounded-sm border border-money/25 bg-money/5 text-money'>
               <Wallet size={11} aria-hidden='true' />
             </span>
             <h2 id='wallet-balance-title'>Billetera Zenbet</h2>
@@ -68,14 +68,14 @@ export function WalletBalanceHero({
               className='mt-1.5 flex flex-wrap items-end gap-x-2.5 gap-y-1'
             >
               <span className='inline-flex items-end'>
-                <span className='font-mono text-[2.75rem] font-black leading-none tracking-tightest text-white tabular-nums sm:text-6xl'>
+                <span className='font-mono text-[2.75rem] font-black leading-none tracking-tightest text-money tabular-nums sm:text-6xl'>
                   {whole}
                 </span>
-                <span className='pb-0.5 font-mono text-lg font-semibold leading-none text-metallic-titanium sm:pb-1 sm:text-xl'>
+                <span className='pb-0.5 font-mono text-lg font-semibold leading-none text-money/80 sm:pb-1 sm:text-xl'>
                   .{fraction}
                 </span>
               </span>
-              <span className='mb-1 rounded-sm border border-gold/25 bg-gold/5 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-gold-specular'>
+              <span className='mb-1 rounded-sm border border-money/25 bg-money/5 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-money'>
                 USD
               </span>
             </div>
@@ -91,7 +91,7 @@ export function WalletBalanceHero({
             <span className='h-3 w-px bg-obsidian-border' aria-hidden='true' />
             {user.walletId ? (
               <span className='inline-flex items-center gap-1.5'>
-                <Wallet size={11} className='text-gold/70' aria-hidden='true' />
+                <Wallet size={11} className='text-electric-soft' aria-hidden='true' />
                 {formatWalletId(user.walletId)}
               </span>
             ) : (
@@ -115,7 +115,7 @@ export function WalletBalanceHero({
             <button
               type='button'
               onClick={onViewTransactions}
-              className='group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm border border-crimson/70 bg-crimson px-4 py-2.5 font-display text-[10px] font-extrabold uppercase tracking-brutal text-white transition-colors duration-150 hover:bg-crimson-pure focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70'
+              className='group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm border border-crimson/70 bg-crimson px-4 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide text-white transition-colors duration-150 hover:bg-crimson-pure focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70'
             >
               Ver movimientos
               <ArrowRight
@@ -129,7 +129,7 @@ export function WalletBalanceHero({
               type='button'
               onClick={onRefresh}
               disabled={isRefreshing}
-              className='inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm border border-obsidian-border bg-obsidian-surface/60 px-4 py-2.5 font-display text-[10px] font-extrabold uppercase tracking-brutal text-metallic-platinum transition-colors duration-150 hover:border-metallic-slate hover:text-white disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-metallic-slate/60'
+              className='inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm border border-obsidian-border bg-obsidian-surface/60 px-4 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide text-metallic-platinum transition-colors duration-150 hover:border-metallic-slate hover:text-white disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-metallic-slate/60'
             >
               <RefreshCw
                 size={13}

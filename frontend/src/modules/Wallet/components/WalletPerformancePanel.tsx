@@ -107,7 +107,7 @@ export function WalletPerformancePanel({
         </div>
         <div className='mt-2 h-1 overflow-hidden rounded-full bg-obsidian-elevated'>
           <div
-            className='h-full rounded-full bg-gradient-to-r from-gold/60 to-gold'
+            className='h-full rounded-full bg-gradient-to-r from-money/60 to-money'
             style={{ width: `${Math.round(winRate * 100)}%` }}
           />
         </div>

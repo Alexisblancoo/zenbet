@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Threading.RateLimiting;
+using Zenbet.EventsMarkets.Api.Authentication;
 using Zenbet.EventsMarkets.Api.Endpoints;
 using Zenbet.EventsMarkets.Api.ExceptionHandling;
 using Zenbet.EventsMarkets.Api.Hubs;
@@ -101,6 +103,14 @@ builder.Services.AddProblemDetails(options =>
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Sesión de jugador: token HMAC emitido por /api/auth y validado en cada request.
+builder.Services.AddAuthentication(BearerTokenAuthenticationHandler.SchemeName)
+    .AddScheme<AuthenticationSchemeOptions, BearerTokenAuthenticationHandler>(
+        BearerTokenAuthenticationHandler.SchemeName,
+        _ => { });
+builder.Services.AddAuthorization();
+
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
@@ -121,8 +131,13 @@ app.UseCors("DevelopmentCors");
 // Apply Exception Handler before other middleware
 app.UseExceptionHandler();
 
+// La identidad se resuelve antes del rate limit para particionar por jugador.
+app.UseAuthentication();
+
 // Apply Rate Limiting
 app.UseRateLimiter();
+
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -137,7 +152,9 @@ app.MapHub<OddsHub>("/odds-hub");
 
 // Los grupos de endpoints declaran su propio prefijo y sus políticas. No
 // envolverlos con otro MapGroup: eso duplicaba /api/v1/bets en la ruta real.
+app.MapAuthEndpoints();
 app.MapBetsEndpoints();
+app.MapWalletEndpoints();
 app.MapEventsEndpoints();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));

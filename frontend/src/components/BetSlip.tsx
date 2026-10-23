@@ -20,6 +20,7 @@ import {
   Zap,
 } from 'lucide-react';
 
+import { useAuthModal } from '@/context/authModalState';
 import { useAuth } from '@/context/authState';
 import { useBetSlip } from '@/context/betSlipState';
 import {
@@ -33,6 +34,7 @@ import {
   parseStakeInput,
   type BetSlipTab,
 } from '@/domain/bets';
+import { formatDecimalOdds } from '@/domain/odds';
 
 /**
  * BetSlip — panel de apuestas de Zenbet.
@@ -48,13 +50,10 @@ interface BetSlipProps {
   readonly maxStake?: number;
   readonly currency?: string;
   readonly locale?: string;
+  readonly onClose?: () => void;
 }
 
 const QUICK_INCREMENTS = [10, 50] as const;
-
-function formatOdds(value: number): string {
-  return value.toFixed(2);
-}
 
 export default function BetSlip({
   className = '',
@@ -62,8 +61,10 @@ export default function BetSlip({
   maxStake = DEFAULT_MAX_STAKE,
   currency = 'USD',
   locale = 'es-MX',
+  onClose,
 }: BetSlipProps) {
   const { isAuthenticated, user } = useAuth();
+  const { openAuth } = useAuthModal();
   const {
     selections,
     hubStatus,
@@ -162,6 +163,8 @@ export default function BetSlip({
       termsAccepted,
   );
 
+  const primaryDisabled = isAuthenticated ? !canSubmit : false;
+
   let stakeError: string | null = null;
   if (stakeIssue === 'invalid') stakeError = 'Ingresa un monto válido.';
   else if (stakeIssue === 'below-min') stakeError = `La apuesta mínima es ${formatMoney(minStake)}.`;
@@ -206,6 +209,15 @@ export default function BetSlip({
     }
   };
 
+  const handlePrimaryAction = () => {
+    if (!isAuthenticated) {
+      openAuth('register');
+      return;
+    }
+
+    void handleSubmit();
+  };
+
   const handleTabChange = (tab: BetSlipTab) => {
     if (tab === 'combined' && selections.length < 2) return;
     setPreferredTab(tab);
@@ -217,12 +229,12 @@ export default function BetSlip({
 
   const hubPresentation =
     hubStatus === 'connected'
-      ? { label: 'En vivo', dot: 'bg-odds-up', ping: true }
+      ? { label: 'En vivo', dot: 'bg-crimson', ping: true }
       : hubStatus === 'connecting'
-        ? { label: 'Conectando', dot: 'bg-odds-live', ping: false }
+        ? { label: 'Conectando', dot: 'bg-electric', ping: false }
         : hubStatus === 'reconnecting'
-          ? { label: 'Reconectando', dot: 'bg-odds-live', ping: false }
-          : { label: 'Sin feed', dot: 'bg-metallic-gunmetal', ping: false };
+          ? { label: 'Reconectando', dot: 'bg-electric', ping: false }
+          : { label: 'Snapshot', dot: 'bg-electric', ping: false };
 
   /* ---------------------------------------------------------------------- */
   /* Render                                                                 */
@@ -246,10 +258,10 @@ export default function BetSlip({
             <Ticket size={15} aria-hidden='true' />
           </span>
           <div className='min-w-0'>
-            <h2 className='font-display text-[11px] font-extrabold uppercase tracking-ultra text-white'>
+            <h2 className='font-display text-[12px] font-bold uppercase tracking-wide text-white'>
               Boleto
             </h2>
-            <p className='font-mono text-[9px] uppercase tracking-brutal text-metallic-slate'>
+            <p className='font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
               {receipt
                 ? 'Operación cerrada'
                 : `${selections.length} ${selections.length === 1 ? 'selección' : 'selecciones'}`}
@@ -259,20 +271,16 @@ export default function BetSlip({
 
         <div className='flex shrink-0 items-center gap-2'>
           <span className='inline-flex items-center gap-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-metallic-slate'>
-            <span className='relative flex h-1.5 w-1.5' aria-hidden='true'>
-              {hubPresentation.ping && (
-                <span
-                  className={`absolute inline-flex h-full w-full animate-ping rounded-full ${hubPresentation.dot} opacity-70`}
-                />
-              )}
-              <span
-                className={`relative inline-flex h-1.5 w-1.5 rounded-full ${hubPresentation.dot} ${
-                  hubStatus === 'connecting' || hubStatus === 'reconnecting'
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${hubPresentation.dot} ${
+                hubStatus === 'connected'
+                  ? 'animate-live-breathe'
+                  : hubStatus === 'connecting' || hubStatus === 'reconnecting'
                     ? 'animate-pulse'
                     : ''
-                }`}
-              />
-            </span>
+              }`}
+              aria-hidden='true'
+            />
             {hubPresentation.label}
           </span>
 
@@ -287,6 +295,17 @@ export default function BetSlip({
               <Trash2 size={13} aria-hidden='true' />
             </button>
           )}
+
+          {onClose ? (
+            <button
+              type='button'
+              onClick={onClose}
+              aria-label='Cerrar boleto'
+              className='border border-transparent p-1.5 text-metallic-slate transition-colors duration-150 hover:border-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric'
+            >
+              <X size={14} aria-hidden='true' />
+            </button>
+          ) : null}
         </div>
       </header>
 
@@ -299,33 +318,33 @@ export default function BetSlip({
             <Check size={22} strokeWidth={2.5} aria-hidden='true' />
           </span>
 
-          <h3 className='mt-4 text-center font-display text-sm font-extrabold uppercase tracking-brutal text-white'>
+          <h3 className='mt-4 text-center font-display text-sm font-bold uppercase tracking-wide text-white'>
             {receipt.idempotentReplay ? 'Apuesta ya registrada' : 'Apuesta confirmada'}
           </h3>
           <p className='mt-1.5 text-center text-[11px] leading-relaxed text-metallic-titanium'>
             {receipt.idempotentReplay
-              ? 'El servidor reconoció la operación idempotente: no se debitó dos veces.'
-              : 'El servidor aceptó la apuesta y actualizó tu billetera.'}
+              ? 'La operación ya estaba registrada; no se debitó dos veces.'
+              : 'Apuesta aceptada y saldo actualizado.'}
           </p>
 
           <dl className='mt-5 divide-y divide-obsidian-border/60 border-y border-obsidian-border/60'>
             <div className='flex items-center justify-between gap-3 py-2.5'>
-              <dt className='text-[10px] uppercase tracking-brutal text-metallic-slate'>Monto</dt>
-              <dd className='font-mono text-sm font-bold tabular-nums text-white'>
+              <dt className='text-[10px] uppercase tracking-wide text-metallic-slate'>Monto</dt>
+              <dd className='font-mono text-sm font-bold tabular-nums text-money'>
                 {formatMoney(receipt.stake)}
               </dd>
             </div>
             <div className='flex items-center justify-between gap-3 py-2.5'>
               <dt className='text-[10px] uppercase tracking-brutal text-metallic-slate'>Cuota</dt>
               <dd className='font-mono text-sm font-bold tabular-nums text-white'>
-                ×{formatOdds(receipt.odds)}
+                ×{formatDecimalOdds(receipt.odds)}
               </dd>
             </div>
             <div className='flex items-center justify-between gap-3 py-2.5'>
               <dt className='text-[10px] uppercase tracking-brutal text-metallic-slate'>
                 Retorno potencial
               </dt>
-              <dd className='font-odds text-base font-extrabold tabular-nums text-gold'>
+              <dd className='font-odds text-base font-extrabold tabular-nums text-money'>
                 {formatMoney(receipt.potentialPayout)}
               </dd>
             </div>
@@ -334,7 +353,7 @@ export default function BetSlip({
                 <dt className='text-[10px] uppercase tracking-brutal text-metallic-slate'>
                   Saldo actualizado
                 </dt>
-                <dd className='font-mono text-sm font-bold tabular-nums text-metallic-chrome'>
+                <dd className='font-mono text-sm font-bold tabular-nums text-money'>
                   {formatMoney(receipt.newBalance)}
                 </dd>
               </div>
@@ -351,14 +370,14 @@ export default function BetSlip({
             <button
               type='button'
               onClick={clearReceipt}
-              className='flex items-center justify-center gap-2 border border-crimson/60 bg-crimson/10 px-3 py-3 font-display text-[11px] font-extrabold uppercase tracking-brutal text-crimson transition-colors duration-150 hover:bg-crimson/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70'
+              className='flex items-center justify-center gap-2 border border-crimson/60 bg-crimson/10 px-3 py-3 font-display text-[11px] font-bold uppercase tracking-wide text-crimson transition-colors duration-150 hover:bg-crimson/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70'
             >
               <Plus size={14} aria-hidden='true' />
               Nueva
             </button>
             <Link
               to='/wallet'
-              className='flex items-center justify-center gap-2 border border-obsidian-border bg-obsidian-surface/60 px-3 py-3 font-display text-[11px] font-extrabold uppercase tracking-brutal text-metallic-platinum transition-colors duration-150 hover:border-gold/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60'
+              className='flex items-center justify-center gap-2 border border-obsidian-border bg-obsidian-surface/60 px-3 py-3 font-display text-[11px] font-bold uppercase tracking-wide text-metallic-platinum transition-colors duration-150 hover:border-electric/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/60'
             >
               <Wallet size={14} aria-hidden='true' />
               Billetera
@@ -381,14 +400,14 @@ export default function BetSlip({
                 aria-controls={panelId}
                 aria-selected={activeTab === 'single'}
                 onClick={() => handleTabChange('single')}
-                className={`flex items-center justify-center gap-2 border-b-2 py-2.5 font-display text-[10px] font-extrabold uppercase tracking-brutal transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson ${
+                className={`flex items-center justify-center gap-2 border-b-2 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson ${
                   activeTab === 'single'
                     ? 'border-crimson bg-white/[0.02] text-white'
                     : 'border-transparent text-metallic-slate hover:text-metallic-chrome'
                 }`}
               >
                 Simple
-                <span className='font-mono text-[9px] font-bold tabular-nums text-metallic-gunmetal'>
+                <span className='font-mono text-[9px] font-bold tabular-nums text-metallic-slate'>
                   {isSingle ? '1' : hasSelections ? '—' : '0'}
                 </span>
               </button>
@@ -401,14 +420,14 @@ export default function BetSlip({
                 aria-selected={activeTab === 'combined'}
                 disabled={selections.length < 2}
                 onClick={() => handleTabChange('combined')}
-                className={`flex items-center justify-center gap-2 border-b-2 py-2.5 font-display text-[10px] font-extrabold uppercase tracking-brutal transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson disabled:cursor-not-allowed disabled:opacity-40 ${
+                className={`flex items-center justify-center gap-2 border-b-2 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson disabled:cursor-not-allowed disabled:opacity-40 ${
                   activeTab === 'combined'
                     ? 'border-crimson bg-white/[0.02] text-white'
                     : 'border-transparent text-metallic-slate hover:text-metallic-chrome'
                 }`}
               >
                 Combinada
-                <span className='font-mono text-[9px] font-bold tabular-nums text-metallic-gunmetal'>
+                <span className='font-mono text-[9px] font-bold tabular-nums text-metallic-slate'>
                   {selections.length > 1 ? selections.length : '—'}
                 </span>
               </button>
@@ -426,13 +445,12 @@ export default function BetSlip({
           >
             {!hasSelections ? (
               <div className='flex flex-col items-center justify-center gap-2 px-6 py-12 text-center'>
-                <Ticket size={26} className='text-metallic-gunmetal' aria-hidden='true' />
-                <p className='font-display text-xs font-bold uppercase tracking-brutal text-metallic-slate'>
+                <Ticket size={26} className='text-metallic-slate' aria-hidden='true' />
+                <p className='font-display text-xs font-bold uppercase tracking-wide text-metallic-slate'>
                   Boleto vacío
                 </p>
                 <p className='max-w-[16rem] text-[11px] leading-relaxed text-metallic-slate'>
-                  Selecciona una cuota del mercado para comenzar. Cada cuota muestra su última
-                  actualización disponible.
+                  Haz clic en cualquier cuota para añadir tu selección al boleto de apuestas.
                 </p>
               </div>
             ) : (
@@ -479,7 +497,7 @@ export default function BetSlip({
                             {changed ? (
                               <span className='flex items-baseline gap-1 font-odds text-sm font-bold tabular-nums'>
                                 <s className='text-[11px] font-medium text-metallic-slate'>
-                                  {formatOdds(selection.odds)}
+                                  {formatDecimalOdds(selection.odds)}
                                 </s>
                                 <ArrowRight size={9} className='text-odds-live' aria-hidden='true' />
                                 <span
@@ -489,12 +507,12 @@ export default function BetSlip({
                                       : 'text-odds-down'
                                   }
                                 >
-                                  {formatOdds(selection.liveOdds)}
+                                  {formatDecimalOdds(selection.liveOdds)}
                                 </span>
                               </span>
                             ) : (
-                              <span className='font-odds text-sm font-bold tabular-nums text-white'>
-                                {formatOdds(selection.liveOdds)}
+                              <span className='font-odds text-sm font-bold tabular-nums text-money'>
+                                {formatDecimalOdds(selection.liveOdds)}
                               </span>
                             )}
 
@@ -572,8 +590,7 @@ export default function BetSlip({
                         className='mt-0.5 shrink-0 text-metallic-slate'
                         aria-hidden='true'
                       />
-                      La API registra una apuesta por selección. Elige “Apostar solo esta” en la
-                      cuota que quieras enviar.
+                      Haz clic en cualquier cuota para añadir tu selección al boleto de apuestas.
                     </p>
                   </div>
                 ) : (
@@ -582,17 +599,17 @@ export default function BetSlip({
                       <span className='text-[10px] font-bold uppercase tracking-brutal text-metallic-slate'>
                         {activeTab === 'combined' ? 'Cuota combinada' : 'Cuota total'}
                       </span>
-                      <span className='font-odds text-2xl font-bold tabular-nums text-white'>
-                        ×{formatOdds(totalOdds)}
+                      <span className='font-odds text-2xl font-bold tabular-nums text-money'>
+                        ×{formatDecimalOdds(totalOdds)}
                       </span>
                     </div>
 
-                    <div className='flex items-center justify-between border-y border-obsidian-border/60 bg-gradient-to-r from-gold/10 via-transparent to-transparent px-4 py-3'>
-                      <span className='inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-brutal text-gold'>
+                    <div className='flex items-center justify-between border-y border-obsidian-border/60 bg-gradient-to-r from-money/10 via-transparent to-transparent px-4 py-3'>
+                      <span className='inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-brutal text-money'>
                         <Coins size={12} aria-hidden='true' />
                         Ganancia potencial
                       </span>
-                      <span className='font-odds text-xl font-extrabold tabular-nums text-gold'>
+                      <span className='font-odds text-xl font-extrabold tabular-nums text-money'>
                         {hasPayout ? formatMoney(potentialPayout) : '—'}
                       </span>
                     </div>
@@ -613,7 +630,7 @@ export default function BetSlip({
                       <div className='relative mt-2'>
                         <span
                           aria-hidden='true'
-                          className='pointer-events-none absolute inset-y-0 left-0 flex items-center border-r border-obsidian-border px-3 font-mono text-xs font-bold text-crimson'
+                          className='pointer-events-none absolute inset-y-0 left-0 flex items-center border-r border-obsidian-border px-3 font-mono text-xs font-bold text-money'
                         >
                           {formatters.symbol}
                         </span>
@@ -627,15 +644,15 @@ export default function BetSlip({
                           value={stakeInput}
                           onChange={handleStakeChange}
                           onKeyDown={(event) => {
-                            if (event.key === 'Enter') void handleSubmit();
+                            if (event.key === 'Enter') handlePrimaryAction();
                           }}
                           disabled={isPlacingBet}
                           aria-invalid={Boolean(stakeError)}
                           aria-describedby={`${stakeInputId}-help`}
-                          className={`w-full border bg-obsidian-void py-2.5 pl-12 pr-3 font-mono text-base font-bold tabular-nums text-white placeholder:text-metallic-gunmetal focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-60 ${
+                          className={`w-full border bg-obsidian-void py-2.5 pl-12 pr-3 font-mono text-base font-bold tabular-nums text-white placeholder:text-metallic-slate focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-60 ${
                             stakeError
                               ? 'border-crimson focus:ring-crimson'
-                              : 'border-obsidian-border focus:border-crimson focus:ring-crimson/60'
+                              : 'border-obsidian-border focus:border-electric focus:ring-electric/60'
                           }`}
                         />
                       </div>
@@ -647,7 +664,7 @@ export default function BetSlip({
                             type='button'
                             onClick={() => handleIncrement(increment)}
                             disabled={isPlacingBet}
-                            className='border border-obsidian-border px-2 py-1 font-mono text-[10px] font-bold tabular-nums text-metallic-titanium transition-colors duration-150 hover:border-crimson/50 hover:text-crimson focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson disabled:cursor-not-allowed disabled:opacity-40'
+                            className='border border-obsidian-border px-2 py-1 font-mono text-[10px] font-bold tabular-nums text-metallic-titanium transition-colors duration-150 hover:border-money/50 hover:text-money focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             +{formatCompact(increment)}
                           </button>
@@ -656,7 +673,7 @@ export default function BetSlip({
                           type='button'
                           onClick={handleMax}
                           disabled={isPlacingBet}
-                          className='border border-obsidian-border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-metallic-titanium transition-colors duration-150 hover:border-crimson/50 hover:text-crimson focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson disabled:cursor-not-allowed disabled:opacity-40'
+                          className='border border-obsidian-border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-metallic-titanium transition-colors duration-150 hover:border-money/50 hover:text-money focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric disabled:cursor-not-allowed disabled:opacity-40'
                         >
                           Max
                         </button>
@@ -686,8 +703,8 @@ export default function BetSlip({
                             className='mt-0.5 shrink-0'
                             aria-hidden='true'
                           />
-                          Tu saldo registrado es menor al monto. El servidor validará el saldo
-                          final de la billetera.
+                          Tu saldo registrado es menor al monto. Validaremos tu saldo antes de
+                          confirmar la apuesta.
                         </p>
                       )}
 
@@ -713,7 +730,7 @@ export default function BetSlip({
                             aria-hidden='true'
                           />
                           <div className='min-w-0 flex-1'>
-                            <p className='font-display text-[10px] font-extrabold uppercase tracking-brutal text-crimson-200'>
+                            <p className='font-display text-[10px] font-bold uppercase tracking-wide text-crimson-200'>
                               {error.title}
                             </p>
                             <p className='mt-1 text-[11px] leading-relaxed text-metallic-titanium'>
@@ -745,13 +762,13 @@ export default function BetSlip({
                             Combinada no disponible
                           </p>
                           <p className='mt-1 text-[10px] leading-relaxed text-metallic-titanium'>
-                            La API actual registra una selección por apuesta. Elige una cuota
-                            para enviarla como simple.
+                            Por ahora las apuestas se envían de una en una. Elige la cuota que
+                            prefieras jugar.
                           </p>
                           <button
                             type='button'
                             onClick={() => handleTabChange('single')}
-                            className='mt-2 inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-brutal text-odds-live transition-colors duration-150 hover:text-gold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-odds-live'
+                            className='mt-2 inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-brutal text-odds-live transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric'
                           >
                             Elegir una simple
                             <ArrowRight size={11} aria-hidden='true' />
@@ -804,50 +821,51 @@ export default function BetSlip({
                           </div>
                         </div>
 
-                        {isAuthenticated ? (
-                          <button
-                            type='button'
-                            onClick={() => void handleSubmit()}
-                            disabled={!canSubmit}
-                            aria-disabled={!canSubmit}
-                            aria-busy={isPlacingBet}
-                            className={`mt-3.5 flex w-full items-center justify-center gap-2 px-4 py-3.5 font-display text-xs font-extrabold uppercase tracking-brutal transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70 ${
-                              isPlacingBet
-                                ? 'cursor-wait bg-crimson text-white shadow-glow-crimson'
-                                : canSubmit
-                                  ? 'bg-crimson text-white shadow-glow-crimson hover:bg-crimson-600 active:translate-y-[1px]'
-                                  : 'cursor-not-allowed border border-obsidian-border bg-obsidian-elevated text-metallic-slate'
-                            }`}
-                          >
-                            {isPlacingBet ? (
-                              <>
-                                <Loader2 size={15} className='animate-spin' aria-hidden='true' />
-                                Confirmando…
-                              </>
-                            ) : hasPendingOdds ? (
-                              <>
-                                <RefreshCw size={15} aria-hidden='true' />
-                                Acepta las nuevas cuotas
-                              </>
-                            ) : (
-                              <>
-                                <Zap size={15} aria-hidden='true' />
-                                Realizar apuesta
-                              </>
-                            )}
-                          </button>
-                        ) : (
-                          <Link
-                            to='/login'
-                            className='mt-3.5 flex w-full items-center justify-center gap-2 border border-crimson/60 bg-crimson/10 px-4 py-3.5 font-display text-xs font-extrabold uppercase tracking-brutal text-crimson transition-colors duration-150 hover:bg-crimson/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70'
-                          >
-                            <LockKeyhole size={15} aria-hidden='true' />
-                            Inicia sesión para apostar
-                          </Link>
-                        )}
+                        <button
+                          type='button'
+                          onClick={handlePrimaryAction}
+                          disabled={primaryDisabled}
+                          aria-disabled={primaryDisabled}
+                          aria-busy={isPlacingBet}
+                          className={`mt-3.5 flex min-h-12 w-full items-center justify-center gap-2 px-4 py-3.5 font-display text-xs font-bold uppercase tracking-wide transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70 ${
+                            isPlacingBet
+                              ? 'cursor-wait bg-crimson text-white shadow-glow-crimson'
+                              : primaryDisabled
+                                ? 'cursor-not-allowed border border-obsidian-border bg-obsidian-elevated text-metallic-slate'
+                                : 'bg-crimson-pure text-white shadow-glow-crimson hover:brightness-110 active:translate-y-[1px]'
+                          }`}
+                        >
+                          {isPlacingBet ? (
+                            <>
+                              <Loader2 size={15} className='animate-spin' aria-hidden='true' />
+                              Confirmando…
+                            </>
+                          ) : !isAuthenticated ? (
+                            <>
+                              <LockKeyhole size={15} aria-hidden='true' />
+                              Realizar apuesta
+                            </>
+                          ) : hasPendingOdds ? (
+                            <>
+                              <RefreshCw size={15} aria-hidden='true' />
+                              Acepta las nuevas cuotas
+                            </>
+                          ) : (
+                            <>
+                              <Zap size={15} aria-hidden='true' />
+                              Realizar apuesta
+                            </>
+                          )}
+                        </button>
 
-                        <p className='mt-2.5 text-center font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
-                          Las cuotas pueden variar hasta la confirmación del servidor
+                        <p
+                          className={`mt-2.5 text-center font-mono text-[9px] uppercase tracking-wide ${
+                            !isAuthenticated ? 'text-electric/80' : 'text-metallic-slate'
+                          }`}
+                        >
+                          {!isAuthenticated
+                            ? 'Tu selección se conserva al iniciar sesión'
+                            : 'Las cuotas pueden variar hasta que confirmes tu apuesta'}
                         </p>
                       </div>
                     )}

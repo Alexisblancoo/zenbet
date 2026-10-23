@@ -46,7 +46,7 @@ public sealed class SelectionConfiguration : IEntityTypeConfiguration<Selection>
         {
             odd.Property(o => o.Value)
                 .HasColumnName("current_odds_value")
-                .HasPrecision(5, 2)
+                .HasPrecision(7, 4)
                 .IsRequired();
 
             odd.Property(o => o.Timestamp)

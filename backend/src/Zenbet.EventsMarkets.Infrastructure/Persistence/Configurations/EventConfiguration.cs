@@ -82,6 +82,7 @@ public sealed class EventConfiguration : IEntityTypeConfiguration<Event>
                 red.Property(f => f.Country).HasColumnName("red_country").HasMaxLength(80);
                 red.Property(f => f.Record).HasColumnName("red_record").HasMaxLength(20);
                 red.Property(f => f.Rank).HasColumnName("red_rank").HasMaxLength(8);
+                red.Property(f => f.ImageUrl).HasColumnName("red_image_url").HasMaxLength(512);
                 red.Property(f => f.Division)
                     .HasColumnName("red_division")
                     .HasConversion<string>()
@@ -96,6 +97,7 @@ public sealed class EventConfiguration : IEntityTypeConfiguration<Event>
                 blue.Property(f => f.Country).HasColumnName("blue_country").HasMaxLength(80);
                 blue.Property(f => f.Record).HasColumnName("blue_record").HasMaxLength(20);
                 blue.Property(f => f.Rank).HasColumnName("blue_rank").HasMaxLength(8);
+                blue.Property(f => f.ImageUrl).HasColumnName("blue_image_url").HasMaxLength(512);
                 blue.Property(f => f.Division)
                     .HasColumnName("blue_division")
                     .HasConversion<string>()

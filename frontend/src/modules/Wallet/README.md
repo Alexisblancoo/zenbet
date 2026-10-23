@@ -1,31 +1,41 @@
-# Billetera Zenbet — Fase 5
+# Billetera Zenbet — Fase 7
 
-Dashboard de saldo, apuestas y movimientos. La ruta es `/wallet`, está protegida
-y se compone dentro de `MainLayout`.
+Dashboard de saldo, apuestas y movimientos. Las rutas `/wallet`, `/my-bets` y
+`/perfil` están protegidas y se componen dentro de `MainLayout`.
 
 ## Capas
 
 ```text
-pages/WalletPage.tsx                 composición de la vista
-modules/Wallet/components/*          UI (hero, métricas, actividad, historiales)
+pages/WalletPage.tsx                 composición del dashboard
+pages/MyBetsPage.tsx                 historial de tickets
+pages/ProfilePage.tsx                identidad + billetera + recarga
+modules/Wallet/components/*          UI (hero, métricas, historiales, recarga)
 hooks/useWalletDashboard.ts          caso de uso: carga, refresco y merge de sesión
-services/walletService.ts            puerto WalletRepository + adapter demo
-services/walletDemoData.ts           fixture histórica marcada como demo
+services/walletService.ts            repositorio HTTP + comando de recarga
 domain/wallet.ts                     entidades, estados, métricas y formateadores
 ```
 
-La UI no conoce Axios ni el fixture. Depende de `WalletSnapshot` y del caso de
-uso. El saldo vivo no se copia al dominio: se lee de `AuthContext`, que ya
-escucha `BALANCE_UPDATED_EVENT` después de una apuesta.
+La UI no conoce Axios. Depende de `WalletSnapshot`, `WalletBet`,
+`WalletTransaction` y del caso de uso. El saldo vivo se sincroniza con
+`AuthContext` mediante `BALANCE_UPDATED_EVENT`.
 
-## Fuentes de datos
+## Contrato HTTP
 
-| Dato | Fuente | Estado |
+| Dato | Endpoint | Estado |
 | --- | --- | --- |
-| Saldo disponible | `AuthContext.user.walletBalance` | Vivo, sincronizado por la Fase 4 |
-| Apuestas de esta sesión | `BetSlipContext.receipts` | Reales; se añaden al confirmar |
-| Historial histórico | `demoWalletRepository` | Demo explícita |
-| Depósitos / retiros / liquidaciones | `demoWalletRepository` | Demo explícita |
+| Saldo, apuestas y movimientos | `GET /api/v1/wallet` | Real, autenticado |
+| Historial de apuestas | `GET /api/v1/bets` | Real, autenticado |
+| Movimientos | `GET /api/v1/wallet/transactions` | Real, autenticado |
+| Recarga | `POST /api/v1/wallet/deposit` | Real, autenticado e idempotente |
+
+El `wallet_id` se lee exclusivamente del JWT firmado. La recarga envía el monto
+y el método; el backend valida el monto, aplica `Wallet.Deposit` y registra la
+transacción en el historial. En este entorno de desarrollo el saldo se acredita
+de inmediato y no se procesa un pago real.
+
+`loadSnapshot` consulta `GET /wallet` y `GET /bets` en paralelo. El segundo
+endpoint es el contrato explícito de `/my-bets`; si falla, el dashboard conserva
+las apuestas que ya vienen en `GET /wallet`.
 
 ### Merge de la sesión
 
@@ -36,56 +46,15 @@ escucha `BALANCE_UPDATED_EVENT` después de una apuesta.
 - Deduplica por `betId` / `transactionId` contra el snapshot.
 - Convierte cada recibo en una apuesta `pending` y en un movimiento de tipo
   `bet` con monto negativo.
-- El historial de recibos vive en memoria y se limita a 25 entradas. Un refresh
-  de página lo pierde; el backend todavía no expone un `GET` para recuperarlo.
+- El historial de recibos vive en memoria y se limita a 25 entradas.
 
-## Límites reales del backend
+## Economía
 
-1. **No hay endpoints de lectura.** Solo existen `POST /api/v1/bets`,
-   `POST /api/v1/bets/settle`, `POST /api/v1/bets/odds` y `/health`. No hay
-   `GET /wallets`, `GET /bets` ni `GET /transactions`.
-2. **Las apuestas perdidas no se persisten como resultado.** `PlaceBetCommandHandler`
-   deja la transacción `BetPlacement` en `Pending`; `PayoutWorker` solo crea
-   `BetSettlement` para ganadoras y usa `ReferenceId == winnerSelectionId`,
-   mientras que el placement guarda la idempotency key. El dashboard no puede
-   reconstruir el estado `Lost` desde la base actual.
-3. **El login legacy no devuelve `walletId`.** El frontend mitiga con
-   `VITE_DEV_WALLET_ID`; si no está configurado, el hero muestra
-   “Billetera no vinculada”.
-4. **No hay seed/migración de wallets** ni endpoint para depositar/retirar. Un
-   entorno limpio no tendría historial real que mostrar.
-5. **Las combinadas no están soportadas por el backend** (`SelectionId` único).
-   El fixture incluye una combinada solo para validar la presentación; no
-   representa una apuesta aceptada por la API.
-
-Por eso el historial extendido es demo y se marca en tres lugares: badge del
-header, badge de cada panel y nota al pie. Las apuestas de la sesión sí son
-reales y llevan la etiqueta “Sesión”.
-
-## Sustituir el demo por HTTP
-
-1. Crear `httpWalletRepository` en `services/walletService.ts`:
-
-   ```ts
-   export interface WalletRepository {
-     loadSnapshot(signal?: AbortSignal): Promise<WalletSnapshot>;
-   }
-   ```
-
-2. Endpoints sugeridos (a definir con backend):
-
-   - `GET /api/v1/wallets/{walletId}` → saldo, moneda y estado.
-   - `GET /api/v1/wallets/{walletId}/bets?status=&from=&to=` → apuestas.
-   - `GET /api/v1/wallets/{walletId}/transactions?type=&from=&to=` → movimientos.
-
-3. Mapear los DTO a `WalletBet` / `WalletTransaction` en el repositorio, no en la
-   página. Usar `source: 'live'` y `mode: 'live'` en el snapshot.
-4. Inyectarlo con `createWalletService(httpWalletRepository)` o cambiar el
-   default de `walletService`.
-5. Revisar el merge: si el backend ya devuelve una apuesta recién creada, el
-   dedupe por `betId` evita duplicarla. Si devuelve la transacción con su ID
-   real, alinear el ID de sesión (`session-${transactionId}`) con ese contrato.
-6. Los badges demo desaparecen automáticamente cuando `snapshot.mode === 'live'`.
+- Las cuentas nuevas arrancan con `$0.00`.
+- El saldo solo cambia por movimientos registrados en el backend.
+- La recarga está disponible en `/wallet` y en la sección `Billetera` de
+  `/perfil`.
+- Los movimientos de recarga se muestran como `Depósito` y estado `Completado`.
 
 ## Decisiones de UI
 
@@ -97,18 +66,19 @@ reales y llevan la etiqueta “Sesión”.
   (1280 px) para evitar scroll horizontal cuando aparece el sidebar.
 - El estado nunca depende solo del color: cada badge incluye texto.
 - Los estados vacíos explican qué hacer y ofrecen una acción real.
-- No hay botones muertos de depósito/retiro: solo “Ver movimientos”,
-  “Actualizar” y enlaces funcionales.
+- La recarga valida monto mínimo/máximo y muestra el nuevo saldo tras acreditar.
 - Se respeta `prefers-reduced-motion` mediante las utilidades globales.
 
 ## Verificación
 
 ```bash
 npm run typecheck
-npm run lint
 npm run build
 ```
 
-El fixture y los cálculos se validaron con un self-test de dominio (métricas,
-filtros, actividad, merge y formateadores) y la vista con un smoke-test SSR de
-los estados cargando / listo / vacío.
+El flujo se validó con los endpoints reales: registro con saldo `$0.00`,
+`GET /wallet` y `GET /bets` autenticados, recarga con idempotencia, apuesta y
+actualización del historial.
+
+`walletDemoData.ts` se conserva únicamente como fixture histórico y no está
+conectado a la aplicación.

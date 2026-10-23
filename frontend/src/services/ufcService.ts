@@ -2,24 +2,34 @@ import { apiClient, isProblemDetailsException } from '@/api';
 import { normalizeEventsPage, type UfcEventsPage } from '@/domain/ufc';
 
 export const UFC_EVENTS_ENDPOINT = '/events';
+export const UFC_DEFAULT_PAGE_SIZE = 50;
 
 export interface ListUfcEventsOptions {
   readonly signal?: AbortSignal;
+  readonly page?: number;
   readonly pageSize?: number;
   readonly competition?: string;
+  readonly status?: 'scheduled' | 'live' | 'finished';
 }
 
+/**
+ * Lee la cartelera pública y la normaliza en el borde de la capa de datos.
+ * `normalizeEventsPage` conserva `line`, `source` y las cuotas de cuatro
+ * decimales que publica la API; la UI decide cómo presentarlas.
+ */
 export async function listUfcEvents({
   signal,
-  pageSize = 50,
+  page = 1,
+  pageSize = UFC_DEFAULT_PAGE_SIZE,
   competition,
+  status = 'scheduled',
 }: ListUfcEventsOptions = {}): Promise<UfcEventsPage> {
   const payload = await apiClient.get<unknown>(UFC_EVENTS_ENDPOINT, {
     // `apiClient` ya incluye /api/v1 en la base URL.
     params: {
       sport: 'mma',
-      status: 'scheduled',
-      page: 1,
+      status,
+      page,
       pageSize,
       ...(competition ? { competition } : {}),
     },

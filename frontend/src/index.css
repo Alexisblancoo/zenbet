@@ -1,7 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import './styles/tokens.css';
 @import './styles/design-system.css';
 @import './styles/zenbet-brutalist.css';
+@import './styles/shibuya.css';
 
 @tailwind base;
 @tailwind components;
@@ -43,10 +44,10 @@
     min-height: 100vh;
   }
 
-  /* Selección de texto con tinta oscura para mantener contraste. */
+  /* Selección de texto con tinta blanca para mantener contraste. */
   ::selection {
     background-color: rgb(var(--zb-crimson-500));
-    color: rgb(var(--zb-ink-inverse));
+    color: #FFFFFF;
   }
 }
 
@@ -128,24 +129,24 @@ body::before {
   border: 1px solid transparent;
   background: 
     linear-gradient(#0C1017, #0C1017) padding-box,
-    linear-gradient(135deg, #FF2E51 0%, rgba(148, 163, 184, 0.25) 30%, #5C000F 70%, #E60026 100%) border-box;
+    linear-gradient(135deg, #FF2A55 0%, rgba(148, 163, 184, 0.25) 30%, #5C000F 70%, #EF4444 100%) border-box;
   box-shadow: 
-    0 0 16px -4px rgba(255, 46, 81, 0.3),
-    inset 0 1px 0 0 rgba(255, 46, 81, 0.25);
+    0 0 16px -4px rgba(255, 42, 85, 0.3),
+    inset 0 1px 0 0 rgba(255, 42, 85, 0.25);
 }
 
 /**
- * Borde Metálico Oro Imperial
+ * Borde Metálico Azul Técnico
  */
 .border-brutal-gold {
   position: relative;
   border: 1px solid transparent;
   background: 
     linear-gradient(#0C1017, #0C1017) padding-box,
-    linear-gradient(135deg, #FDF3C7 0%, #D4AF37 35%, #524310 70%, #F59E0B 100%) border-box;
+    linear-gradient(135deg, #DBEAFE 0%, #3B82F6 35%, #1E3A8A 70%, #60A5FA 100%) border-box;
   box-shadow: 
-    0 0 16px -4px rgba(212, 175, 55, 0.25),
-    inset 0 1px 0 0 rgba(253, 243, 199, 0.2);
+    0 0 16px -4px rgba(59, 130, 246, 0.25),
+    inset 0 1px 0 0 rgba(219, 234, 254, 0.2);
 }
 
 /**
@@ -198,15 +199,13 @@ body::before {
   filter: brightness(1.06);
 }
 
-/* Tipografía Metálica con Reflejo Especular */
+/* Tipografía de alto contraste: sin degradados que reduzcan la legibilidad. */
 .text-metallic-chrome {
-  background: linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 50%, #64748B 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #FFFFFF;
+  -webkit-text-fill-color: currentColor;
 }
 
 .text-metallic-gold {
-  background: linear-gradient(180deg, #FFFBEB 0%, #D4AF37 55%, #78350F 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: rgb(var(--zb-ink-primary));
+  -webkit-text-fill-color: currentColor;
 }

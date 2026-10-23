@@ -31,6 +31,23 @@ public static class AmericanOdds
             ? 1m + (american / 100m)
             : 1m + (100m / Math.Abs(american));
 
-        return Math.Round(value, 2, MidpointRounding.AwayFromZero);
+        return Math.Round(value, 4, MidpointRounding.AwayFromZero);
+    }
+
+    public static bool TryParse(string? value, out int american)
+    {
+        american = 0;
+        if (string.IsNullOrWhiteSpace(value))
+            return false;
+
+        var normalized = value.Trim();
+        if (normalized.StartsWith('+'))
+            normalized = normalized[1..];
+
+        return int.TryParse(
+            normalized,
+            NumberStyles.AllowLeadingSign,
+            CultureInfo.InvariantCulture,
+            out american) && american != 0;
     }
 }

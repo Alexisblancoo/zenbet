@@ -10,20 +10,20 @@ interface StatusPresentation {
 const STATUS_PRESENTATION: Record<OddsHubStatus, StatusPresentation> = {
   connected: {
     label: 'Cuotas en vivo',
-    tone: 'border-odds-up/45 text-odds-up',
-    dot: 'bg-odds-up',
+    tone: 'border-crimson/45 text-crimson',
+    dot: 'bg-crimson',
     pulsing: false,
   },
   connecting: {
     label: 'Conectando',
-    tone: 'border-odds-live/45 text-odds-live',
-    dot: 'bg-odds-live',
+    tone: 'border-electric/45 text-electric-soft',
+    dot: 'bg-electric',
     pulsing: true,
   },
   reconnecting: {
     label: 'Reconectando',
-    tone: 'border-odds-live/45 text-odds-live',
-    dot: 'bg-odds-live',
+    tone: 'border-electric/45 text-electric-soft',
+    dot: 'bg-electric',
     pulsing: true,
   },
   disconnected: {
@@ -51,18 +51,16 @@ export default function HubStatusBadge({ status, lastUpdateAt }: HubStatusBadgeP
       title={updatedAtLabel ? `Última cuota recibida: ${updatedAtLabel}` : undefined}
       className={`inline-flex items-center gap-2 border bg-obsidian-elevated/80 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-brutal ${presentation.tone}`}
     >
-      <span className='relative flex h-1.5 w-1.5' aria-hidden='true'>
-        {status === 'connected' && (
-          <span
-            className={`absolute inline-flex h-full w-full animate-ping rounded-full ${presentation.dot} opacity-70`}
-          />
-        )}
-        <span
-          className={`relative inline-flex h-1.5 w-1.5 rounded-full ${presentation.dot} ${
-            presentation.pulsing ? 'animate-pulse' : ''
-          }`}
-        />
-      </span>
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${presentation.dot} ${
+          status === 'connected'
+            ? 'animate-live-breathe'
+            : presentation.pulsing
+              ? 'animate-pulse'
+              : ''
+        }`}
+        aria-hidden='true'
+      />
       <span>{presentation.label}</span>
     </span>
   );

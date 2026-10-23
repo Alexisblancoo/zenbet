@@ -1,0 +1,1775 @@
+{
+    "schemaVersion": 3,
+    "card": {
+        "seedKey": "ufc-334",
+        "competition": "UFC 334: Gane vs. Hokit",
+        "title": "UFC 334: Gane vs. Hokit",
+        "venue": "Madison Square Garden",
+        "location": "Nueva York, Nueva York, Estados Unidos",
+        "date": "2026-11-14"
+    },
+    "sources": [
+        {
+            "id": "zenbet-reference-ufc-334",
+            "kind": "model",
+            "name": "ZenBet Reference",
+            "url": "https://www.ufc.com/news/gane-hokit-harrison-nunes-headline-ufc-334-new-york-city",
+            "observedAt": "2026-10-22T12:00:00Z",
+            "note": "Línea de referencia calculada por ZenBet a partir de la cartelera oficial; no es una cuota ejecutable."
+        }
+    ],
+    "bouts": [
+        {
+            "id": "ufc-334-nazim-sadykhov-vs-jefferson-nascimento",
+            "name": "Sadykhov vs. Nascimento",
+            "billing": "early",
+            "order": 1,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "lightweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5074130.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5362725.png",
+            "red": {
+                "id": "nazim-sadykhov",
+                "name": "Nazim Sadykhov",
+                "countryCode": "AZ",
+                "country": "Azerbaijan",
+                "record": "11-3-1",
+                "rank": null,
+                "division": "lightweight"
+            },
+            "blue": {
+                "id": "jefferson-nascimento",
+                "name": "Jefferson Nascimento",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "13-1-0",
+                "rank": null,
+                "division": "lightweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Nazim Sadykhov",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.9009,
+                            "americanOdds": "-111"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Jefferson Nascimento",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.9174,
+                            "americanOdds": "-109"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Nazim Sadykhov por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Nazim Sadykhov por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Nazim Sadykhov por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Jefferson Nascimento por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Jefferson Nascimento por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Jefferson Nascimento por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-adrian-yanez-vs-juan-diaz",
+            "name": "Yañez vs. Diaz",
+            "billing": "early",
+            "order": 2,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "bantamweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/3998248.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5310574.png",
+            "red": {
+                "id": "adrian-yanez",
+                "name": "Adrian Yañez",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "18-6-1",
+                "rank": null,
+                "division": "bantamweight"
+            },
+            "blue": {
+                "id": "juan-diaz",
+                "name": "Juan Diaz",
+                "countryCode": "PE",
+                "country": "Peru",
+                "record": "16-1-1",
+                "rank": null,
+                "division": "bantamweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Adrian Yañez",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.1,
+                            "americanOdds": "+110"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Juan Diaz",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.7519,
+                            "americanOdds": "-133"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Adrian Yañez por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Adrian Yañez por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Adrian Yañez por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Juan Diaz por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Juan Diaz por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Juan Diaz por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-macy-chiasson-vs-bia-mesquita",
+            "name": "Chiasson vs. Mesquita",
+            "billing": "early",
+            "order": 3,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "womens-bantamweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4334306.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5310274.png",
+            "red": {
+                "id": "macy-chiasson",
+                "name": "Macy Chiasson",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "11-6-0",
+                "rank": null,
+                "division": "womens-bantamweight"
+            },
+            "blue": {
+                "id": "bia-mesquita",
+                "name": "Bia Mesquita",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "8-0-0",
+                "rank": null,
+                "division": "womens-bantamweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Macy Chiasson",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.6494,
+                            "americanOdds": "-154"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Bia Mesquita",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.35,
+                            "americanOdds": "+135"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Macy Chiasson por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Macy Chiasson por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Macy Chiasson por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Bia Mesquita por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Bia Mesquita por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Bia Mesquita por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-donte-johnson-vs-baisangur-susurkaev",
+            "name": "Johnson vs. Susurkaev",
+            "billing": "prelims",
+            "order": 1,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "middleweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5302831.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5296753.png",
+            "red": {
+                "id": "donte-johnson",
+                "name": "Donte Johnson",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "9-0-0",
+                "rank": null,
+                "division": "middleweight"
+            },
+            "blue": {
+                "id": "baisangur-susurkaev",
+                "name": "Baisangur Susurkaev",
+                "countryCode": "RU",
+                "country": "Russia",
+                "record": "12-0-0",
+                "rank": null,
+                "division": "middleweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Donte Johnson",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Baisangur Susurkaev",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Donte Johnson por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Donte Johnson por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Donte Johnson por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Baisangur Susurkaev por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Baisangur Susurkaev por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Baisangur Susurkaev por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-jim-miller-vs-terrance-mckinney",
+            "name": "Miller vs. McKinney",
+            "billing": "prelims",
+            "order": 2,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "lightweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/2335718.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4425604.png",
+            "red": {
+                "id": "jim-miller",
+                "name": "Jim Miller",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "39-19-0",
+                "rank": null,
+                "division": "lightweight"
+            },
+            "blue": {
+                "id": "terrance-mckinney",
+                "name": "Terrance McKinney",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "18-9-0",
+                "rank": null,
+                "division": "lightweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Jim Miller",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.5495,
+                            "americanOdds": "-182"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Terrance McKinney",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.55,
+                            "americanOdds": "+155"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Jim Miller por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Jim Miller por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Jim Miller por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Terrance McKinney por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Terrance McKinney por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Terrance McKinney por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-drew-dober-vs-chris-duncan",
+            "name": "Dober vs. Duncan",
+            "billing": "prelims",
+            "order": 3,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "lightweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/2951202.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4867356.png",
+            "red": {
+                "id": "drew-dober",
+                "name": "Drew Dober",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "29-15-0",
+                "rank": null,
+                "division": "lightweight"
+            },
+            "blue": {
+                "id": "chris-duncan",
+                "name": "Chris Duncan",
+                "countryCode": "SCO",
+                "country": "Scotland",
+                "record": "15-3-0",
+                "rank": null,
+                "division": "lightweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Drew Dober",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.15,
+                            "americanOdds": "+115"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Chris Duncan",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.7194,
+                            "americanOdds": "-139"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Drew Dober por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Drew Dober por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Drew Dober por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Chris Duncan por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Chris Duncan por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Chris Duncan por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-stephen-thompson-vs-charles-radtke",
+            "name": "Thompson vs. Radtke",
+            "billing": "prelims",
+            "order": 4,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "welterweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/2615077.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4416297.png",
+            "red": {
+                "id": "stephen-thompson",
+                "name": "Stephen Thompson",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "17-9-1",
+                "rank": null,
+                "division": "welterweight"
+            },
+            "blue": {
+                "id": "charles-radtke",
+                "name": "Charles Radtke",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "12-5-0",
+                "rank": null,
+                "division": "welterweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Stephen Thompson",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.9009,
+                            "americanOdds": "-111"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Charles Radtke",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.9174,
+                            "americanOdds": "-109"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Stephen Thompson por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Stephen Thompson por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Stephen Thompson por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Charles Radtke por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Charles Radtke por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Charles Radtke por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-ciryl-gane-vs-josh-hokit",
+            "name": "Gane vs. Hokit",
+            "billing": "main",
+            "order": 1,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "heavyweight",
+            "rounds": 5,
+            "titleFight": true,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4426000.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4049391.png",
+            "red": {
+                "id": "ciryl-gane",
+                "name": "Ciryl Gane",
+                "countryCode": "FR",
+                "country": "France",
+                "record": "14-2-0",
+                "rank": null,
+                "division": "heavyweight"
+            },
+            "blue": {
+                "id": "josh-hokit",
+                "name": "Josh Hokit",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "10-0-0",
+                "rank": null,
+                "division": "heavyweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Ciryl Gane",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.1,
+                            "americanOdds": "+110"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Josh Hokit",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.7519,
+                            "americanOdds": "-133"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Ciryl Gane por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Ciryl Gane por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Ciryl Gane por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Josh Hokit por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Josh Hokit por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Josh Hokit por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 4.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 4.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 4.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-kayla-harrison-vs-amanda-nunes",
+            "name": "Harrison vs. Nunes",
+            "billing": "main",
+            "order": 2,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "womens-bantamweight",
+            "rounds": 5,
+            "titleFight": true,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4332765.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/2516131.png",
+            "red": {
+                "id": "kayla-harrison",
+                "name": "Kayla Harrison",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "19-1-0",
+                "rank": null,
+                "division": "womens-bantamweight"
+            },
+            "blue": {
+                "id": "amanda-nunes",
+                "name": "Amanda Nunes",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "23-5-0",
+                "rank": null,
+                "division": "womens-bantamweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Kayla Harrison",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.6494,
+                            "americanOdds": "-154"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Amanda Nunes",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.35,
+                            "americanOdds": "+135"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Kayla Harrison por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Kayla Harrison por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Kayla Harrison por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Amanda Nunes por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Amanda Nunes por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Amanda Nunes por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 4.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 4.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 4.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-caio-borralho-vs-yousri-belgaroui",
+            "name": "Borralho vs. Belgaroui",
+            "billing": "main",
+            "order": 3,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "middleweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4835137.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5149815.png",
+            "red": {
+                "id": "caio-borralho",
+                "name": "Caio Borralho",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "18-2-0",
+                "rank": null,
+                "division": "middleweight"
+            },
+            "blue": {
+                "id": "yousri-belgaroui",
+                "name": "Yousri Belgaroui",
+                "countryCode": "NL",
+                "country": "Netherlands",
+                "record": "11-3-0",
+                "rank": null,
+                "division": "middleweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Caio Borralho",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Yousri Belgaroui",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Caio Borralho por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Caio Borralho por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Caio Borralho por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Yousri Belgaroui por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Yousri Belgaroui por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Yousri Belgaroui por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-uros-medic-vs-kevin-holland",
+            "name": "Medić vs. Holland",
+            "billing": "main",
+            "order": 4,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "welterweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4685870.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/3943695.png",
+            "red": {
+                "id": "uros-medic",
+                "name": "Uroš Medić",
+                "countryCode": "RS",
+                "country": "Serbia",
+                "record": "14-3-0",
+                "rank": null,
+                "division": "welterweight"
+            },
+            "blue": {
+                "id": "kevin-holland",
+                "name": "Kevin Holland",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "29-15-0",
+                "rank": null,
+                "division": "welterweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Uroš Medić",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.5495,
+                            "americanOdds": "-182"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Kevin Holland",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.55,
+                            "americanOdds": "+155"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Uroš Medić por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Uroš Medić por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Uroš Medić por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Kevin Holland por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Kevin Holland por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Kevin Holland por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-334-bilal-hasan-vs-luis-gurule",
+            "name": "Hasan vs. Gurule",
+            "billing": "main",
+            "order": 5,
+            "startTime": "2026-11-14T22:00Z",
+            "division": "flyweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-334",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5264405.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5218137.png",
+            "red": {
+                "id": "bilal-hasan",
+                "name": "Bilal Hasan",
+                "countryCode": "ID",
+                "country": "Indonesia",
+                "record": "10-0-0",
+                "rank": null,
+                "division": "flyweight"
+            },
+            "blue": {
+                "id": "luis-gurule",
+                "name": "Luis Gurule",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "11-4-0",
+                "rank": null,
+                "division": "flyweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Bilal Hasan",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.15,
+                            "americanOdds": "+115"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Luis Gurule",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.7194,
+                            "americanOdds": "-139"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Bilal Hasan por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Bilal Hasan por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Bilal Hasan por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Luis Gurule por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Luis Gurule por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Luis Gurule por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

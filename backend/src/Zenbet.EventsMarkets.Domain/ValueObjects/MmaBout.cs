@@ -18,7 +18,8 @@ public sealed class Fighter
         string country,
         string record,
         string? rank,
-        WeightDivision division)
+        WeightDivision division,
+        string? imageUrl)
     {
         Id = id;
         Name = name;
@@ -27,6 +28,7 @@ public sealed class Fighter
         Record = record;
         Rank = rank;
         Division = division;
+        ImageUrl = imageUrl;
     }
 
     public string Id { get; private set; } = string.Empty;
@@ -36,6 +38,7 @@ public sealed class Fighter
     public string Record { get; private set; } = string.Empty;
     public string? Rank { get; private set; }
     public WeightDivision Division { get; private set; }
+    public string? ImageUrl { get; private set; }
 
     public static Fighter Create(
         string id,
@@ -44,7 +47,8 @@ public sealed class Fighter
         string country,
         string record,
         string? rank,
-        WeightDivision division)
+        WeightDivision division,
+        string? imageUrl = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("El peleador necesita un identificador estable.", nameof(id));
@@ -70,7 +74,28 @@ public sealed class Fighter
             country.Trim(),
             record.Trim(),
             string.IsNullOrWhiteSpace(rank) ? null : rank.Trim(),
-            division);
+            division,
+            NormalizeImageUrl(imageUrl));
+    }
+
+    public void UpdateImageUrl(string? imageUrl) => ImageUrl = NormalizeImageUrl(imageUrl);
+
+    private static string? NormalizeImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+            return null;
+
+        var trimmed = imageUrl.Trim();
+        if (trimmed.Length > 512 ||
+            !Uri.TryCreate(trimmed, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+        {
+            throw new ArgumentException(
+                "La imagen del peleador debe ser una URL HTTP(S) absoluta de hasta 512 caracteres.",
+                nameof(imageUrl));
+        }
+
+        return trimmed;
     }
 }
 
@@ -158,5 +183,15 @@ public sealed class MmaBout
             billingOrder,
             venue.Trim(),
             location.Trim());
+    }
+
+    /// <summary>
+    /// Actualiza únicamente la media de presentación. El seed puede refrescar
+    /// fotos sin reescribir cuotas ni el resto de los metadatos del combate.
+    /// </summary>
+    public void UpdateFighterImages(string? redImageUrl, string? blueImageUrl)
+    {
+        Red.UpdateImageUrl(redImageUrl);
+        Blue.UpdateImageUrl(blueImageUrl);
     }
 }

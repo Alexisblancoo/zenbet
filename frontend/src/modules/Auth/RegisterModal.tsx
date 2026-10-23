@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Lock, Mail, ShieldCheck, User } from 'lucide-react';
+import { ArrowRight, Lock, Mail, ShieldCheck, User } from 'lucide-react';
 
 import { isProblemDetailsException, normalizeApiError } from '@/api';
 import { useAuth } from '@/context/authState';
@@ -18,7 +18,7 @@ import {
 } from './lib/authErrors';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const INITIAL_BALANCE = 1000;
+const USERNAME_PATTERN = /^[A-Za-z0-9._-]{3,24}$/;
 
 const FIELD_ALIASES: AuthFieldAliases = {
   username: ['username', 'Username'],
@@ -27,11 +27,50 @@ const FIELD_ALIASES: AuthFieldAliases = {
   termsAccepted: ['termsAccepted', 'TermsAccepted', 'terms'],
 };
 
+type FieldName = 'username' | 'email' | 'password' | 'confirmPassword' | 'termsAccepted';
+type TouchedFields = Partial<Record<FieldName, boolean>>;
+
 interface RegisterModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly onSuccess?: (user: AuthUser) => void;
   readonly onSwitchToLogin?: () => void;
+  readonly variant?: 'modal' | 'page';
+}
+
+function buildLocalErrors(input: {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  termsAccepted: boolean;
+}): Partial<Record<FieldName, string>> {
+  const errors: Partial<Record<FieldName, string>> = {};
+
+  if (!USERNAME_PATTERN.test(input.username.trim())) {
+    errors.username = 'Usa entre 3 y 24 caracteres: letras, números, punto, guion o guion bajo.';
+  }
+
+  if (!EMAIL_PATTERN.test(input.email.trim())) {
+    errors.email = 'Ingresa un correo electrónico válido.';
+  }
+
+  if (input.password.length < 8) {
+    errors.password = 'La contraseña debe tener al menos 8 caracteres.';
+  }
+
+  if (!input.confirmPassword) {
+    errors.confirmPassword = 'Repite tu contraseña.';
+  } else if (input.confirmPassword !== input.password) {
+    errors.confirmPassword = 'Las contraseñas no coinciden.';
+  }
+
+  if (!input.termsAccepted) {
+    errors.termsAccepted =
+      'Debes aceptar los términos y confirmar que eres mayor de 18 años.';
+  }
+
+  return errors;
 }
 
 export default function RegisterModal({
@@ -39,6 +78,7 @@ export default function RegisterModal({
   onClose,
   onSuccess,
   onSwitchToLogin,
+  variant = 'modal',
 }: RegisterModalProps) {
   const { register } = useAuth();
   const [username, setUsername] = useState('');
@@ -46,57 +86,59 @@ export default function RegisterModal({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<TouchedFields>({});
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const clearFieldError = (field: string) => {
-    setFieldErrors((previous) => {
+  const usernameValid = USERNAME_PATTERN.test(username.trim());
+  const emailValid = EMAIL_PATTERN.test(email.trim());
+  const passwordValid = password.length >= 8;
+  const confirmValid = Boolean(confirmPassword) && confirmPassword === password;
+
+  const localErrors = buildLocalErrors({
+    username,
+    email,
+    password,
+    confirmPassword,
+    termsAccepted,
+  });
+
+  const clearFieldError = (field: FieldName) => {
+    setServerErrors((previous) => {
       if (!previous[field]) return previous;
       const next = { ...previous };
       delete next[field];
       return next;
     });
+    if (formError) setFormError('');
   };
 
-  const validate = (): Record<string, string> => {
-    const errors: Record<string, string> = {};
-
-    if (username.trim().length < 3) {
-      errors.username = 'El usuario debe tener al menos 3 caracteres.';
-    }
-
-    if (!EMAIL_PATTERN.test(email.trim())) {
-      errors.email = 'Ingresa un correo electrónico válido.';
-    }
-
-    if (password.length < 6) {
-      errors.password = 'La contraseña debe tener al menos 6 caracteres.';
-    }
-
-    if (confirmPassword !== password) {
-      errors.confirmPassword = 'Las contraseñas no coinciden.';
-    }
-
-    if (!termsAccepted) {
-      errors.termsAccepted = 'Debes aceptar los términos y la política de privacidad.';
-    }
-
-    return errors;
+  const touchField = (field: FieldName) => {
+    setTouched((previous) => (previous[field] ? previous : { ...previous, [field]: true }));
   };
+
+  const fieldError = (field: FieldName): string | undefined =>
+    serverErrors[field] ?? (touched[field] ? localErrors[field] : undefined);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmitting) return;
 
-    const localErrors = validate();
     if (Object.keys(localErrors).length > 0) {
-      setFieldErrors(localErrors);
+      setTouched({
+        username: true,
+        email: true,
+        password: true,
+        confirmPassword: true,
+        termsAccepted: true,
+      });
+      setServerErrors({});
       setFormError('');
       return;
     }
 
-    setFieldErrors({});
+    setServerErrors({});
     setFormError('');
     setIsSubmitting(true);
 
@@ -105,7 +147,6 @@ export default function RegisterModal({
         username: username.trim(),
         email: email.trim().toLowerCase(),
         password,
-        initialBalance: INITIAL_BALANCE,
         termsAccepted: true,
       };
 
@@ -113,16 +154,26 @@ export default function RegisterModal({
 
       setPassword('');
       setConfirmPassword('');
-      setIsSubmitting(false);
-      onSuccess?.(authenticatedUser);
-      onClose();
+      setTermsAccepted(false);
+      setTouched({});
+
+      if (onSuccess) {
+        onSuccess(authenticatedUser);
+      } else {
+        onClose();
+      }
     } catch (error) {
       const problem = isProblemDetailsException(error) ? error : normalizeApiError(error);
       const mappedErrors = mapProblemToFieldErrors(problem, FIELD_ALIASES);
+      const mappedFieldNames = Object.keys(mappedErrors) as FieldName[];
 
-      if (Object.keys(mappedErrors).length > 0) {
-        setFieldErrors(mappedErrors);
-        setFormError(problem.isUnprocessableEntity ? resolveAuthErrorMessage(problem) : '');
+      if (mappedFieldNames.length > 0) {
+        setServerErrors(mappedErrors);
+        setTouched((previous) => ({
+          ...previous,
+          ...Object.fromEntries(mappedFieldNames.map((field) => [field, true])),
+        }));
+        setFormError('');
       } else {
         setFormError(resolveAuthErrorMessage(problem));
       }
@@ -135,7 +186,9 @@ export default function RegisterModal({
     if (isSubmitting) return;
     setPassword('');
     setConfirmPassword('');
-    setFieldErrors({});
+    setTermsAccepted(false);
+    setTouched({});
+    setServerErrors({});
     setFormError('');
     onClose();
   };
@@ -144,16 +197,17 @@ export default function RegisterModal({
     <AuthModalShell
       isOpen={isOpen}
       onClose={handleClose}
-      eyebrow='Nueva cuenta'
-      title='Crear cuenta Zenbet'
-      description='Regístrate para operar con cuotas en vivo, wallet protegida y liquidación atómica.'
+      variant={variant}
+      eyebrow='Nueva cuenta · +18'
+      title='Crear cuenta'
+      description='Crea tu perfil y recarga saldo cuando quieras para apostar en las próximas carteleras UFC.'
       footer={
-        <p className='text-center text-xs text-ink-faint'>
+        <p className='text-center text-xs text-metallic-slate'>
           ¿Ya tienes cuenta?{' '}
           <button
             type='button'
             onClick={onSwitchToLogin}
-            className='focus-ring font-semibold text-crimson transition-colors duration-base hover:text-crimson-300'
+            className='focus-ring font-semibold text-crimson transition-colors hover:text-crimson-200'
           >
             Iniciar sesión
           </button>
@@ -161,6 +215,16 @@ export default function RegisterModal({
       }
     >
       <form onSubmit={handleSubmit} noValidate className='space-y-4'>
+        <div className='flex items-center justify-between gap-3 border border-money/25 bg-money/[0.04] px-3.5 py-2.5'>
+          <div className='flex items-center gap-2'>
+            <span className='h-1.5 w-1.5 bg-money' aria-hidden='true' />
+            <span className='text-[11px] font-medium text-metallic-titanium'>
+              Saldo inicial
+            </span>
+          </div>
+          <span className='font-odds text-base font-bold tabular-nums text-money'>$0.00</span>
+        </div>
+
         <AuthErrorAlert message={formError} />
 
         <AuthField
@@ -172,9 +236,13 @@ export default function RegisterModal({
             setUsername(value);
             clearFieldError('username');
           }}
-          placeholder='trader_elite'
+          onBlur={() => touchField('username')}
+          placeholder='shibuya_ryo'
           autoComplete='username'
-          error={fieldErrors.username}
+          error={fieldError('username')}
+          valid={usernameValid}
+          successMessage='Formato válido.'
+          hint='Entre 3 y 24 caracteres.'
         />
 
         <AuthField
@@ -182,14 +250,18 @@ export default function RegisterModal({
           label='Correo electrónico'
           icon={Mail}
           type='email'
+          inputMode='email'
           value={email}
           onChange={(value) => {
             setEmail(value);
             clearFieldError('email');
           }}
-          placeholder='usuario@zenbet.com'
+          onBlur={() => touchField('email')}
+          placeholder='tu@correo.com'
           autoComplete='email'
-          error={fieldErrors.email}
+          error={fieldError('email')}
+          valid={emailValid}
+          successMessage='Correo válido.'
         />
 
         <div className='space-y-2'>
@@ -204,9 +276,11 @@ export default function RegisterModal({
               clearFieldError('password');
               clearFieldError('confirmPassword');
             }}
-            placeholder='Mínimo 6 caracteres'
+            onBlur={() => touchField('password')}
+            placeholder='Mínimo 8 caracteres'
             autoComplete='new-password'
-            error={fieldErrors.password}
+            error={fieldError('password')}
+            valid={passwordValid}
           />
           <PasswordStrength password={password} />
         </div>
@@ -221,13 +295,24 @@ export default function RegisterModal({
             setConfirmPassword(value);
             clearFieldError('confirmPassword');
           }}
+          onBlur={() => touchField('confirmPassword')}
           placeholder='Repite tu contraseña'
           autoComplete='new-password'
-          error={fieldErrors.confirmPassword}
+          error={fieldError('confirmPassword')}
+          valid={confirmValid}
+          successMessage='Las contraseñas coinciden.'
         />
 
         <div className='space-y-1.5'>
-          <label className='flex cursor-pointer items-start gap-2.5 rounded-md border border-line/70 bg-surface-raised/40 p-3'>
+          <label
+            className={`flex cursor-pointer items-start gap-3 border p-3.5 transition-colors duration-150 ${
+              termsAccepted
+                ? 'border-money/40 bg-money/[0.035]'
+                : fieldError('termsAccepted')
+                  ? 'border-crimson/55 bg-crimson/[0.03]'
+                  : 'border-white/[0.13] bg-white/[0.025] hover:border-white/[0.22]'
+            }`}
+          >
             <input
               type='checkbox'
               checked={termsAccepted}
@@ -235,37 +320,47 @@ export default function RegisterModal({
                 setTermsAccepted(event.target.checked);
                 clearFieldError('termsAccepted');
               }}
-              aria-invalid={Boolean(fieldErrors.termsAccepted)}
-              className='focus-ring mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded-xs border-line bg-canvas-raised accent-crimson'
+              onBlur={() => touchField('termsAccepted')}
+              aria-invalid={Boolean(fieldError('termsAccepted'))}
+              aria-required='true'
+              className='focus-ring mt-0.5 h-4 w-4 shrink-0 cursor-pointer border-white/30 bg-transparent accent-money'
             />
-            <span className='text-xs leading-relaxed text-ink-muted'>
+            <span className='text-[11px] leading-relaxed text-metallic-titanium'>
+              <span className='mr-1 inline-flex border border-crimson/40 bg-crimson/10 px-1 py-0.5 font-mono text-[8px] font-bold tracking-wide text-crimson'>
+                +18
+              </span>
               Acepto los{' '}
               <Link
                 to='/terms'
-                className='font-semibold text-ink underline decoration-line-strong underline-offset-2 transition-colors duration-base hover:text-crimson'
+                target='_blank'
+                rel='noreferrer'
+                className='font-semibold text-white underline decoration-white/30 underline-offset-2 transition-colors hover:text-crimson'
               >
                 Términos y Condiciones
               </Link>{' '}
               y la{' '}
               <Link
                 to='/privacy'
-                className='font-semibold text-ink underline decoration-line-strong underline-offset-2 transition-colors duration-base hover:text-crimson'
+                target='_blank'
+                rel='noreferrer'
+                className='font-semibold text-white underline decoration-white/30 underline-offset-2 transition-colors hover:text-crimson'
               >
                 Política de Privacidad
               </Link>
-              .
+              . Confirmo que soy mayor de edad.
             </span>
           </label>
 
-          {fieldErrors.termsAccepted ? (
-            <p role='alert' className='font-mono text-xs text-odds-down'>
-              {fieldErrors.termsAccepted}
+          {fieldError('termsAccepted') ? (
+            <p role='alert' className='text-[11px] font-medium leading-relaxed text-crimson'>
+              {fieldError('termsAccepted')}
             </p>
           ) : null}
         </div>
 
         <AuthSubmitButton isSubmitting={isSubmitting} loadingLabel='Creando cuenta...'>
-          Crear cuenta y comenzar
+          <span>Crear cuenta</span>
+          <ArrowRight size={14} aria-hidden='true' />
         </AuthSubmitButton>
       </form>
     </AuthModalShell>

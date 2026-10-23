@@ -11,7 +11,7 @@ import { roundMoney, type BetReceipt } from './bets';
 export type WalletBetStatus = 'pending' | 'won' | 'lost' | 'cancelled';
 export type WalletBetType = 'single' | 'combined';
 export type WalletBetFilter = 'all' | WalletBetStatus;
-export type WalletActivitySource = 'demo' | 'session';
+export type WalletActivitySource = 'demo' | 'session' | 'live';
 
 export type WalletTransactionType =
   | 'deposit'
@@ -448,7 +448,10 @@ export function buildDailyActivity(
 /* -------------------------------------------------------------------------- */
 
 export function receiptToWalletBet(receipt: BetReceipt): WalletBet | null {
-  const id = receipt.betId || receipt.transactionId;
+  // El read model identifica la apuesta por la transacción que movió el saldo.
+  // Usar el mismo id permite deduplicar el recibo de sesión cuando la API ya
+  // devolvió la apuesta persistida.
+  const id = receipt.transactionId || receipt.betId;
   if (!id || receipt.idempotentReplay) return null;
 
   const placedAt = new Date(receipt.placedAt);
@@ -485,12 +488,12 @@ export function receiptToWalletTransaction(receipt: BetReceipt): WalletTransacti
     : createdAt.toISOString();
 
   return {
-    id: `session-${id}`,
+    id,
     type: 'bet',
     status: 'completed',
     amount: -roundMoney(receipt.stake),
     description: `Apuesta · ${receipt.eventName?.trim() || 'Zenbet'}`,
-    reference: formatTicket(receipt.betId || receipt.transactionId),
+    reference: formatTicket(receipt.transactionId || receipt.betId),
     createdAt: createdAtIso,
     source: 'session',
   };

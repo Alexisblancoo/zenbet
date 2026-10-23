@@ -8,6 +8,7 @@ using Zenbet.EventsMarkets.Domain.Enums;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Configurations;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Outbox;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Interceptors;
+using Zenbet.EventsMarkets.Infrastructure.Persistence.Seeding;
 
 public sealed class EventsMarketsDbContext : DbContext
 {
@@ -16,11 +17,13 @@ public sealed class EventsMarketsDbContext : DbContext
     public DbSet<Selection> Selections => Set<Selection>();
     public DbSet<Wallet> Wallets => Set<Wallet>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
+    public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<IdempotencyKey> IdempotencyKeys => Set<IdempotencyKey>();
     public DbSet<SettlementAuditEntry> SettlementAudit => Set<SettlementAuditEntry>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
     public DbSet<DeadLetterEntry> DeadLetters => Set<DeadLetterEntry>();
+    public DbSet<UfcSeedState> UfcSeedStates => Set<UfcSeedState>();
 
     public EventsMarketsDbContext(DbContextOptions<EventsMarketsDbContext> options)
         : base(options) { }
@@ -32,11 +35,13 @@ public sealed class EventsMarketsDbContext : DbContext
         modelBuilder.ApplyConfiguration(new SelectionConfiguration());
         modelBuilder.ApplyConfiguration(new WalletConfiguration());
         modelBuilder.ApplyConfiguration(new TransactionConfiguration());
+        modelBuilder.ApplyConfiguration(new UserAccountConfiguration());
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
         modelBuilder.ApplyConfiguration(new IdempotencyKeyConfiguration());
         modelBuilder.ApplyConfiguration(new SettlementAuditConfiguration());
         modelBuilder.ApplyConfiguration(new InboxMessageConfiguration());
         modelBuilder.ApplyConfiguration(new DeadLetterConfiguration());
+        modelBuilder.ApplyConfiguration(new UfcSeedStateConfiguration());
 
         base.OnModelCreating(modelBuilder);
     }

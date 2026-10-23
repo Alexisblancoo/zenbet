@@ -10,7 +10,9 @@ import {
 } from 'lucide-react';
 
 import {
+  buildUfcCards,
   eventsForBilling,
+  findEventSource,
   findMarket,
   formatAmericanOdds,
   formatFightDate,
@@ -22,6 +24,7 @@ import {
   type UfcFighter,
   type UfcSelection,
 } from '@/domain/ufc';
+import { formatDecimalOdds } from '@/domain/odds';
 import { useUfcEvents } from '@/hooks/useUfcEvents';
 
 function selectionFor(
@@ -44,8 +47,8 @@ function FighterOddsCard({
     <div className='flex min-w-0 flex-col gap-3 border border-obsidian-border bg-obsidian-surface/80 p-4'>
       <div className='flex items-center justify-between gap-2'>
         <span
-          className={`font-mono text-[9px] font-bold uppercase tracking-ultra ${
-            corner === 'red' ? 'text-crimson' : 'text-metallic-titanium'
+          className={`font-mono text-[9px] font-bold uppercase tracking-wide ${
+            corner === 'red' ? 'text-crimson' : 'text-electric-soft'
           }`}
         >
           {corner === 'red' ? 'Esquina roja' : 'Esquina azul'}
@@ -55,7 +58,7 @@ function FighterOddsCard({
         </span>
       </div>
       <div className='min-w-0'>
-        <p className='break-words font-display text-base font-extrabold uppercase leading-tight text-white'>
+        <p className='break-words font-display text-base font-bold uppercase leading-tight text-white'>
           {fighter.name}
         </p>
         <p className='mt-1 font-mono text-[10px] uppercase tracking-wide text-metallic-titanium'>
@@ -68,7 +71,7 @@ function FighterOddsCard({
         </span>
         {selection ? (
           <span className='flex items-baseline gap-2'>
-            <span className='odds-number text-lg text-white'>{selection.decimalOdds.toFixed(2)}</span>
+            <span className='odds-number text-lg text-white'>{formatDecimalOdds(selection.decimalOdds)}</span>
             <span className='font-mono text-[10px] font-semibold text-metallic-titanium'>
               {selection.americanOdds || formatAmericanOdds(selection.decimalOdds)}
             </span>
@@ -83,18 +86,18 @@ function FighterOddsCard({
   );
 }
 
-function FeaturedBout({ event }: { event: UfcEvent }) {
+function FeaturedBout({ event, cardKey }: { event: UfcEvent; cardKey?: string }) {
   const market = findMarket(event, 'moneyline');
   const red = selectionFor(market, 'red');
   const blue = selectionFor(market, 'blue');
 
   return (
     <Link
-      to='/sportsbook'
+      to={cardKey ? `/sportsbook?card=${cardKey}` : '/sportsbook'}
       className='group flex min-w-0 flex-col gap-3 border border-obsidian-border bg-obsidian-card p-4 transition-colors duration-200 hover:border-crimson/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60'
     >
       <div className='flex flex-wrap items-center justify-between gap-2'>
-        <span className='font-mono text-[9px] font-bold uppercase tracking-ultra text-crimson'>
+        <span className='font-mono text-[9px] font-bold uppercase tracking-wide text-crimson'>
           {event.competition ?? 'UFC'} · {event.bout.billingLabel}
         </span>
         <span className='font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
@@ -102,7 +105,7 @@ function FeaturedBout({ event }: { event: UfcEvent }) {
         </span>
       </div>
 
-      <h3 className='break-words font-display text-sm font-extrabold uppercase leading-tight text-white group-hover:text-crimson'>
+      <h3 className='break-words font-display text-sm font-bold uppercase leading-tight text-white group-hover:text-crimson'>
         {event.name}
       </h3>
 
@@ -121,7 +124,7 @@ function FeaturedBout({ event }: { event: UfcEvent }) {
             {event.bout.red.record}
           </p>
           <div className='mt-2 flex items-baseline justify-between gap-1'>
-            <span className='odds-number text-sm text-white'>{red?.decimalOdds.toFixed(2) ?? '—'}</span>
+            <span className='odds-number text-sm text-white'>{formatDecimalOdds(red?.decimalOdds ?? 0)}</span>
             <span className='font-mono text-[9px] text-metallic-titanium'>
               {red ? red.americanOdds || formatAmericanOdds(red.decimalOdds) : ''}
             </span>
@@ -136,7 +139,7 @@ function FeaturedBout({ event }: { event: UfcEvent }) {
           </p>
           <div className='mt-2 flex items-baseline justify-between gap-1'>
             <span className='odds-number text-sm text-white'>
-              {blue?.decimalOdds.toFixed(2) ?? '—'}
+              {formatDecimalOdds(blue?.decimalOdds ?? 0)}
             </span>
             <span className='font-mono text-[9px] text-metallic-titanium'>
               {blue ? blue.americanOdds || formatAmericanOdds(blue.decimalOdds) : ''}
@@ -145,7 +148,7 @@ function FeaturedBout({ event }: { event: UfcEvent }) {
         </div>
       </div>
 
-      <span className='mt-1 inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-brutal text-metallic-slate group-hover:text-crimson'>
+      <span className='mt-1 inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wide text-metallic-slate group-hover:text-crimson'>
         Abrir mercados
         <ArrowRight size={11} aria-hidden='true' />
       </span>
@@ -156,34 +159,43 @@ function FeaturedBout({ event }: { event: UfcEvent }) {
 export default function Home() {
   const { events, isLoading, error, reload } = useUfcEvents();
 
-  const mainEvent =
-    events.find((event) => event.bout.billing === 'main' && event.bout.billingOrder === 1) ??
-    events[0];
+  // La API ordena de más reciente a más antiguo. En la home se destaca el
+  // sábado más próximo y su cartelera, no una mezcla de competencias.
+  const cards = buildUfcCards(events);
+  const activeCard = cards[0];
+  const cardEvents = activeCard?.events ?? [];
+  const mainEvent = activeCard?.mainEvent;
   const mainMarket = mainEvent ? findMarket(mainEvent, 'moneyline') : undefined;
   const redSelection = selectionFor(mainMarket, 'red');
   const blueSelection = selectionFor(mainMarket, 'blue');
-  const mainCardEvents = eventsForBilling(events, 'main')
+  const mainCardEvents = eventsForBilling(cardEvents, 'main')
     .filter((event) => event.id !== mainEvent?.id)
     .slice(0, 4);
   const marketCount = events.reduce((total, event) => total + event.markets.length, 0);
+  const activeMarketCount = cardEvents.reduce(
+    (total, event) => total + event.markets.length,
+    0,
+  );
   const marketsPerBout =
-    events.length > 0 ? Math.max(1, Math.round(marketCount / events.length)) : 0;
+    cardEvents.length > 0 ? Math.max(1, Math.round(activeMarketCount / cardEvents.length)) : 0;
+  const source = mainEvent ? findEventSource(mainEvent) : null;
+  const sportsbookHref = activeCard ? `/sportsbook?card=${activeCard.key}` : '/sportsbook';
   const updatedAt = formatUpdatedAt(mainEvent?.oddsUpdatedAt ?? null);
 
   return (
-    <div className='flex min-h-full w-full flex-col bg-obsidian-void text-slate-100'>
+    <div className='flex min-h-full w-full flex-col bg-canvas text-white'>
       <div className='w-full border-b border-obsidian-border bg-obsidian-surface/70'>
         <div className='mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2.5 font-mono text-[10px] uppercase tracking-wide text-metallic-slate sm:px-6 lg:px-8'>
           <span className='flex items-center gap-2'>
             <span className='h-1.5 w-1.5 bg-crimson' aria-hidden='true' />
-            Cartelera UFC conectada a la API
+            Carteleras UFC · próximos sábados · snapshot declarado
           </span>
           <span>
             {isLoading
               ? 'Consultando eventos…'
               : error
-                ? 'API no disponible'
-                : `${events.length} combates · ${marketCount} mercados · PostgreSQL`}
+                ? 'Datos no disponibles'
+                : `${events.length} combates · ${marketCount} mercados · múltiples carteleras`}
           </span>
         </div>
       </div>
@@ -191,11 +203,11 @@ export default function Home() {
       <div className='mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 py-8 sm:px-6 lg:px-8'>
         <section className='border-brutal-cold relative overflow-hidden bg-gradient-obsidian-radial p-6 sm:p-10'>
           <div className='pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-crimson/12 blur-3xl' />
-          <div className='pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-gold-imperial/8 blur-3xl' />
+          <div className='pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-electric/10 blur-3xl' />
 
           <div className='relative z-10 flex flex-col gap-6'>
             <div className='flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-wide'>
-              <span className='inline-flex items-center gap-2 border border-gold/40 bg-gold/10 px-2.5 py-1 font-bold text-gold'>
+              <span className='inline-flex items-center gap-2 border border-crimson/40 bg-crimson/10 px-2.5 py-1 font-bold text-crimson'>
                 <Swords size={11} aria-hidden='true' />
                 {mainEvent?.competition ?? 'UFC'}
               </span>
@@ -222,7 +234,7 @@ export default function Home() {
             ) : error && !mainEvent ? (
               <div className='flex min-w-0 flex-col items-start gap-4 border border-crimson/40 bg-crimson/5 p-5'>
                 <div>
-                  <h1 className='font-display text-2xl font-extrabold uppercase tracking-tightest text-white sm:text-3xl'>
+                  <h1 className='font-display text-2xl font-bold uppercase tracking-tight text-white sm:text-3xl'>
                     La cartelera no está disponible
                   </h1>
                   <p className='mt-2 max-w-xl text-xs leading-relaxed text-metallic-titanium'>{error}</p>
@@ -230,16 +242,16 @@ export default function Home() {
                 <button
                   type='button'
                   onClick={reload}
-                  className='inline-flex items-center gap-2 border border-crimson/60 bg-crimson/10 px-4 py-2.5 font-display text-[10px] font-extrabold uppercase tracking-brutal text-crimson transition-colors hover:bg-crimson/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60'
+                  className='inline-flex items-center gap-2 border border-crimson/60 bg-crimson/10 px-4 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide text-crimson transition-colors hover:bg-crimson/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60'
                 >
                   <Activity size={13} aria-hidden='true' />
-                  Reintentar conexión
+                  Reintentar
                 </button>
               </div>
             ) : mainEvent ? (
               <>
                 <div className='max-w-4xl'>
-                  <h1 className='font-display text-[clamp(1.6rem,7vw,4.5rem)] font-black uppercase leading-[0.96] tracking-tightest text-white sm:text-6xl lg:text-7xl'>
+                  <h1 className='font-display text-[clamp(1.6rem,7vw,4.1rem)] font-bold uppercase leading-[0.98] tracking-tight text-white sm:text-6xl lg:text-7xl'>
                     <span className='block break-normal sm:inline'>{mainEvent.bout.red.name}</span>{' '}
                     <span className='block text-crimson sm:inline'>vs.</span>{' '}
                     <span className='block break-normal sm:inline'>{mainEvent.bout.blue.name}</span>
@@ -249,8 +261,8 @@ export default function Home() {
                       ? 'Combate de título'
                       : 'Evento principal'}{' '}
                     a {mainEvent.bout.scheduledRounds} asaltos en{' '}
-                    {mainEvent.bout.weightDivisionLabel}. Cuotas decimales y americanas con
-                    selecciones persistidas en PostgreSQL.
+                    {mainEvent.bout.weightDivisionLabel}. Cuotas decimales y americanas desde el
+                    snapshot de {source?.name ?? 'la fuente declarada'}.
                   </p>
                 </div>
 
@@ -265,31 +277,31 @@ export default function Home() {
 
                 <div className='flex flex-wrap items-center gap-3 pt-1'>
                   <Link
-                    to='/sportsbook'
-                    className='inline-flex items-center gap-2 border-brutal-crimson bg-crimson px-5 py-3 font-display text-xs font-extrabold uppercase tracking-wider text-white transition-colors duration-150 hover:bg-crimson-pure focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60'
+                    to={sportsbookHref}
+                    className='inline-flex items-center gap-2 border border-crimson bg-crimson px-5 py-3 font-display text-xs font-bold uppercase tracking-wide text-white transition-colors duration-150 hover:bg-crimson-pure focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60'
                   >
                     <Swords size={16} aria-hidden='true' />
                     Abrir cartelera completa
                     <ArrowRight size={15} aria-hidden='true' />
                   </Link>
                   <span className='font-mono text-[10px] uppercase tracking-wide text-metallic-slate'>
-                    {events.length} combates · {marketsPerBout} mercados por combate
+                    {cardEvents.length} combates · {marketsPerBout} mercados por combate
                   </span>
                 </div>
 
                 {updatedAt && (
                   <p className='font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
-                    Cuotas actualizadas {updatedAt} · Moneyline: consenso UFCalendar
+                    Cuotas actualizadas {updatedAt} · Fuente: {source?.name ?? 'snapshot declarado'}
                   </p>
                 )}
               </>
             ) : (
               <div>
-                <h1 className='font-display text-3xl font-black uppercase tracking-tightest text-white'>
+                <h1 className='font-display text-3xl font-bold uppercase tracking-tight text-white'>
                   Cartelera sin eventos
                 </h1>
                 <p className='mt-2 text-xs text-metallic-titanium'>
-                  La API respondió sin combates programados.
+                  No hay combates programados en este momento.
                 </p>
               </div>
             )}
@@ -299,15 +311,15 @@ export default function Home() {
         <section className='flex flex-col gap-4'>
           <div className='flex flex-wrap items-end justify-between gap-3 border-b border-obsidian-border pb-3'>
             <div className='min-w-0'>
-              <p className='font-mono text-[9px] font-bold uppercase tracking-ultra text-crimson'>
+              <p className='font-mono text-[9px] font-bold uppercase tracking-wide text-crimson'>
                 Cartelera estelar
               </p>
-              <h2 className='mt-1 font-display text-lg font-black uppercase tracking-tight text-white'>
+              <h2 className='mt-1 font-display text-lg font-bold uppercase tracking-tight text-white'>
                 Combates principales
               </h2>
             </div>
             <Link
-              to='/sportsbook'
+              to={sportsbookHref}
               className='inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-wide text-crimson hover:text-white'
             >
               Ver todos los mercados
@@ -327,7 +339,7 @@ export default function Home() {
           ) : mainCardEvents.length > 0 ? (
             <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
               {mainCardEvents.map((event) => (
-                <FeaturedBout key={event.id} event={event} />
+                <FeaturedBout key={event.id} event={event} cardKey={activeCard?.key} />
               ))}
             </div>
           ) : (
@@ -339,43 +351,44 @@ export default function Home() {
 
         <section className='grid grid-cols-1 gap-4 md:grid-cols-3'>
           <div className='flex flex-col gap-2 border border-obsidian-border bg-obsidian-surface p-5'>
-            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-brutal text-crimson'>
+            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-electric-soft'>
               <Database size={14} aria-hidden='true' />
-              Datos persistidos
+              Cartelera verificada
             </div>
             <p className='text-xs leading-relaxed text-metallic-titanium'>
-              Eventos, mercados y selecciones viven en PostgreSQL bajo el esquema{' '}
-              <span className='font-mono text-metallic-chrome'>events_markets</span>, con migraciones
-              EF Core y seed idempotente.
+              Cada combate conserva división, ronda y posición en su cartelera. Los {events.length}{' '}
+              combates y sus {marketCount} mercados proceden de snapshots declarados y muestran su
+              procedencia.
             </p>
           </div>
 
           <div className='flex flex-col gap-2 border border-obsidian-border bg-obsidian-surface p-5'>
-            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-brutal text-gold-imperial'>
+            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-electric-soft'>
               <ShieldCheck size={14} aria-hidden='true' />
               Cuotas declaradas
             </div>
             <p className='text-xs leading-relaxed text-metallic-titanium'>
-              Cada mercado indica su proveedor. Moneyline procede del consenso de UFCalendar; los
-              mercados derivados se identifican como modelo ZenBet, no como línea oficial.
+              Cada mercado indica su proveedor y su timestamp de observación. Las cuatro familias de
+              UFC se presentan desde el snapshot declarado de cada cartelera; son cuotas de
+              referencia, no una línea ejecutable.
             </p>
           </div>
 
           <div className='flex flex-col gap-2 border border-obsidian-border bg-obsidian-surface p-5'>
-            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-brutal text-odds-live'>
+            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-crimson'>
               <Activity size={14} aria-hidden='true' />
-              Boleto con GUID
+              Boleto protegido
             </div>
             <p className='text-xs leading-relaxed text-metallic-titanium'>
-              Las selecciones de la tarjeta envían el identificador real de la API al boleto. El
-              backend valida la billetera, el saldo y la idempotencia antes de aceptar la apuesta.
+              Añade cuotas y revisa monto, cuota total y ganancia antes de confirmar. Validamos tu
+              saldo y protegemos cada apuesta contra envíos duplicados.
             </p>
           </div>
         </section>
 
         <p className='border-t border-obsidian-border pt-4 text-[10px] leading-relaxed text-metallic-slate'>
-          Cartelera y cuotas con fines informativos. No se presentan mercados derivados como líneas
-          oficiales. Juega de forma responsable.
+          Cartelera y cuotas con fines informativos. Las cuotas son un snapshot de referencia y no
+          una cotización ejecutable. Juega de forma responsable.
         </p>
       </div>
     </div>

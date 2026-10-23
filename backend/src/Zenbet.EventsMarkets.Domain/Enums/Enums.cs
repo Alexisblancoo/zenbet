@@ -40,6 +40,15 @@ public enum SportType
     Other = 99
 }
 
+public enum OddsSourceKind
+{
+    Unknown = 0,
+    Bookmaker = 1,
+    Aggregator = 2,
+    Exchange = 3,
+    Model = 4
+}
+
 public enum MarketType
 {
     MatchWinner = 1,

@@ -30,7 +30,9 @@ public sealed record MmaBoutDto(
     string Venue,
     string Location,
     FighterDto Red,
-    FighterDto Blue);
+    FighterDto Blue,
+    string? Fighter1ImageUrl,
+    string? Fighter2ImageUrl);
 
 public sealed record FighterDto(
     string Id,
@@ -40,7 +42,8 @@ public sealed record FighterDto(
     string Record,
     string? Rank,
     string Division,
-    string DivisionLabel);
+    string DivisionLabel,
+    string? ImageUrl);
 
 public sealed record MarketDto(
     Guid Id,
@@ -52,7 +55,15 @@ public sealed record MarketDto(
     string Status,
     string? Provider,
     DateTimeOffset? UpdatedAt,
+    MarketSourceDto? Source,
     IReadOnlyList<SelectionDto> Selections);
+
+public sealed record MarketSourceDto(
+    string Kind,
+    string Name,
+    string? Url,
+    DateTimeOffset ObservedAt,
+    string? Note);
 
 public sealed record SelectionDto(
     Guid Id,

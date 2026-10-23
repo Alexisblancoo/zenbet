@@ -54,18 +54,13 @@ public sealed class Event : AggregateRoot<EventId>
         MarketType type,
         IReadOnlyList<Selection> selections,
         decimal? line = null,
-        int displayOrder = 0)
+        int displayOrder = 0,
+        MarketProvenance? provenance = null)
     {
         if (Status == EventStatus.Finished || Status == EventStatus.Cancelled || Status == EventStatus.Void)
             throw new InvalidOperationException($"Cannot add market to event in status {Status}");
 
-        var market = new Market(id, Id, name, type, selections, line, displayOrder)
-        {
-            Name = name,
-            Type = type,
-            Line = line,
-            DisplayOrder = displayOrder
-        };
+        var market = new Market(id, Id, name, type, selections, line, displayOrder, provenance);
         _markets.Add(market);
 
         // Re-emit domain events from market

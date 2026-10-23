@@ -28,6 +28,15 @@ export interface OddsUpdate {
   readonly occurredAt?: string;
 }
 
+/**
+ * La API conserva cuatro decimales para no perder precisión al normalizar el
+ * consenso. La cartelera presenta dos decimales, el formato habitual de una
+ * casa de apuestas, sin redondear el valor que viaja al boleto.
+ */
+export function formatDecimalOdds(value: number): string {
+  return Number.isFinite(value) && value > 1 ? value.toFixed(2) : '—';
+}
+
 /** Cuota decimal mínima válida: descarta 0, NaN y valores de prueba. */
 const MIN_VALID_ODDS = 1.0001;
 

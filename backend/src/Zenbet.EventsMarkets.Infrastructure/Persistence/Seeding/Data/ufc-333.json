@@ -1,2204 +1,2171 @@
 {
-  "schemaVersion": 1,
-  "source": {
-    "promotion": "UFC",
-    "eventUrl": "https://www.ufc.com/event/ufc-333",
-    "oddsUrl": "https://www.ufcalendar.com/events/ufc-333-2026-10-24",
-    "oddsSource": "Consenso de casas publicado por UFCalendar para Moneyline; mercados derivados por ZenBet.",
-    "capturedAt": "2026-10-20T23:00:00Z",
-    "note": "Las cuotas derivadas no son líneas oficiales. Cada selección declara su proveedor."
-  },
-  "card": {
-    "competition": "UFC 333",
-    "title": "UFC 333: Volkanovski vs. Evloev",
-    "venue": "Etihad Arena",
-    "location": "Abu Dhabi, Emiratos Árabes Unidos",
-    "date": "2026-10-24"
-  },
-  "bouts": [
-    {
-      "id": "ufc-333-alexander-volkanovski-vs-movsar-evloev",
-      "name": "Volkanovski vs. Evloev",
-      "billing": "main",
-      "order": 1,
-      "startTime": "2026-10-24T18:00:00Z",
-      "division": "featherweight",
-      "rounds": 5,
-      "titleFight": true,
-      "red": {
-        "id": "alexander-volkanovski",
-        "name": "Alexander Volkanovski",
-        "countryCode": "AU",
-        "country": "Australia",
-        "record": "28-4-0",
-        "rank": "C",
-        "division": "featherweight"
-      },
-      "blue": {
-        "id": "movsar-evloev",
-        "name": "Movsar Evloev",
-        "countryCode": "RU",
-        "country": "Rusia",
-        "record": "20-0-0",
-        "rank": "#1",
-        "division": "featherweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Alexander Volkanovski",
-              "displayOrder": 1,
-              "decimalOdds": 1.9,
-              "americanOdds": "-111"
-            },
-            {
-              "code": "blue",
-              "name": "Movsar Evloev",
-              "displayOrder": 2,
-              "decimalOdds": 1.92,
-              "americanOdds": "-109"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Alexander Volkanovski por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 5.17,
-              "americanOdds": "+417",
-              "modelProbabilityPct": 17.59
-            },
-            {
-              "code": "red_submission",
-              "name": "Alexander Volkanovski por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 18.09,
-              "americanOdds": "+1709",
-              "modelProbabilityPct": 5.03
-            },
-            {
-              "code": "red_decision",
-              "name": "Alexander Volkanovski por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 3.29,
-              "americanOdds": "+229",
-              "modelProbabilityPct": 27.64
-            },
-            {
-              "code": "blue_ko",
-              "name": "Movsar Evloev por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 18.28,
-              "americanOdds": "+1728",
-              "modelProbabilityPct": 4.97
-            },
-            {
-              "code": "blue_submission",
-              "name": "Movsar Evloev por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 6.09,
-              "americanOdds": "+509",
-              "modelProbabilityPct": 14.92
-            },
-            {
-              "code": "blue_decision",
-              "name": "Movsar Evloev por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 3.05,
-              "americanOdds": "+205",
-              "modelProbabilityPct": 29.84
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 4.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 4.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.63,
-              "americanOdds": "-159"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 4.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.4,
-              "americanOdds": "+140"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 1.69,
-              "americanOdds": "-145"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 2.28,
-              "americanOdds": "+128"
-            }
-          ]
-        }
-      ]
+    "schemaVersion": 3,
+    "card": {
+        "competition": "UFC 333",
+        "title": "UFC 333: Volkanovski vs. Evloev",
+        "venue": "Etihad Arena",
+        "location": "Abu Dhabi, Emiratos Árabes Unidos",
+        "date": "2026-10-24",
+        "seedKey": "ufc-333"
     },
-    {
-      "id": "ufc-333-petr-yan-vs-merab-dvalishvili",
-      "name": "Yan vs. Dvalishvili",
-      "billing": "main",
-      "order": 2,
-      "startTime": "2026-10-24T18:00:00Z",
-      "division": "bantamweight",
-      "rounds": 5,
-      "titleFight": true,
-      "red": {
-        "id": "petr-yan",
-        "name": "Petr Yan",
-        "countryCode": "RU",
-        "country": "Rusia",
-        "record": "20-5-0",
-        "rank": "C",
-        "division": "bantamweight"
-      },
-      "blue": {
-        "id": "merab-dvalishvili",
-        "name": "Merab Dvalishvili",
-        "countryCode": "GE",
-        "country": "Georgia",
-        "record": "21-5-0",
-        "rank": "#1",
-        "division": "bantamweight"
-      },
-      "markets": [
+    "sources": [
         {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Petr Yan",
-              "displayOrder": 1,
-              "decimalOdds": 1.59,
-              "americanOdds": "-169"
-            },
-            {
-              "code": "blue",
-              "name": "Merab Dvalishvili",
-              "displayOrder": 2,
-              "decimalOdds": 2.4,
-              "americanOdds": "+140"
-            }
-          ]
+            "id": "ufcalendar-ufc-333-alexander-volkanovski-vs-movsar-evloev",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/alexander-volkanovski-vs-movsar-evloev",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 16 casas por mercado; snapshot de referencia, no cuota ejecutable."
         },
         {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Petr Yan por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 4.32,
-              "americanOdds": "+332",
-              "modelProbabilityPct": 21.05
-            },
-            {
-              "code": "red_submission",
-              "name": "Petr Yan por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 15.11,
-              "americanOdds": "+1411",
-              "modelProbabilityPct": 6.02
-            },
-            {
-              "code": "red_decision",
-              "name": "Petr Yan por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 2.75,
-              "americanOdds": "+175",
-              "modelProbabilityPct": 33.08
-            },
-            {
-              "code": "blue_ko",
-              "name": "Merab Dvalishvili por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 22.81,
-              "americanOdds": "+2181",
-              "modelProbabilityPct": 3.98
-            },
-            {
-              "code": "blue_submission",
-              "name": "Merab Dvalishvili por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 11.41,
-              "americanOdds": "+1041",
-              "modelProbabilityPct": 7.97
-            },
-            {
-              "code": "blue_decision",
-              "name": "Merab Dvalishvili por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 3.26,
-              "americanOdds": "+226",
-              "modelProbabilityPct": 27.89
-            }
-          ]
+            "id": "ufcalendar-ufc-333-petr-yan-vs-merab-dvalishvili",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/petr-yan-vs-merab-dvalishvili",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 16 casas por mercado; snapshot de referencia, no cuota ejecutable."
         },
         {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 4.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 4.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.58,
-              "americanOdds": "-172"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 4.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.52,
-              "americanOdds": "+152"
-            }
-          ]
+            "id": "ufcalendar-ufc-333-lone-er-kavanagh-vs-ramazan-temirov",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/lone-er-kavanagh-vs-ramazan-temirov",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 17 casas por mercado; snapshot de referencia, no cuota ejecutable."
         },
         {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 1.59,
-              "americanOdds": "-169"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 2.49,
-              "americanOdds": "+149"
-            }
-          ]
+            "id": "ufcalendar-ufc-333-alexander-volkov-vs-rizvan-kuniev",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/alexander-volkov-vs-rizvan-kuniev",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 16 casas por mercado; snapshot de referencia, no cuota ejecutable."
+        },
+        {
+            "id": "ufcalendar-ufc-333-aaron-pico-vs-losene-keita",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/aaron-pico-vs-losene-keita",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 15 casas por mercado; snapshot de referencia, no cuota ejecutable."
+        },
+        {
+            "id": "ufcalendar-ufc-333-azamat-murzakanov-vs-dominick-reyes",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/azamat-murzakanov-vs-dominick-reyes",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 16 casas por mercado; snapshot de referencia, no cuota ejecutable."
+        },
+        {
+            "id": "ufcalendar-ufc-333-nikita-krylov-vs-abdul-rakhman-yakhyaev",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/nikita-krylov-vs-abdul-rakhman-yakhyaev",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 16 casas por mercado; snapshot de referencia, no cuota ejecutable."
+        },
+        {
+            "id": "ufcalendar-ufc-333-abus-magomedov-vs-cam-rowston",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/abus-magomedov-vs-cam-rowston",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 13 casas por mercado; snapshot de referencia, no cuota ejecutable."
+        },
+        {
+            "id": "ufcalendar-ufc-333-grant-dawson-vs-nurullo-aliev",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/grant-dawson-vs-nurullo-aliev",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 15 casas por mercado; snapshot de referencia, no cuota ejecutable."
+        },
+        {
+            "id": "ufcalendar-ufc-333-colby-thicknesse-vs-asaf-chopurov",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/colby-thicknesse-vs-asaf-chopurov",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 13 casas por mercado; snapshot de referencia, no cuota ejecutable."
+        },
+        {
+            "id": "ufcalendar-ufc-333-abubakar-vagaev-vs-jacob-malkoun",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/abubakar-vagaev-vs-jacob-malkoun",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 14 casas por mercado; snapshot de referencia, no cuota ejecutable."
+        },
+        {
+            "id": "ufcalendar-ufc-333-bolaji-oki-vs-daniel-santos",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/bolaji-oki-vs-daniel-santos",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 14 casas por mercado; snapshot de referencia, no cuota ejecutable."
+        },
+        {
+            "id": "ufcalendar-ufc-333-kody-steele-vs-noah-gugnon",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/kody-steele-vs-noah-gugnon",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 14 casas por mercado; snapshot de referencia, no cuota ejecutable."
+        },
+        {
+            "id": "ufcalendar-ufc-333-iasmin-lucindo-vs-nicolle-caliari",
+            "kind": "aggregator",
+            "name": "UFCalendar",
+            "url": "https://www.ufcalendar.com/events/ufc-333-2026-10-24/iasmin-lucindo-vs-nicolle-caliari",
+            "observedAt": "2026-10-21T23:00:00Z",
+            "note": "Promedio de hasta 13 casas por mercado; snapshot de referencia, no cuota ejecutable."
         }
-      ]
-    },
-    {
-      "id": "ufc-333-lone-er-kavanagh-vs-ramazan-temirov",
-      "name": "Kavanagh vs. Temirov",
-      "billing": "main",
-      "order": 3,
-      "startTime": "2026-10-24T18:00:00Z",
-      "division": "flyweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "lone-er-kavanagh",
-        "name": "Lone'er Kavanagh",
-        "countryCode": "GB-ENG",
-        "country": "Inglaterra",
-        "record": "10-2-0",
-        "rank": "#6",
-        "division": "flyweight"
-      },
-      "blue": {
-        "id": "ramazan-temirov",
-        "name": "Ramazan Temirov",
-        "countryCode": "UZ",
-        "country": "Uzbekistán",
-        "record": "20-2-0",
-        "rank": "#10",
-        "division": "flyweight"
-      },
-      "markets": [
+    ],
+    "bouts": [
         {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Lone'er Kavanagh",
-              "displayOrder": 1,
-              "decimalOdds": 1.91,
-              "americanOdds": "-110"
+            "id": "ufc-333-alexander-volkanovski-vs-movsar-evloev",
+            "name": "Volkanovski vs. Evloev",
+            "billing": "main",
+            "order": 1,
+            "startTime": "2026-10-24T18:00:00Z",
+            "division": "featherweight",
+            "rounds": 5,
+            "titleFight": true,
+            "sourceId": "ufcalendar-ufc-333-alexander-volkanovski-vs-movsar-evloev",
+            "red": {
+                "id": "alexander-volkanovski",
+                "name": "Alexander Volkanovski",
+                "countryCode": "AU",
+                "country": "Australia",
+                "record": "28-4-0",
+                "rank": "C",
+                "division": "featherweight"
             },
-            {
-              "code": "blue",
-              "name": "Ramazan Temirov",
-              "displayOrder": 2,
-              "decimalOdds": 1.91,
-              "americanOdds": "-110"
-            }
-          ]
+            "blue": {
+                "id": "movsar-evloev",
+                "name": "Movsar Evloev",
+                "countryCode": "RU",
+                "country": "Rusia",
+                "record": "20-0-0",
+                "rank": "#1",
+                "division": "featherweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Alexander Volkanovski",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.9009,
+                            "americanOdds": "-111"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Movsar Evloev",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.9174,
+                            "americanOdds": "-109"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Alexander Volkanovski por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 5.35,
+                            "americanOdds": "+435"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Alexander Volkanovski por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 17.05,
+                            "americanOdds": "+1605"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Alexander Volkanovski por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 2.84,
+                            "americanOdds": "+184"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Movsar Evloev por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 8.16,
+                            "americanOdds": "+716"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Movsar Evloev por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10.82,
+                            "americanOdds": "+982"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Movsar Evloev por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 2.64,
+                            "americanOdds": "+164"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 4.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 4.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.3571,
+                            "americanOdds": "-280"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 4.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 3.14,
+                            "americanOdds": "+214"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.4132,
+                            "americanOdds": "-242"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.78,
+                            "americanOdds": "+178"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/3949584.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4029275.png"
         },
         {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Lone'er Kavanagh por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 7.27,
-              "americanOdds": "+627",
-              "modelProbabilityPct": 12.5
+            "id": "ufc-333-petr-yan-vs-merab-dvalishvili",
+            "name": "Yan vs. Dvalishvili",
+            "billing": "main",
+            "order": 2,
+            "startTime": "2026-10-24T18:00:00Z",
+            "division": "bantamweight",
+            "rounds": 5,
+            "titleFight": true,
+            "sourceId": "ufcalendar-ufc-333-petr-yan-vs-merab-dvalishvili",
+            "red": {
+                "id": "petr-yan",
+                "name": "Petr Yan",
+                "countryCode": "RU",
+                "country": "Rusia",
+                "record": "20-5-0",
+                "rank": "C",
+                "division": "bantamweight"
             },
-            {
-              "code": "red_submission",
-              "name": "Lone'er Kavanagh por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 7.27,
-              "americanOdds": "+627",
-              "modelProbabilityPct": 12.5
+            "blue": {
+                "id": "merab-dvalishvili",
+                "name": "Merab Dvalishvili",
+                "countryCode": "GE",
+                "country": "Georgia",
+                "record": "21-5-0",
+                "rank": "#1",
+                "division": "bantamweight"
             },
-            {
-              "code": "red_decision",
-              "name": "Lone'er Kavanagh por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 3.64,
-              "americanOdds": "+264",
-              "modelProbabilityPct": 25
-            },
-            {
-              "code": "blue_ko",
-              "name": "Ramazan Temirov por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 6.06,
-              "americanOdds": "+506",
-              "modelProbabilityPct": 15
-            },
-            {
-              "code": "blue_submission",
-              "name": "Ramazan Temirov por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 7.27,
-              "americanOdds": "+627",
-              "modelProbabilityPct": 12.5
-            },
-            {
-              "code": "blue_decision",
-              "name": "Ramazan Temirov por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 4.04,
-              "americanOdds": "+304",
-              "modelProbabilityPct": 22.5
-            }
-          ]
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Petr Yan",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.6173,
+                            "americanOdds": "-162"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Merab Dvalishvili",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.34,
+                            "americanOdds": "+134"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Petr Yan por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Petr Yan por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 21.37,
+                            "americanOdds": "+2037"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Petr Yan por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 2.21,
+                            "americanOdds": "+121"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Merab Dvalishvili por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 11.95,
+                            "americanOdds": "+1095"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Merab Dvalishvili por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 17.74,
+                            "americanOdds": "+1674"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Merab Dvalishvili por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 2.92,
+                            "americanOdds": "+192"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 4.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 4.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.3086,
+                            "americanOdds": "-324"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 4.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 3.42,
+                            "americanOdds": "+242"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.3378,
+                            "americanOdds": "-296"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 3.11,
+                            "americanOdds": "+211"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4293517.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/3948572.png"
         },
         {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.7,
-              "americanOdds": "-143"
+            "id": "ufc-333-lone-er-kavanagh-vs-ramazan-temirov",
+            "name": "Kavanagh vs. Temirov",
+            "billing": "main",
+            "order": 3,
+            "startTime": "2026-10-24T18:00:00Z",
+            "division": "flyweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-lone-er-kavanagh-vs-ramazan-temirov",
+            "red": {
+                "id": "lone-er-kavanagh",
+                "name": "Lone'er Kavanagh",
+                "countryCode": "GB-ENG",
+                "country": "Inglaterra",
+                "record": "10-2-0",
+                "rank": "#6",
+                "division": "flyweight"
             },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.27,
-              "americanOdds": "+127"
-            }
-          ]
+            "blue": {
+                "id": "ramazan-temirov",
+                "name": "Ramazan Temirov",
+                "countryCode": "UZ",
+                "country": "Uzbekistán",
+                "record": "20-2-0",
+                "rank": "#10",
+                "division": "flyweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Lone'er Kavanagh",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.885,
+                            "americanOdds": "-113"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Ramazan Temirov",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.9259,
+                            "americanOdds": "-108"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Lone'er Kavanagh por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.94,
+                            "americanOdds": "+394"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Lone'er Kavanagh por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 12.37,
+                            "americanOdds": "+1137"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Lone'er Kavanagh por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.31,
+                            "americanOdds": "+231"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Ramazan Temirov por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 2.77,
+                            "americanOdds": "+177"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Ramazan Temirov por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 20.88,
+                            "americanOdds": "+1988"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Ramazan Temirov por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 5.22,
+                            "americanOdds": "+422"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.9009,
+                            "americanOdds": "-111"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.8772,
+                            "americanOdds": "-114"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.18,
+                            "americanOdds": "+118"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.6494,
+                            "americanOdds": "-154"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5147737.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4895691.png"
         },
         {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.04,
-              "americanOdds": "+104"
+            "id": "ufc-333-alexander-volkov-vs-rizvan-kuniev",
+            "name": "Volkov vs. Kuniev",
+            "billing": "main",
+            "order": 4,
+            "startTime": "2026-10-24T18:00:00Z",
+            "division": "heavyweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-alexander-volkov-vs-rizvan-kuniev",
+            "red": {
+                "id": "alexander-volkov",
+                "name": "Alexander Volkov",
+                "countryCode": "RU",
+                "country": "Rusia",
+                "record": "40-11-0",
+                "rank": "#2",
+                "division": "heavyweight"
             },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.85,
-              "americanOdds": "-118"
-            }
-          ]
+            "blue": {
+                "id": "rizvan-kuniev",
+                "name": "Rizvan Kuniev",
+                "countryCode": "RU",
+                "country": "Rusia",
+                "record": "15-3-1",
+                "rank": "#7",
+                "division": "heavyweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Alexander Volkov",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.7937,
+                            "americanOdds": "-126"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Rizvan Kuniev",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.03,
+                            "americanOdds": "+103"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Alexander Volkov por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.79,
+                            "americanOdds": "+379"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Alexander Volkov por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 21.41,
+                            "americanOdds": "+2041"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Alexander Volkov por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 2.67,
+                            "americanOdds": "+167"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Rizvan Kuniev por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.76,
+                            "americanOdds": "+476"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Rizvan Kuniev por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 20.7,
+                            "americanOdds": "+1970"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Rizvan Kuniev por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 2.94,
+                            "americanOdds": "+194"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.4082,
+                            "americanOdds": "-245"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.9,
+                            "americanOdds": "+190"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.5155,
+                            "americanOdds": "-194"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.46,
+                            "americanOdds": "+146"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/2993650.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4001837.png"
+        },
+        {
+            "id": "ufc-333-aaron-pico-vs-losene-keita",
+            "name": "Pico vs. Keita",
+            "billing": "main",
+            "order": 5,
+            "startTime": "2026-10-24T18:00:00Z",
+            "division": "featherweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-aaron-pico-vs-losene-keita",
+            "red": {
+                "id": "aaron-pico",
+                "name": "Aaron Pico",
+                "countryCode": "US",
+                "country": "Estados Unidos",
+                "record": "14-5-0",
+                "rank": "#11",
+                "division": "featherweight"
+            },
+            "blue": {
+                "id": "losene-keita",
+                "name": "Losene Keita",
+                "countryCode": "BE",
+                "country": "Bélgica",
+                "record": "17-2-0",
+                "rank": null,
+                "division": "featherweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Aaron Pico",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.7634,
+                            "americanOdds": "-131"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Losene Keita",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.09,
+                            "americanOdds": "+109"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Aaron Pico por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 3.76,
+                            "americanOdds": "+276"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Aaron Pico por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9.05,
+                            "americanOdds": "+805"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Aaron Pico por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.88,
+                            "americanOdds": "+288"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Losene Keita por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 2.93,
+                            "americanOdds": "+193"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Losene Keita por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 26.03,
+                            "americanOdds": "+2503"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Losene Keita por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 5.86,
+                            "americanOdds": "+486"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 1.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 1.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.6329,
+                            "americanOdds": "-158"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 1.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.27,
+                            "americanOdds": "+127"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.51,
+                            "americanOdds": "+151"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.4975,
+                            "americanOdds": "-201"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4199009.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5192314.png"
+        },
+        {
+            "id": "ufc-333-azamat-murzakanov-vs-dominick-reyes",
+            "name": "Murzakanov vs. Reyes",
+            "billing": "prelims",
+            "order": 1,
+            "startTime": "2026-10-24T16:00:00Z",
+            "division": "light-heavyweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-azamat-murzakanov-vs-dominick-reyes",
+            "red": {
+                "id": "azamat-murzakanov",
+                "name": "Azamat Murzakanov",
+                "countryCode": "RU",
+                "country": "Rusia",
+                "record": "16-1-0",
+                "rank": "#7",
+                "division": "light-heavyweight"
+            },
+            "blue": {
+                "id": "dominick-reyes",
+                "name": "Dominick Reyes",
+                "countryCode": "US",
+                "country": "Estados Unidos",
+                "record": "16-5-0",
+                "rank": "#8",
+                "division": "light-heavyweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Azamat Murzakanov",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.4673,
+                            "americanOdds": "-214"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Dominick Reyes",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.75,
+                            "americanOdds": "+175"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Azamat Murzakanov por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.7634,
+                            "americanOdds": "-131"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Azamat Murzakanov por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 20.13,
+                            "americanOdds": "+1913"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Azamat Murzakanov por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 6.38,
+                            "americanOdds": "+538"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Dominick Reyes por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 3.96,
+                            "americanOdds": "+296"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Dominick Reyes por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 19.51,
+                            "americanOdds": "+1851"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Dominick Reyes por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 8.46,
+                            "americanOdds": "+746"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 1.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 1.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.02,
+                            "americanOdds": "+102"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 1.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.7813,
+                            "americanOdds": "-128"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 3.85,
+                            "americanOdds": "+285"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.237,
+                            "americanOdds": "-422"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4227265.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4233039.png"
+        },
+        {
+            "id": "ufc-333-nikita-krylov-vs-abdul-rakhman-yakhyaev",
+            "name": "Krylov vs. Yakhyaev",
+            "billing": "prelims",
+            "order": 2,
+            "startTime": "2026-10-24T16:00:00Z",
+            "division": "light-heavyweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-nikita-krylov-vs-abdul-rakhman-yakhyaev",
+            "red": {
+                "id": "nikita-krylov",
+                "name": "Nikita Krylov",
+                "countryCode": "UA",
+                "country": "Ucrania",
+                "record": "31-12-0",
+                "rank": "#15",
+                "division": "light-heavyweight"
+            },
+            "blue": {
+                "id": "abdul-rakhman-yakhyaev",
+                "name": "Abdul Rakhman Yakhyaev",
+                "countryCode": "TR",
+                "country": "Turquía",
+                "record": "10-0-0",
+                "rank": null,
+                "division": "light-heavyweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Nikita Krylov",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.72,
+                            "americanOdds": "+372"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Abdul Rakhman Yakhyaev",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.1969,
+                            "americanOdds": "-508"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Nikita Krylov por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 8.26,
+                            "americanOdds": "+726"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Nikita Krylov por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 13.65,
+                            "americanOdds": "+1265"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Nikita Krylov por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 16.05,
+                            "americanOdds": "+1505"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Abdul Rakhman Yakhyaev por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 1.7353,
+                            "americanOdds": "-136"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Abdul Rakhman Yakhyaev por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 3.59,
+                            "americanOdds": "+259"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Abdul Rakhman Yakhyaev por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 11.07,
+                            "americanOdds": "+1007"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 1.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 1.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 3.1,
+                            "americanOdds": "+210"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 1.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.365,
+                            "americanOdds": "-274"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 6.91,
+                            "americanOdds": "+591"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.0881,
+                            "americanOdds": "-1135"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/3026263.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5291025.png"
+        },
+        {
+            "id": "ufc-333-abus-magomedov-vs-cam-rowston",
+            "name": "Magomedov vs. Rowston",
+            "billing": "prelims",
+            "order": 3,
+            "startTime": "2026-10-24T16:00:00Z",
+            "division": "middleweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-abus-magomedov-vs-cam-rowston",
+            "red": {
+                "id": "abus-magomedov",
+                "name": "Abus Magomedov",
+                "countryCode": "DE",
+                "country": "Alemania",
+                "record": "29-7-1",
+                "rank": "#12",
+                "division": "middleweight"
+            },
+            "blue": {
+                "id": "cam-rowston",
+                "name": "Cam Rowston",
+                "countryCode": "AU",
+                "country": "Australia",
+                "record": "15-3-0",
+                "rank": null,
+                "division": "middleweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Abus Magomedov",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8065,
+                            "americanOdds": "-124"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Cam Rowston",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.02,
+                            "americanOdds": "+102"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Abus Magomedov por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.03,
+                            "americanOdds": "+303"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Abus Magomedov por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 5.92,
+                            "americanOdds": "+492"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Abus Magomedov por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 4.36,
+                            "americanOdds": "+336"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Cam Rowston por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 4.81,
+                            "americanOdds": "+381"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Cam Rowston por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 7.34,
+                            "americanOdds": "+634"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Cam Rowston por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 4.85,
+                            "americanOdds": "+385"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 1.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 1.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.5618,
+                            "americanOdds": "-178"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 1.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.42,
+                            "americanOdds": "+142"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.51,
+                            "americanOdds": "+151"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.495,
+                            "americanOdds": "-202"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/3077822.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4694832.png"
+        },
+        {
+            "id": "ufc-333-grant-dawson-vs-nurullo-aliev",
+            "name": "Dawson vs. Aliev",
+            "billing": "prelims",
+            "order": 4,
+            "startTime": "2026-10-24T16:00:00Z",
+            "division": "lightweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-grant-dawson-vs-nurullo-aliev",
+            "red": {
+                "id": "grant-dawson",
+                "name": "Grant Dawson",
+                "countryCode": "US",
+                "country": "Estados Unidos",
+                "record": "24-3-1",
+                "rank": null,
+                "division": "lightweight"
+            },
+            "blue": {
+                "id": "nurullo-aliev",
+                "name": "Nurullo Aliev",
+                "countryCode": "TJ",
+                "country": "Tayikistán",
+                "record": "12-0-0",
+                "rank": null,
+                "division": "lightweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Grant Dawson",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8621,
+                            "americanOdds": "-116"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Nurullo Aliev",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.9524,
+                            "americanOdds": "-105"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Grant Dawson por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 11.23,
+                            "americanOdds": "+1023"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Grant Dawson por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 5.89,
+                            "americanOdds": "+489"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Grant Dawson por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 2.81,
+                            "americanOdds": "+181"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Nurullo Aliev por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.6,
+                            "americanOdds": "+460"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Nurullo Aliev por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 21.18,
+                            "americanOdds": "+2018"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Nurullo Aliev por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 2.78,
+                            "americanOdds": "+178"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.4149,
+                            "americanOdds": "-241"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.88,
+                            "americanOdds": "+188"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.5,
+                            "americanOdds": "-200"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.51,
+                            "americanOdds": "+151"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/3931156.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5092398.png"
+        },
+        {
+            "id": "ufc-333-colby-thicknesse-vs-asaf-chopurov",
+            "name": "Thicknesse vs. Chopurov",
+            "billing": "early",
+            "order": 1,
+            "startTime": "2026-10-24T14:00:00Z",
+            "division": "bantamweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-colby-thicknesse-vs-asaf-chopurov",
+            "red": {
+                "id": "colby-thicknesse",
+                "name": "Colby Thicknesse",
+                "countryCode": "AU",
+                "country": "Australia",
+                "record": "9-1-0",
+                "rank": null,
+                "division": "bantamweight"
+            },
+            "blue": {
+                "id": "asaf-chopurov",
+                "name": "Asaf Chopurov",
+                "countryCode": "AZ",
+                "country": "Azerbaiyán",
+                "record": "11-0-0",
+                "rank": null,
+                "division": "bantamweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Colby Thicknesse",
+                            "displayOrder": 1,
+                            "decimalOdds": 5.23,
+                            "americanOdds": "+423"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Asaf Chopurov",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.1681,
+                            "americanOdds": "-595"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Colby Thicknesse por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 20,
+                            "americanOdds": "+1900"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Colby Thicknesse por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 12.75,
+                            "americanOdds": "+1175"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Colby Thicknesse por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 10.36,
+                            "americanOdds": "+936"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Asaf Chopurov por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 2.58,
+                            "americanOdds": "+158"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Asaf Chopurov por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 3.48,
+                            "americanOdds": "+248"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Asaf Chopurov por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.31,
+                            "americanOdds": "+231"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.24,
+                            "americanOdds": "+124"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.6579,
+                            "americanOdds": "-152"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.68,
+                            "americanOdds": "+168"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.4484,
+                            "americanOdds": "-223"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5264462.png",
+            "fighter2ImageUrl": "https://www.ufcespanol.com/images/2026-10/CHOPUROV_ASAF_10-24.png"
+        },
+        {
+            "id": "ufc-333-abubakar-vagaev-vs-jacob-malkoun",
+            "name": "Vagaev vs. Malkoun",
+            "billing": "early",
+            "order": 2,
+            "startTime": "2026-10-24T14:00:00Z",
+            "division": "middleweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-abubakar-vagaev-vs-jacob-malkoun",
+            "red": {
+                "id": "abubakar-vagaev",
+                "name": "Abubakar Vagaev",
+                "countryCode": "RU",
+                "country": "Rusia",
+                "record": "25-4-0",
+                "rank": null,
+                "division": "middleweight"
+            },
+            "blue": {
+                "id": "jacob-malkoun",
+                "name": "Jacob Malkoun",
+                "countryCode": "AU",
+                "country": "Australia",
+                "record": "10-3-0",
+                "rank": null,
+                "division": "middleweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Abubakar Vagaev",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.6579,
+                            "americanOdds": "-152"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Jacob Malkoun",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.27,
+                            "americanOdds": "+127"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Abubakar Vagaev por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 6.39,
+                            "americanOdds": "+539"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Abubakar Vagaev por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 21.64,
+                            "americanOdds": "+2064"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Abubakar Vagaev por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 2.06,
+                            "americanOdds": "+106"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Jacob Malkoun por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 6.65,
+                            "americanOdds": "+565"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Jacob Malkoun por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 21.11,
+                            "americanOdds": "+2011"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Jacob Malkoun por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.23,
+                            "americanOdds": "+223"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.295,
+                            "americanOdds": "-339"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 3.53,
+                            "americanOdds": "+253"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.3759,
+                            "americanOdds": "-266"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.95,
+                            "americanOdds": "+195"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/3960340.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4687434.png"
+        },
+        {
+            "id": "ufc-333-bolaji-oki-vs-daniel-santos",
+            "name": "Oki vs. Santos",
+            "billing": "early",
+            "order": 3,
+            "startTime": "2026-10-24T14:00:00Z",
+            "division": "featherweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-bolaji-oki-vs-daniel-santos",
+            "red": {
+                "id": "bolaji-oki",
+                "name": "Bolaji Oki",
+                "countryCode": "BE",
+                "country": "Bélgica",
+                "record": "10-4-0",
+                "rank": null,
+                "division": "featherweight"
+            },
+            "blue": {
+                "id": "daniel-santos",
+                "name": "Daniel Santos",
+                "countryCode": "BR",
+                "country": "Brasil",
+                "record": "13-3-0",
+                "rank": null,
+                "division": "featherweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Bolaji Oki",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.9709,
+                            "americanOdds": "-103"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Daniel Santos",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Bolaji Oki por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 3.28,
+                            "americanOdds": "+228"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Bolaji Oki por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 19.9,
+                            "americanOdds": "+1890"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Bolaji Oki por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 4.9,
+                            "americanOdds": "+390"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Daniel Santos por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 4.34,
+                            "americanOdds": "+334"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Daniel Santos por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 5.63,
+                            "americanOdds": "+463"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Daniel Santos por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 4.35,
+                            "americanOdds": "+335"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.33,
+                            "americanOdds": "+133"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.6024,
+                            "americanOdds": "-166"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.61,
+                            "americanOdds": "+161"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.463,
+                            "americanOdds": "-216"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5145682.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4881997.png"
+        },
+        {
+            "id": "ufc-333-kody-steele-vs-noah-gugnon",
+            "name": "Steele vs. Gugnon",
+            "billing": "early",
+            "order": 4,
+            "startTime": "2026-10-24T14:00:00Z",
+            "division": "lightweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-kody-steele-vs-noah-gugnon",
+            "red": {
+                "id": "kody-steele",
+                "name": "Kody Steele",
+                "countryCode": "US",
+                "country": "Estados Unidos",
+                "record": "8-1-0",
+                "rank": null,
+                "division": "lightweight"
+            },
+            "blue": {
+                "id": "noah-gugnon",
+                "name": "Noah Gugnon",
+                "countryCode": "FR",
+                "country": "Francia",
+                "record": "10-2-0",
+                "rank": null,
+                "division": "lightweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Kody Steele",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.6289,
+                            "americanOdds": "-159"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Noah Gugnon",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.32,
+                            "americanOdds": "+132"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Kody Steele por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.09,
+                            "americanOdds": "+309"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Kody Steele por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 3.89,
+                            "americanOdds": "+289"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Kody Steele por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 4.9,
+                            "americanOdds": "+390"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Noah Gugnon por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 4.91,
+                            "americanOdds": "+391"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Noah Gugnon por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 9.08,
+                            "americanOdds": "+808"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Noah Gugnon por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 5.42,
+                            "americanOdds": "+442"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.34,
+                            "americanOdds": "+134"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.5952,
+                            "americanOdds": "-168"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.73,
+                            "americanOdds": "+173"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.4329,
+                            "americanOdds": "-231"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5212351.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5145777.png"
+        },
+        {
+            "id": "ufc-333-iasmin-lucindo-vs-nicolle-caliari",
+            "name": "Lucindo vs. Caliari",
+            "billing": "early",
+            "order": 5,
+            "startTime": "2026-10-24T14:00:00Z",
+            "division": "womens-strawweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "ufcalendar-ufc-333-iasmin-lucindo-vs-nicolle-caliari",
+            "red": {
+                "id": "iasmin-lucindo",
+                "name": "Iasmin Lucindo",
+                "countryCode": "BR",
+                "country": "Brasil",
+                "record": "18-6-0",
+                "rank": null,
+                "division": "womens-strawweight"
+            },
+            "blue": {
+                "id": "nicolle-caliari",
+                "name": "Nicolle Caliari",
+                "countryCode": "BR",
+                "country": "Brasil",
+                "record": "9-4-0",
+                "rank": null,
+                "division": "womens-strawweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Iasmin Lucindo",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.2688,
+                            "americanOdds": "-372"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Nicolle Caliari",
+                            "displayOrder": 2,
+                            "decimalOdds": 3.89,
+                            "americanOdds": "+289"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Iasmin Lucindo por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 5.95,
+                            "americanOdds": "+495"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Iasmin Lucindo por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 8.59,
+                            "americanOdds": "+759"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Iasmin Lucindo por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 1.6579,
+                            "americanOdds": "-152"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Nicolle Caliari por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 16.21,
+                            "americanOdds": "+1521"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Nicolle Caliari por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 12.53,
+                            "americanOdds": "+1153"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Nicolle Caliari por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 5.62,
+                            "americanOdds": "+462"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.3448,
+                            "americanOdds": "-290"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 3.22,
+                            "americanOdds": "+222"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.4,
+                            "americanOdds": "-250"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.83,
+                            "americanOdds": "+183"
+                        }
+                    ]
+                }
+            ],
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5080935.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4239113.png"
         }
-      ]
-    },
-    {
-      "id": "ufc-333-alexander-volkov-vs-rizvan-kuniev",
-      "name": "Volkov vs. Kuniev",
-      "billing": "main",
-      "order": 4,
-      "startTime": "2026-10-24T18:00:00Z",
-      "division": "heavyweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "alexander-volkov",
-        "name": "Alexander Volkov",
-        "countryCode": "RU",
-        "country": "Rusia",
-        "record": "40-11-0",
-        "rank": "#2",
-        "division": "heavyweight"
-      },
-      "blue": {
-        "id": "rizvan-kuniev",
-        "name": "Rizvan Kuniev",
-        "countryCode": "RU",
-        "country": "Rusia",
-        "record": "15-3-1",
-        "rank": "#7",
-        "division": "heavyweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Alexander Volkov",
-              "displayOrder": 1,
-              "decimalOdds": 1.83,
-              "americanOdds": "-120"
-            },
-            {
-              "code": "blue",
-              "name": "Rizvan Kuniev",
-              "displayOrder": 2,
-              "decimalOdds": 2,
-              "americanOdds": "+100"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Alexander Volkov por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 2.68,
-              "americanOdds": "+168",
-              "modelProbabilityPct": 33.94
-            },
-            {
-              "code": "red_submission",
-              "name": "Alexander Volkov por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 11.61,
-              "americanOdds": "+1061",
-              "modelProbabilityPct": 7.83
-            },
-            {
-              "code": "red_decision",
-              "name": "Alexander Volkov por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 8.7,
-              "americanOdds": "+770",
-              "modelProbabilityPct": 10.44
-            },
-            {
-              "code": "blue_ko",
-              "name": "Rizvan Kuniev por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 4.76,
-              "americanOdds": "+376",
-              "modelProbabilityPct": 19.11
-            },
-            {
-              "code": "blue_submission",
-              "name": "Rizvan Kuniev por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 7.61,
-              "americanOdds": "+661",
-              "modelProbabilityPct": 11.95
-            },
-            {
-              "code": "blue_decision",
-              "name": "Rizvan Kuniev por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 5.44,
-              "americanOdds": "+444",
-              "modelProbabilityPct": 16.72
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.92,
-              "americanOdds": "-109"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 1.97,
-              "americanOdds": "-103"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 3.57,
-              "americanOdds": "+257"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.33,
-              "americanOdds": "-303"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ufc-333-aaron-pico-vs-losene-keita",
-      "name": "Pico vs. Keita",
-      "billing": "main",
-      "order": 5,
-      "startTime": "2026-10-24T18:00:00Z",
-      "division": "featherweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "aaron-pico",
-        "name": "Aaron Pico",
-        "countryCode": "US",
-        "country": "Estados Unidos",
-        "record": "14-5-0",
-        "rank": "#11",
-        "division": "featherweight"
-      },
-      "blue": {
-        "id": "losene-keita",
-        "name": "Losene Keita",
-        "countryCode": "BE",
-        "country": "Bélgica",
-        "record": "17-2-0",
-        "rank": null,
-        "division": "featherweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Aaron Pico",
-              "displayOrder": 1,
-              "decimalOdds": 1.8,
-              "americanOdds": "-125"
-            },
-            {
-              "code": "blue",
-              "name": "Losene Keita",
-              "displayOrder": 2,
-              "decimalOdds": 2.03,
-              "americanOdds": "+103"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Aaron Pico por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 3.12,
-              "americanOdds": "+212",
-              "modelProbabilityPct": 29.15
-            },
-            {
-              "code": "red_submission",
-              "name": "Aaron Pico por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 11.43,
-              "americanOdds": "+1043",
-              "modelProbabilityPct": 7.95
-            },
-            {
-              "code": "red_decision",
-              "name": "Aaron Pico por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 5.72,
-              "americanOdds": "+472",
-              "modelProbabilityPct": 15.9
-            },
-            {
-              "code": "blue_ko",
-              "name": "Losene Keita por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 5.53,
-              "americanOdds": "+453",
-              "modelProbabilityPct": 16.45
-            },
-            {
-              "code": "blue_submission",
-              "name": "Losene Keita por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 9.67,
-              "americanOdds": "+867",
-              "modelProbabilityPct": 9.4
-            },
-            {
-              "code": "blue_decision",
-              "name": "Losene Keita por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 4.3,
-              "americanOdds": "+330",
-              "modelProbabilityPct": 21.15
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.8,
-              "americanOdds": "-125"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.1,
-              "americanOdds": "+110"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.62,
-              "americanOdds": "+162"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.54,
-              "americanOdds": "-185"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ufc-333-azamat-murzakanov-vs-dominick-reyes",
-      "name": "Murzakanov vs. Reyes",
-      "billing": "prelims",
-      "order": 1,
-      "startTime": "2026-10-24T16:00:00Z",
-      "division": "light-heavyweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "azamat-murzakanov",
-        "name": "Azamat Murzakanov",
-        "countryCode": "RU",
-        "country": "Rusia",
-        "record": "16-1-0",
-        "rank": "#7",
-        "division": "light-heavyweight"
-      },
-      "blue": {
-        "id": "dominick-reyes",
-        "name": "Dominick Reyes",
-        "countryCode": "US",
-        "country": "Estados Unidos",
-        "record": "16-5-0",
-        "rank": "#8",
-        "division": "light-heavyweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Azamat Murzakanov",
-              "displayOrder": 1,
-              "decimalOdds": 1.45,
-              "americanOdds": "-222"
-            },
-            {
-              "code": "blue",
-              "name": "Dominick Reyes",
-              "displayOrder": 2,
-              "decimalOdds": 2.81,
-              "americanOdds": "+181"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Azamat Murzakanov por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 2.76,
-              "americanOdds": "+176",
-              "modelProbabilityPct": 32.98
-            },
-            {
-              "code": "red_submission",
-              "name": "Azamat Murzakanov por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 13.78,
-              "americanOdds": "+1278",
-              "modelProbabilityPct": 6.6
-            },
-            {
-              "code": "red_decision",
-              "name": "Azamat Murzakanov por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 3.45,
-              "americanOdds": "+245",
-              "modelProbabilityPct": 26.38
-            },
-            {
-              "code": "blue_ko",
-              "name": "Dominick Reyes por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 4.86,
-              "americanOdds": "+386",
-              "modelProbabilityPct": 18.72
-            },
-            {
-              "code": "blue_submission",
-              "name": "Dominick Reyes por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 26.71,
-              "americanOdds": "+2571",
-              "modelProbabilityPct": 3.4
-            },
-            {
-              "code": "blue_decision",
-              "name": "Dominick Reyes por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 7.63,
-              "americanOdds": "+663",
-              "modelProbabilityPct": 11.91
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.79,
-              "americanOdds": "-127"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.12,
-              "americanOdds": "+112"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.54,
-              "americanOdds": "+154"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.57,
-              "americanOdds": "-175"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ufc-333-nikita-krylov-vs-abdul-rakhman-yakhyaev",
-      "name": "Krylov vs. Yakhyaev",
-      "billing": "prelims",
-      "order": 2,
-      "startTime": "2026-10-24T16:00:00Z",
-      "division": "light-heavyweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "nikita-krylov",
-        "name": "Nikita Krylov",
-        "countryCode": "UA",
-        "country": "Ucrania",
-        "record": "31-12-0",
-        "rank": "#15",
-        "division": "light-heavyweight"
-      },
-      "blue": {
-        "id": "abdul-rakhman-yakhyaev",
-        "name": "Abdul Rakhman Yakhyaev",
-        "countryCode": "TR",
-        "country": "Turquía",
-        "record": "10-0-0",
-        "rank": null,
-        "division": "light-heavyweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Nikita Krylov",
-              "displayOrder": 1,
-              "decimalOdds": 4.68,
-              "americanOdds": "+368"
-            },
-            {
-              "code": "blue",
-              "name": "Abdul Rakhman Yakhyaev",
-              "displayOrder": 2,
-              "decimalOdds": 1.2,
-              "americanOdds": "-500"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Nikita Krylov por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 14.85,
-              "americanOdds": "+1385",
-              "modelProbabilityPct": 6.12
-            },
-            {
-              "code": "red_submission",
-              "name": "Nikita Krylov por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 11.14,
-              "americanOdds": "+1014",
-              "modelProbabilityPct": 8.16
-            },
-            {
-              "code": "red_decision",
-              "name": "Nikita Krylov por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 14.85,
-              "americanOdds": "+1385",
-              "modelProbabilityPct": 6.12
-            },
-            {
-              "code": "blue_ko",
-              "name": "Abdul Rakhman Yakhyaev por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 3.26,
-              "americanOdds": "+226",
-              "modelProbabilityPct": 27.86
-            },
-            {
-              "code": "blue_submission",
-              "name": "Abdul Rakhman Yakhyaev por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 3.81,
-              "americanOdds": "+281",
-              "modelProbabilityPct": 23.88
-            },
-            {
-              "code": "blue_decision",
-              "name": "Abdul Rakhman Yakhyaev por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 3.26,
-              "americanOdds": "+226",
-              "modelProbabilityPct": 27.86
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.84,
-              "americanOdds": "-119"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.06,
-              "americanOdds": "+106"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.86,
-              "americanOdds": "+186"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.47,
-              "americanOdds": "-213"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ufc-333-abus-magomedov-vs-cam-rowston",
-      "name": "Magomedov vs. Rowston",
-      "billing": "prelims",
-      "order": 3,
-      "startTime": "2026-10-24T16:00:00Z",
-      "division": "middleweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "abus-magomedov",
-        "name": "Abus Magomedov",
-        "countryCode": "DE",
-        "country": "Alemania",
-        "record": "29-7-1",
-        "rank": "#12",
-        "division": "middleweight"
-      },
-      "blue": {
-        "id": "cam-rowston",
-        "name": "Cam Rowston",
-        "countryCode": "AU",
-        "country": "Australia",
-        "record": "15-3-0",
-        "rank": null,
-        "division": "middleweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Abus Magomedov",
-              "displayOrder": 1,
-              "decimalOdds": 1.81,
-              "americanOdds": "-123"
-            },
-            {
-              "code": "blue",
-              "name": "Cam Rowston",
-              "displayOrder": 2,
-              "decimalOdds": 2.03,
-              "americanOdds": "+103"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Abus Magomedov por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 4.3,
-              "americanOdds": "+330",
-              "modelProbabilityPct": 21.15
-            },
-            {
-              "code": "red_submission",
-              "name": "Abus Magomedov por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 8.6,
-              "americanOdds": "+760",
-              "modelProbabilityPct": 10.57
-            },
-            {
-              "code": "red_decision",
-              "name": "Abus Magomedov por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 4.3,
-              "americanOdds": "+330",
-              "modelProbabilityPct": 21.15
-            },
-            {
-              "code": "blue_ko",
-              "name": "Cam Rowston por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 5.51,
-              "americanOdds": "+451",
-              "modelProbabilityPct": 16.5
-            },
-            {
-              "code": "blue_submission",
-              "name": "Cam Rowston por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 7.71,
-              "americanOdds": "+671",
-              "modelProbabilityPct": 11.78
-            },
-            {
-              "code": "blue_decision",
-              "name": "Cam Rowston por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 4.82,
-              "americanOdds": "+382",
-              "modelProbabilityPct": 18.85
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.77,
-              "americanOdds": "-130"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.15,
-              "americanOdds": "+115"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.43,
-              "americanOdds": "+143"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.62,
-              "americanOdds": "-161"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ufc-333-grant-dawson-vs-nurullo-aliev",
-      "name": "Dawson vs. Aliev",
-      "billing": "prelims",
-      "order": 4,
-      "startTime": "2026-10-24T16:00:00Z",
-      "division": "lightweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "grant-dawson",
-        "name": "Grant Dawson",
-        "countryCode": "US",
-        "country": "Estados Unidos",
-        "record": "24-3-1",
-        "rank": null,
-        "division": "lightweight"
-      },
-      "blue": {
-        "id": "nurullo-aliev",
-        "name": "Nurullo Aliev",
-        "countryCode": "TJ",
-        "country": "Tayikistán",
-        "record": "12-0-0",
-        "rank": null,
-        "division": "lightweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Grant Dawson",
-              "displayOrder": 1,
-              "decimalOdds": 1.85,
-              "americanOdds": "-118"
-            },
-            {
-              "code": "blue",
-              "name": "Nurullo Aliev",
-              "displayOrder": 2,
-              "decimalOdds": 1.97,
-              "americanOdds": "-103"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Grant Dawson por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 8.81,
-              "americanOdds": "+781",
-              "modelProbabilityPct": 10.31
-            },
-            {
-              "code": "red_submission",
-              "name": "Grant Dawson por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 5.04,
-              "americanOdds": "+404",
-              "modelProbabilityPct": 18.05
-            },
-            {
-              "code": "red_decision",
-              "name": "Grant Dawson por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 3.92,
-              "americanOdds": "+292",
-              "modelProbabilityPct": 23.21
-            },
-            {
-              "code": "blue_ko",
-              "name": "Nurullo Aliev por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 6.26,
-              "americanOdds": "+526",
-              "modelProbabilityPct": 14.53
-            },
-            {
-              "code": "blue_submission",
-              "name": "Nurullo Aliev por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 6.26,
-              "americanOdds": "+526",
-              "modelProbabilityPct": 14.53
-            },
-            {
-              "code": "blue_decision",
-              "name": "Nurullo Aliev por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 4.69,
-              "americanOdds": "+369",
-              "modelProbabilityPct": 19.37
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.75,
-              "americanOdds": "-133"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.19,
-              "americanOdds": "+119"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.28,
-              "americanOdds": "+128"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.69,
-              "americanOdds": "-145"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ufc-333-colby-thicknesse-vs-asaf-chopurov",
-      "name": "Thicknesse vs. Chopurov",
-      "billing": "early",
-      "order": 1,
-      "startTime": "2026-10-24T14:00:00Z",
-      "division": "bantamweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "colby-thicknesse",
-        "name": "Colby Thicknesse",
-        "countryCode": "AU",
-        "country": "Australia",
-        "record": "9-1-0",
-        "rank": null,
-        "division": "bantamweight"
-      },
-      "blue": {
-        "id": "asaf-chopurov",
-        "name": "Asaf Chopurov",
-        "countryCode": "AZ",
-        "country": "Azerbaiyán",
-        "record": "11-0-0",
-        "rank": null,
-        "division": "bantamweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Colby Thicknesse",
-              "displayOrder": 1,
-              "decimalOdds": 5,
-              "americanOdds": "+400"
-            },
-            {
-              "code": "blue",
-              "name": "Asaf Chopurov",
-              "displayOrder": 2,
-              "decimalOdds": 1.18,
-              "americanOdds": "-556"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Colby Thicknesse por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 19.04,
-              "americanOdds": "+1804",
-              "modelProbabilityPct": 4.77
-            },
-            {
-              "code": "red_submission",
-              "name": "Colby Thicknesse por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 23.81,
-              "americanOdds": "+2281",
-              "modelProbabilityPct": 3.82
-            },
-            {
-              "code": "red_decision",
-              "name": "Colby Thicknesse por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 8.66,
-              "americanOdds": "+766",
-              "modelProbabilityPct": 10.5
-            },
-            {
-              "code": "blue_ko",
-              "name": "Asaf Chopurov por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 3.21,
-              "americanOdds": "+221",
-              "modelProbabilityPct": 28.32
-            },
-            {
-              "code": "blue_submission",
-              "name": "Asaf Chopurov por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 4.49,
-              "americanOdds": "+349",
-              "modelProbabilityPct": 20.23
-            },
-            {
-              "code": "blue_decision",
-              "name": "Asaf Chopurov por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 2.81,
-              "americanOdds": "+181",
-              "modelProbabilityPct": 32.36
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.74,
-              "americanOdds": "-135"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.19,
-              "americanOdds": "+119"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.27,
-              "americanOdds": "+127"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.7,
-              "americanOdds": "-143"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ufc-333-abubakar-vagaev-vs-jacob-malkoun",
-      "name": "Vagaev vs. Malkoun",
-      "billing": "early",
-      "order": 2,
-      "startTime": "2026-10-24T14:00:00Z",
-      "division": "middleweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "abubakar-vagaev",
-        "name": "Abubakar Vagaev",
-        "countryCode": "RU",
-        "country": "Rusia",
-        "record": "25-4-0",
-        "rank": null,
-        "division": "middleweight"
-      },
-      "blue": {
-        "id": "jacob-malkoun",
-        "name": "Jacob Malkoun",
-        "countryCode": "AU",
-        "country": "Australia",
-        "record": "10-3-0",
-        "rank": null,
-        "division": "middleweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Abubakar Vagaev",
-              "displayOrder": 1,
-              "decimalOdds": 1.61,
-              "americanOdds": "-164"
-            },
-            {
-              "code": "blue",
-              "name": "Jacob Malkoun",
-              "displayOrder": 2,
-              "decimalOdds": 2.35,
-              "americanOdds": "+135"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Abubakar Vagaev por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 3.83,
-              "americanOdds": "+283",
-              "modelProbabilityPct": 23.74
-            },
-            {
-              "code": "red_submission",
-              "name": "Abubakar Vagaev por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 7.66,
-              "americanOdds": "+666",
-              "modelProbabilityPct": 11.87
-            },
-            {
-              "code": "red_decision",
-              "name": "Abubakar Vagaev por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 3.83,
-              "americanOdds": "+283",
-              "modelProbabilityPct": 23.74
-            },
-            {
-              "code": "blue_ko",
-              "name": "Jacob Malkoun por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 14.91,
-              "americanOdds": "+1391",
-              "modelProbabilityPct": 6.1
-            },
-            {
-              "code": "blue_submission",
-              "name": "Jacob Malkoun por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 7.45,
-              "americanOdds": "+645",
-              "modelProbabilityPct": 12.2
-            },
-            {
-              "code": "blue_decision",
-              "name": "Jacob Malkoun por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 4.07,
-              "americanOdds": "+307",
-              "modelProbabilityPct": 22.36
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.71,
-              "americanOdds": "-141"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.24,
-              "americanOdds": "+124"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.11,
-              "americanOdds": "+111"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.8,
-              "americanOdds": "-125"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ufc-333-bolaji-oki-vs-daniel-santos",
-      "name": "Oki vs. Santos",
-      "billing": "early",
-      "order": 3,
-      "startTime": "2026-10-24T14:00:00Z",
-      "division": "featherweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "bolaji-oki",
-        "name": "Bolaji Oki",
-        "countryCode": "BE",
-        "country": "Bélgica",
-        "record": "10-4-0",
-        "rank": null,
-        "division": "featherweight"
-      },
-      "blue": {
-        "id": "daniel-santos",
-        "name": "Daniel Santos",
-        "countryCode": "BR",
-        "country": "Brasil",
-        "record": "13-3-0",
-        "rank": null,
-        "division": "featherweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Bolaji Oki",
-              "displayOrder": 1,
-              "decimalOdds": 2.01,
-              "americanOdds": "+101"
-            },
-            {
-              "code": "blue",
-              "name": "Daniel Santos",
-              "displayOrder": 2,
-              "decimalOdds": 1.81,
-              "americanOdds": "-123"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Bolaji Oki por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 6.4,
-              "americanOdds": "+540",
-              "modelProbabilityPct": 14.21
-            },
-            {
-              "code": "red_submission",
-              "name": "Bolaji Oki por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 4.8,
-              "americanOdds": "+380",
-              "modelProbabilityPct": 18.95
-            },
-            {
-              "code": "red_decision",
-              "name": "Bolaji Oki por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 6.4,
-              "americanOdds": "+540",
-              "modelProbabilityPct": 14.21
-            },
-            {
-              "code": "blue_ko",
-              "name": "Daniel Santos por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 3.84,
-              "americanOdds": "+284",
-              "modelProbabilityPct": 23.68
-            },
-            {
-              "code": "blue_submission",
-              "name": "Daniel Santos por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 8.64,
-              "americanOdds": "+764",
-              "modelProbabilityPct": 10.52
-            },
-            {
-              "code": "blue_decision",
-              "name": "Daniel Santos por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 4.94,
-              "americanOdds": "+394",
-              "modelProbabilityPct": 18.42
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.85,
-              "americanOdds": "-118"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.04,
-              "americanOdds": "+104"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.98,
-              "americanOdds": "+198"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.44,
-              "americanOdds": "-227"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ufc-333-kody-steele-vs-noah-gugnon",
-      "name": "Steele vs. Gugnon",
-      "billing": "early",
-      "order": 4,
-      "startTime": "2026-10-24T14:00:00Z",
-      "division": "lightweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "kody-steele",
-        "name": "Kody Steele",
-        "countryCode": "US",
-        "country": "Estados Unidos",
-        "record": "8-1-0",
-        "rank": null,
-        "division": "lightweight"
-      },
-      "blue": {
-        "id": "noah-gugnon",
-        "name": "Noah Gugnon",
-        "countryCode": "FR",
-        "country": "Francia",
-        "record": "10-2-0",
-        "rank": null,
-        "division": "lightweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Kody Steele",
-              "displayOrder": 1,
-              "decimalOdds": 1.63,
-              "americanOdds": "-159"
-            },
-            {
-              "code": "blue",
-              "name": "Noah Gugnon",
-              "displayOrder": 2,
-              "decimalOdds": 2.33,
-              "americanOdds": "+133"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Kody Steele por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 4.41,
-              "americanOdds": "+341",
-              "modelProbabilityPct": 20.59
-            },
-            {
-              "code": "red_submission",
-              "name": "Kody Steele por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 6.18,
-              "americanOdds": "+518",
-              "modelProbabilityPct": 14.71
-            },
-            {
-              "code": "red_decision",
-              "name": "Kody Steele por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 3.86,
-              "americanOdds": "+286",
-              "modelProbabilityPct": 23.54
-            },
-            {
-              "code": "blue_ko",
-              "name": "Noah Gugnon por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 8.83,
-              "americanOdds": "+783",
-              "modelProbabilityPct": 10.29
-            },
-            {
-              "code": "blue_submission",
-              "name": "Noah Gugnon por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 7.36,
-              "americanOdds": "+636",
-              "modelProbabilityPct": 12.35
-            },
-            {
-              "code": "blue_decision",
-              "name": "Noah Gugnon por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 4.91,
-              "americanOdds": "+391",
-              "modelProbabilityPct": 18.52
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.75,
-              "americanOdds": "-133"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.18,
-              "americanOdds": "+118"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.31,
-              "americanOdds": "+131"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.68,
-              "americanOdds": "-147"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ufc-333-iasmin-lucindo-vs-nicolle-caliari",
-      "name": "Lucindo vs. Caliari",
-      "billing": "early",
-      "order": 5,
-      "startTime": "2026-10-24T14:00:00Z",
-      "division": "womens-strawweight",
-      "rounds": 3,
-      "titleFight": false,
-      "red": {
-        "id": "iasmin-lucindo",
-        "name": "Iasmin Lucindo",
-        "countryCode": "BR",
-        "country": "Brasil",
-        "record": "18-6-0",
-        "rank": null,
-        "division": "womens-strawweight"
-      },
-      "blue": {
-        "id": "nicolle-caliari",
-        "name": "Nicolle Caliari",
-        "countryCode": "BR",
-        "country": "Brasil",
-        "record": "9-4-0",
-        "rank": null,
-        "division": "womens-strawweight"
-      },
-      "markets": [
-        {
-          "type": "moneyline",
-          "name": "Ganador",
-          "displayOrder": 1,
-          "line": null,
-          "provider": "ufc-consensus-2026-10-20",
-          "selections": [
-            {
-              "code": "red",
-              "name": "Iasmin Lucindo",
-              "displayOrder": 1,
-              "decimalOdds": 1.26,
-              "americanOdds": "-385"
-            },
-            {
-              "code": "blue",
-              "name": "Nicolle Caliari",
-              "displayOrder": 2,
-              "decimalOdds": 3.97,
-              "americanOdds": "+297"
-            }
-          ]
-        },
-        {
-          "type": "method_of_victory",
-          "name": "Método de victoria",
-          "displayOrder": 2,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "red_ko",
-              "name": "Iasmin Lucindo por KO/TKO",
-              "displayOrder": 1,
-              "decimalOdds": 3.99,
-              "americanOdds": "+299",
-              "modelProbabilityPct": 22.77
-            },
-            {
-              "code": "red_submission",
-              "name": "Iasmin Lucindo por sumisión",
-              "displayOrder": 2,
-              "decimalOdds": 4.79,
-              "americanOdds": "+379",
-              "modelProbabilityPct": 18.98
-            },
-            {
-              "code": "red_decision",
-              "name": "Iasmin Lucindo por decisión",
-              "displayOrder": 3,
-              "decimalOdds": 2.66,
-              "americanOdds": "+166",
-              "modelProbabilityPct": 34.16
-            },
-            {
-              "code": "blue_ko",
-              "name": "Nicolle Caliari por KO/TKO",
-              "displayOrder": 4,
-              "decimalOdds": 10.78,
-              "americanOdds": "+978",
-              "modelProbabilityPct": 8.43
-            },
-            {
-              "code": "blue_submission",
-              "name": "Nicolle Caliari por sumisión",
-              "displayOrder": 5,
-              "decimalOdds": 18.87,
-              "americanOdds": "+1787",
-              "modelProbabilityPct": 4.82
-            },
-            {
-              "code": "blue_decision",
-              "name": "Nicolle Caliari por decisión",
-              "displayOrder": 6,
-              "decimalOdds": 8.39,
-              "americanOdds": "+739",
-              "modelProbabilityPct": 10.84
-            }
-          ]
-        },
-        {
-          "type": "total_rounds",
-          "name": "Total de asaltos",
-          "displayOrder": 3,
-          "line": 2.5,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "over",
-              "name": "Más de 2.5 asaltos",
-              "displayOrder": 1,
-              "decimalOdds": 1.72,
-              "americanOdds": "-139"
-            },
-            {
-              "code": "under",
-              "name": "Menos de 2.5 asaltos",
-              "displayOrder": 2,
-              "decimalOdds": 2.23,
-              "americanOdds": "+123"
-            }
-          ]
-        },
-        {
-          "type": "go_to_decision",
-          "name": "¿Llega a decisión?",
-          "displayOrder": 4,
-          "line": null,
-          "provider": "zenbet-model-2026-10-20",
-          "selections": [
-            {
-              "code": "yes",
-              "name": "Sí, llega a decisión",
-              "displayOrder": 1,
-              "decimalOdds": 2.16,
-              "americanOdds": "+116"
-            },
-            {
-              "code": "no",
-              "name": "No, no llega a decisión",
-              "displayOrder": 2,
-              "decimalOdds": 1.77,
-              "americanOdds": "-130"
-            }
-          ]
-        }
-      ]
-    }
-  ]
+    ]
 }

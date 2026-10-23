@@ -1,26 +1,31 @@
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Wallet, Menu, X, User, LogOut, UserPlus, LogIn, ChevronRight } from 'lucide-react';
-import LoginModal from '@/modules/Auth/LoginModal';
-import RegisterModal from '@/modules/Auth/RegisterModal';
+import {
+  Wallet,
+  Menu,
+  X,
+  User,
+  LogOut,
+  UserPlus,
+  LogIn,
+  ChevronRight,
+  ReceiptText,
+} from 'lucide-react';
+
+import { useAuthModal } from '@/context/authModalState';
 import { useAuth } from '@/context/authState';
+import ZenbetLogo from './ZenbetLogo';
 
 export default function Header() {
   const { user, logout } = useAuth();
+  const { openAuth } = useAuthModal();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('register');
 
   const balanceLabel = user ? `$${user.walletBalance.toFixed(2)}` : '$—';
 
   const handleLogout = () => {
     logout();
     setMobileMenuOpen(false);
-  };
-
-  const openAuthModal = (mode) => {
-    setAuthMode(mode);
-    setAuthModalOpen(true);
   };
 
   const navLinkClasses = ({ isActive }) =>
@@ -32,77 +37,77 @@ export default function Header() {
 
   return (
     <>
-      <header className='sticky top-0 z-40 w-full border-b border-obsidian-border bg-obsidian-void/90 backdrop-blur-md'>
-        <div className='mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8'>
+      <header className='sticky top-0 z-40 w-full border-b border-white/[0.09] bg-[#07090E]/95 backdrop-blur-xl'>
+        <div className='mx-auto flex h-16 max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8'>
           {/* Marca / Logo */}
-          <div className='flex items-center gap-8'>
-            <Link to='/' className='group flex items-center gap-2.5' aria-label='Zenbet Inicio'>
-              <div className='relative flex h-8 w-8 items-center justify-center border border-crimson/80 bg-crimson/10 font-display font-black text-crimson shadow-brutal-crimson-sm transition-transform duration-200 group-hover:scale-105'>
-                <span className='text-sm tracking-tighter'>Z</span>
-                <span className='absolute -right-0.5 -top-0.5 h-1.5 w-1.5 bg-gold' aria-hidden='true' />
-              </div>
-              <div className='flex flex-col'>
-                <span className='font-display text-lg font-black tracking-tightest uppercase text-white group-hover:text-crimson transition-colors'>
-                  ZENBET
-                </span>
-                <span className='font-mono text-[9px] uppercase tracking-ultra text-metallic-titanium'>
-                  Brutalist Engine
-                </span>
-              </div>
-            </Link>
+          <div className='flex min-w-0 items-center gap-6 xl:gap-8'>
+            <ZenbetLogo />
 
             {/* Navegación Desktop */}
-            <nav className='hidden md:flex items-center gap-2' aria-label='Navegación principal'>
+            <nav className='hidden items-center gap-1 lg:flex' aria-label='Navegación principal'>
               <NavLink to='/' className={navLinkClasses} end>
                 Inicio
               </NavLink>
               <NavLink to='/sportsbook' className={navLinkClasses}>
                 <span className='h-1.5 w-1.5 bg-crimson' aria-hidden='true' />
                 Sportsbook
-                <span className='ml-1 border border-crimson/40 bg-crimson/10 px-1 py-0.5 font-mono text-[9px] font-bold text-crimson'>
+                <span className='ml-1 border border-crimson/40 bg-crimson/10 px-1 py-0.5 font-mono text-[8px] font-bold text-crimson'>
                   UFC
                 </span>
               </NavLink>
+              {user ? (
+                <NavLink to='/my-bets' className={navLinkClasses}>
+                  <ReceiptText size={12} aria-hidden='true' />
+                  Mis apuestas
+                </NavLink>
+              ) : null}
             </nav>
           </div>
 
           {/* Acciones y Saldo de Usuario */}
           <div className='hidden sm:flex items-center gap-3'>
             {/* Contexto de la cartelera publicada */}
-            <div className='flex items-center gap-1.5 border border-obsidian-border bg-obsidian-surface px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-metallic-titanium'>
-              <span className='h-1.5 w-1.5 bg-gold' aria-hidden='true' />
-              <span>UFC 333</span>
+            <div className='hidden items-center gap-1.5 border border-crimson/35 bg-crimson/[0.08] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-crimson md:flex'>
+              <span className='h-1.5 w-1.5 bg-crimson' aria-hidden='true' />
+              <span>UFC · PRÓXIMAS</span>
             </div>
 
             {/* Saldo / Billetera */}
-            <Link
-              to={user ? '/wallet' : '/login'}
-              title={user ? 'Abrir mi billetera' : 'Inicia sesión para ver tu billetera'}
-              className='group flex items-center gap-2 border border-obsidian-border bg-obsidian-surface px-3 py-1 font-mono text-xs transition-colors hover:border-gold/50 hover:bg-obsidian-elevated'
-            >
-              <Wallet size={13} className='text-gold-imperial' aria-hidden='true' />
-              <span className='text-metallic-titanium'>SALDO:</span>
-              <span className='font-bold text-gold-specular tabular-nums'>{balanceLabel}</span>
-              <ChevronRight
-                size={12}
-                className='text-metallic-slate transition-colors group-hover:text-gold-imperial'
-                aria-hidden='true'
-              />
-            </Link>
+            {user ? (
+              <Link
+                to='/wallet'
+                title='Abrir mi billetera'
+                className='group flex items-center gap-2 border border-white/10 bg-obsidian-surface px-3 py-1 font-mono text-xs transition-colors hover:border-money/45 hover:bg-obsidian-elevated'
+              >
+                <Wallet size={13} className='text-money' aria-hidden='true' />
+                <span className='text-metallic-titanium'>SALDO:</span>
+                <span className='font-bold text-money tabular-nums'>{balanceLabel}</span>
+                <ChevronRight
+                  size={12}
+                  className='text-metallic-slate transition-colors group-hover:text-money'
+                  aria-hidden='true'
+                />
+              </Link>
+            ) : null}
 
             {/* Auth Buttons o Perfil */}
             {user ? (
               <div className='flex items-center gap-2'>
-                <span className='border border-obsidian-border bg-obsidian-surface px-3 py-1 font-mono text-xs text-white flex items-center gap-1.5'>
-                  <User size={12} className='text-emerald-400' aria-hidden='true' />
-                  <span className='truncate max-w-[100px]'>{user.username}</span>
-                </span>
+                <Link
+                  to='/perfil'
+                  title={`Perfil de ${user.username}`}
+                  className='group flex items-center gap-2 border border-white/10 bg-obsidian-surface px-3 py-1 font-display text-xs font-bold uppercase tracking-wide text-metallic-titanium transition-colors hover:border-white/25 hover:text-white'
+                  aria-label='Abrir mi perfil'
+                >
+                  <User size={12} className='text-white/75' aria-hidden='true' />
+                  <span>Perfil</span>
+                </Link>
                 <button
                   type='button'
                   onClick={handleLogout}
                   title='Cerrar Sesión'
                   aria-label='Cerrar sesión'
-                  className='border border-obsidian-border bg-obsidian-surface p-1.5 text-metallic-titanium hover:text-crimson hover:border-crimson transition-colors'
+                  className='border border-obsidian-border bg-obsidian-surface p-1.5 text-metallic-titanium transition-colors hover:border-crimson hover:text-crimson'
                 >
                   <LogOut size={13} aria-hidden='true' />
                 </button>
@@ -111,7 +116,7 @@ export default function Header() {
               <div className='flex items-center gap-2'>
                 <button
                   type='button'
-                  onClick={() => openAuthModal('login')}
+                  onClick={() => openAuth('login')}
                   className='border border-obsidian-border bg-obsidian-surface px-3 py-1 font-display text-xs font-bold uppercase tracking-wider text-metallic-titanium hover:text-white hover:border-metallic-titanium transition-all flex items-center gap-1.5'
                   aria-label='Iniciar sesión'
                 >
@@ -120,8 +125,8 @@ export default function Header() {
                 </button>
                 <button
                   type='button'
-                  onClick={() => openAuthModal('register')}
-                  className='border-brutal-crimson bg-crimson px-3 py-1 font-display text-xs font-bold uppercase tracking-wider text-white shadow-brutal-crimson-sm transition-all hover:bg-crimson-pure active:translate-x-0.5 active:translate-y-0.5 flex items-center gap-1.5'
+                  onClick={() => openAuth('register')}
+                  className='flex items-center gap-1.5 border border-crimson-pure bg-crimson-pure px-3 py-1 font-display text-xs font-bold uppercase tracking-wide text-white shadow-brutal-crimson-sm transition-all hover:brightness-110 active:translate-x-0.5 active:translate-y-0.5'
                   aria-label='Crear nueva cuenta'
                 >
                   <UserPlus size={12} aria-hidden='true' />
@@ -132,7 +137,26 @@ export default function Header() {
           </div>
 
           {/* Botón Mobile Menu */}
-          <div className='flex md:hidden items-center gap-2'>
+          <div className='flex lg:hidden items-center gap-2'>
+            {user ? (
+              <Link
+                to='/wallet'
+                aria-label={`Mi saldo disponible: ${balanceLabel}`}
+                className='flex items-center gap-1.5 border border-white/10 bg-obsidian-surface px-2 py-1.5 font-mono text-[10px] transition-colors hover:border-money/45 sm:hidden'
+              >
+                <Wallet size={12} className='text-money' aria-hidden='true' />
+                <span className='font-bold text-money tabular-nums'>{balanceLabel}</span>
+              </Link>
+            ) : (
+              <button
+                type='button'
+                onClick={() => openAuth('login')}
+                aria-label='Iniciar sesión'
+                className='border border-obsidian-border bg-obsidian-surface px-2.5 py-1.5 font-display text-[10px] font-bold uppercase tracking-wider text-metallic-titanium transition-colors hover:border-metallic-titanium hover:text-white sm:hidden'
+              >
+                Entrar
+              </button>
+            )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className='border border-obsidian-border bg-obsidian-surface p-2 text-metallic-titanium hover:text-white'
@@ -145,7 +169,7 @@ export default function Header() {
 
         {/* Menú Móvil Desplegable */}
         {mobileMenuOpen && (
-          <div className='border-b border-obsidian-border bg-obsidian-surface px-4 py-4 md:hidden flex flex-col gap-3'>
+          <div className='border-b border-obsidian-border bg-obsidian-surface px-4 py-4 lg:hidden flex flex-col gap-3'>
             <NavLink
               to='/'
               onClick={() => setMobileMenuOpen(false)}
@@ -161,19 +185,37 @@ export default function Header() {
               Sportsbook UFC
             </NavLink>
             {user ? (
-              <Link
-                to='/wallet'
-                onClick={() => setMobileMenuOpen(false)}
-                className='flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-gold-specular py-1'
-              >
-                <Wallet size={14} aria-hidden='true' />
-                Mi billetera
-              </Link>
+              <>
+                <NavLink
+                  to='/my-bets'
+                  onClick={() => setMobileMenuOpen(false)}
+                  className='flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-white py-1'
+                >
+                  <ReceiptText size={14} aria-hidden='true' />
+                  Mis apuestas
+                </NavLink>
+                <Link
+                  to='/wallet'
+                  onClick={() => setMobileMenuOpen(false)}
+                  className='flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-money py-1'
+                >
+                  <Wallet size={14} aria-hidden='true' />
+                  Mi billetera
+                </Link>
+                <Link
+                  to='/perfil'
+                  onClick={() => setMobileMenuOpen(false)}
+                  className='flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-white py-1'
+                >
+                  <User size={14} aria-hidden='true' />
+                  Mi perfil
+                </Link>
+              </>
             ) : null}
             <div className='border-t border-obsidian-border pt-3 flex flex-col gap-2 font-mono text-xs'>
               <div className='flex items-center justify-between text-metallic-titanium'>
                 <span>SALDO DISPONIBLE:</span>
-                <span className='font-bold text-gold-specular'>{balanceLabel}</span>
+                <span className='font-bold text-money tabular-nums'>{balanceLabel}</span>
               </div>
               {!user ? (
                 <div className='grid grid-cols-2 gap-2 pt-2'>
@@ -181,7 +223,7 @@ export default function Header() {
                     type='button'
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      openAuthModal('login');
+                      openAuth('login');
                     }}
                     className='border border-obsidian-border bg-obsidian-void py-2 text-center text-xs font-bold uppercase text-white'
                   >
@@ -191,7 +233,7 @@ export default function Header() {
                     type='button'
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      openAuthModal('register');
+                      openAuth('register');
                     }}
                     className='bg-crimson py-2 text-center text-xs font-bold uppercase text-white'
                   >
@@ -214,21 +256,6 @@ export default function Header() {
           </div>
         )}
       </header>
-
-      {/* Modales de autenticación (estado global vía AuthContext) */}
-      {authMode === 'login' ? (
-        <LoginModal
-          isOpen={authModalOpen}
-          onClose={() => setAuthModalOpen(false)}
-          onSwitchToRegister={() => setAuthMode('register')}
-        />
-      ) : (
-        <RegisterModal
-          isOpen={authModalOpen}
-          onClose={() => setAuthModalOpen(false)}
-          onSwitchToLogin={() => setAuthMode('login')}
-        />
-      )}
     </>
   );
 }

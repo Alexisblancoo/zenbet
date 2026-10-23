@@ -1,0 +1,1921 @@
+{
+    "schemaVersion": 3,
+    "card": {
+        "seedKey": "ufc-fight-night-2026-11-07",
+        "competition": "UFC Fight Night: Bonfim vs. Brady",
+        "title": "UFC Fight Night: Bonfim vs. Brady",
+        "venue": "Meta APEX",
+        "location": "Las Vegas, Nevada, Estados Unidos",
+        "date": "2026-11-07"
+    },
+    "sources": [
+        {
+            "id": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "kind": "model",
+            "name": "ZenBet Reference",
+            "url": "https://www.ufc.com/news/tickets-sale-october-10-october-31-and-november-7-ufc-fight-night-events-meta-apex",
+            "observedAt": "2026-10-22T12:00:00Z",
+            "note": "Línea de referencia calculada por ZenBet a partir de la cartelera oficial; no es una cuota ejecutable."
+        }
+    ],
+    "bouts": [
+        {
+            "id": "ufc-fight-night-2026-11-07-jonny-parsons-vs-jose-henrique",
+            "name": "Parsons vs. Henrique",
+            "billing": "prelims",
+            "order": 1,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "welterweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4880114.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5080485.png",
+            "red": {
+                "id": "jonny-parsons",
+                "name": "Jonny Parsons",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "9-3-0",
+                "rank": null,
+                "division": "welterweight"
+            },
+            "blue": {
+                "id": "jose-henrique",
+                "name": "Jose Henrique",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "9-1-0",
+                "rank": null,
+                "division": "welterweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Jonny Parsons",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.9009,
+                            "americanOdds": "-111"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Jose Henrique",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.9174,
+                            "americanOdds": "-109"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Jonny Parsons por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Jonny Parsons por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Jonny Parsons por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Jose Henrique por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Jose Henrique por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Jose Henrique por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-priscila-cachoeira-vs-nina-milosevic",
+            "name": "Cachoeira vs. Milošević",
+            "billing": "prelims",
+            "order": 2,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "womens-bantamweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4277049.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5361791.png",
+            "red": {
+                "id": "priscila-cachoeira",
+                "name": "Priscila Cachoeira",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "13-9-0",
+                "rank": null,
+                "division": "womens-bantamweight"
+            },
+            "blue": {
+                "id": "nina-milosevic",
+                "name": "Nina Milošević",
+                "countryCode": "RS",
+                "country": "Serbia",
+                "record": "9-1-0",
+                "rank": null,
+                "division": "womens-bantamweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Priscila Cachoeira",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.1,
+                            "americanOdds": "+110"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Nina Milošević",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.7519,
+                            "americanOdds": "-133"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Priscila Cachoeira por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Priscila Cachoeira por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Priscila Cachoeira por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Nina Milošević por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Nina Milošević por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Nina Milošević por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-austin-bashi-vs-lucas-brennan",
+            "name": "Bashi vs. Brennan",
+            "billing": "prelims",
+            "order": 3,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "featherweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5120304.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4795284.png",
+            "red": {
+                "id": "austin-bashi",
+                "name": "Austin Bashi",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "14-2-0",
+                "rank": null,
+                "division": "featherweight"
+            },
+            "blue": {
+                "id": "lucas-brennan",
+                "name": "Lucas Brennan",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "11-3-0",
+                "rank": null,
+                "division": "featherweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Austin Bashi",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.6494,
+                            "americanOdds": "-154"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Lucas Brennan",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.35,
+                            "americanOdds": "+135"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Austin Bashi por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Austin Bashi por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Austin Bashi por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Lucas Brennan por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Lucas Brennan por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Lucas Brennan por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-keiichiro-nakamura-vs-ollie-schmid",
+            "name": "Nakamura vs. Schmid",
+            "billing": "prelims",
+            "order": 4,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "featherweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5327937.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5346907.png",
+            "red": {
+                "id": "keiichiro-nakamura",
+                "name": "Keiichiro Nakamura",
+                "countryCode": "JP",
+                "country": "Japan",
+                "record": "8-1-0",
+                "rank": null,
+                "division": "featherweight"
+            },
+            "blue": {
+                "id": "ollie-schmid",
+                "name": "Ollie Schmid",
+                "countryCode": "NZ",
+                "country": "New Zealand",
+                "record": "4-3-0",
+                "rank": null,
+                "division": "featherweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Keiichiro Nakamura",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Ollie Schmid",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Keiichiro Nakamura por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Keiichiro Nakamura por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Keiichiro Nakamura por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Ollie Schmid por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Ollie Schmid por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Ollie Schmid por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-jose-delano-vs-murtazali-magomedov",
+            "name": "Delano vs. Magomedov",
+            "billing": "prelims",
+            "order": 5,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "featherweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4969974.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5308768.png",
+            "red": {
+                "id": "jose-delano",
+                "name": "Jose Delano",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "17-3-0",
+                "rank": null,
+                "division": "featherweight"
+            },
+            "blue": {
+                "id": "murtazali-magomedov",
+                "name": "Murtazali Magomedov",
+                "countryCode": "KG",
+                "country": "Kyrgyzstan",
+                "record": "11-0-0",
+                "rank": null,
+                "division": "featherweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Jose Delano",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.5495,
+                            "americanOdds": "-182"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Murtazali Magomedov",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.55,
+                            "americanOdds": "+155"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Jose Delano por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Jose Delano por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Jose Delano por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Murtazali Magomedov por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Murtazali Magomedov por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Murtazali Magomedov por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-karine-silva-vs-gabriella-fernandes",
+            "name": "Silva vs. Fernandes",
+            "billing": "prelims",
+            "order": 6,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "womens-flyweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/3309918.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4871203.png",
+            "red": {
+                "id": "karine-silva",
+                "name": "Karine Silva",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "19-7-0",
+                "rank": null,
+                "division": "womens-flyweight"
+            },
+            "blue": {
+                "id": "gabriella-fernandes",
+                "name": "Gabriella Fernandes",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "11-4-0",
+                "rank": null,
+                "division": "womens-flyweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Karine Silva",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.15,
+                            "americanOdds": "+115"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Gabriella Fernandes",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.7194,
+                            "americanOdds": "-139"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Karine Silva por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Karine Silva por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Karine Silva por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Gabriella Fernandes por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Gabriella Fernandes por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Gabriella Fernandes por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-gabriel-bonfim-vs-sean-brady",
+            "name": "Bonfim vs. Brady",
+            "billing": "main",
+            "order": 1,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "welterweight",
+            "rounds": 5,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4921516.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4295192.png",
+            "red": {
+                "id": "gabriel-bonfim",
+                "name": "Gabriel Bonfim",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "20-1-0",
+                "rank": null,
+                "division": "welterweight"
+            },
+            "blue": {
+                "id": "sean-brady",
+                "name": "Sean Brady",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "19-2-0",
+                "rank": null,
+                "division": "welterweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Gabriel Bonfim",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.9009,
+                            "americanOdds": "-111"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Sean Brady",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.9174,
+                            "americanOdds": "-109"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Gabriel Bonfim por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Gabriel Bonfim por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Gabriel Bonfim por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Sean Brady por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Sean Brady por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Sean Brady por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 4.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 4.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 4.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-tatiana-suarez-vs-virna-jandiroba",
+            "name": "Suarez vs. Jandiroba",
+            "billing": "main",
+            "order": 2,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "womens-strawweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4020435.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4289516.png",
+            "red": {
+                "id": "tatiana-suarez",
+                "name": "Tatiana Suarez",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "13-1-0",
+                "rank": null,
+                "division": "womens-strawweight"
+            },
+            "blue": {
+                "id": "virna-jandiroba",
+                "name": "Virna Jandiroba",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "23-4-0",
+                "rank": null,
+                "division": "womens-strawweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Tatiana Suarez",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.1,
+                            "americanOdds": "+110"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Virna Jandiroba",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.7519,
+                            "americanOdds": "-133"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Tatiana Suarez por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Tatiana Suarez por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Tatiana Suarez por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Virna Jandiroba por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Virna Jandiroba por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Virna Jandiroba por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-davey-grant-vs-elijah-smith",
+            "name": "Grant vs. Smith",
+            "billing": "main",
+            "order": 3,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "bantamweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/3070984.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5144797.png",
+            "red": {
+                "id": "davey-grant",
+                "name": "Davey Grant",
+                "countryCode": "GB-ENG",
+                "country": "England",
+                "record": "18-8-0",
+                "rank": null,
+                "division": "bantamweight"
+            },
+            "blue": {
+                "id": "elijah-smith",
+                "name": "Elijah Smith",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "10-1-0",
+                "rank": null,
+                "division": "bantamweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Davey Grant",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.6494,
+                            "americanOdds": "-154"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Elijah Smith",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.35,
+                            "americanOdds": "+135"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Davey Grant por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Davey Grant por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Davey Grant por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Elijah Smith por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Elijah Smith por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Elijah Smith por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-seokhyeon-ko-vs-wellington-turman",
+            "name": "Ko vs. Turman",
+            "billing": "main",
+            "order": 4,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "welterweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4701954.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4426282.png",
+            "red": {
+                "id": "seokhyeon-ko",
+                "name": "Seokhyeon Ko",
+                "countryCode": "KR",
+                "country": "South Korea",
+                "record": "13-3-0",
+                "rank": null,
+                "division": "welterweight"
+            },
+            "blue": {
+                "id": "wellington-turman",
+                "name": "Wellington Turman",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "18-8-0",
+                "rank": null,
+                "division": "welterweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Seokhyeon Ko",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Wellington Turman",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Seokhyeon Ko por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Seokhyeon Ko por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Seokhyeon Ko por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Wellington Turman por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Wellington Turman por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Wellington Turman por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-billy-elekana-vs-lucas-fernando",
+            "name": "Elekana vs. Fernando",
+            "billing": "main",
+            "order": 5,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "light-heavyweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5078114.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5119021.png",
+            "red": {
+                "id": "billy-elekana",
+                "name": "Billy Elekana",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "10-2-0",
+                "rank": null,
+                "division": "light-heavyweight"
+            },
+            "blue": {
+                "id": "lucas-fernando",
+                "name": "Lucas Fernando",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "14-3-0",
+                "rank": null,
+                "division": "light-heavyweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Billy Elekana",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.5495,
+                            "americanOdds": "-182"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Lucas Fernando",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.55,
+                            "americanOdds": "+155"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Billy Elekana por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Billy Elekana por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Billy Elekana por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Lucas Fernando por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Lucas Fernando por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Lucas Fernando por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-mantas-kondratavicius-vs-wes-schultz",
+            "name": "Kondratavičius vs. Schultz",
+            "billing": "main",
+            "order": 6,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "middleweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5264925.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5057023.png",
+            "red": {
+                "id": "mantas-kondratavicius",
+                "name": "Mantas Kondratavičius",
+                "countryCode": "LT",
+                "country": "Lithuania",
+                "record": "9-1-0",
+                "rank": null,
+                "division": "middleweight"
+            },
+            "blue": {
+                "id": "wes-schultz",
+                "name": "Wes Schultz",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "9-4-0",
+                "rank": null,
+                "division": "middleweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Mantas Kondratavičius",
+                            "displayOrder": 1,
+                            "decimalOdds": 2.15,
+                            "americanOdds": "+115"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Wes Schultz",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.7194,
+                            "americanOdds": "-139"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Mantas Kondratavičius por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Mantas Kondratavičius por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Mantas Kondratavičius por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Wes Schultz por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Wes Schultz por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Wes Schultz por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "ufc-fight-night-2026-11-07-gabriel-lorenco-vs-alvin-hines",
+            "name": "Lorenço vs. Hines",
+            "billing": "main",
+            "order": 7,
+            "startTime": "2026-11-07T22:00Z",
+            "division": "heavyweight",
+            "rounds": 3,
+            "titleFight": false,
+            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
+            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5215710.png",
+            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/5229339.png",
+            "red": {
+                "id": "gabriel-lorenco",
+                "name": "Gabriel Lorenço",
+                "countryCode": "BR",
+                "country": "Brazil",
+                "record": "8-1-0",
+                "rank": null,
+                "division": "heavyweight"
+            },
+            "blue": {
+                "id": "alvin-hines",
+                "name": "Alvin Hines",
+                "countryCode": "US",
+                "country": "USA",
+                "record": "7-2-0",
+                "rank": null,
+                "division": "heavyweight"
+            },
+            "markets": [
+                {
+                    "type": "moneyline",
+                    "name": "Ganador",
+                    "displayOrder": 1,
+                    "selections": [
+                        {
+                            "code": "red",
+                            "name": "Gabriel Lorenço",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.9009,
+                            "americanOdds": "-111"
+                        },
+                        {
+                            "code": "blue",
+                            "name": "Alvin Hines",
+                            "displayOrder": 2,
+                            "decimalOdds": 1.9174,
+                            "americanOdds": "-109"
+                        }
+                    ]
+                },
+                {
+                    "type": "method_of_victory",
+                    "name": "Método de victoria",
+                    "displayOrder": 2,
+                    "selections": [
+                        {
+                            "code": "red_ko",
+                            "name": "Gabriel Lorenço por KO/TKO",
+                            "displayOrder": 1,
+                            "decimalOdds": 4.8,
+                            "americanOdds": "+380"
+                        },
+                        {
+                            "code": "red_submission",
+                            "name": "Gabriel Lorenço por sumisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 9,
+                            "americanOdds": "+800"
+                        },
+                        {
+                            "code": "red_decision",
+                            "name": "Gabriel Lorenço por decisión",
+                            "displayOrder": 3,
+                            "decimalOdds": 3.2,
+                            "americanOdds": "+220"
+                        },
+                        {
+                            "code": "blue_ko",
+                            "name": "Alvin Hines por KO/TKO",
+                            "displayOrder": 4,
+                            "decimalOdds": 5.4,
+                            "americanOdds": "+440"
+                        },
+                        {
+                            "code": "blue_submission",
+                            "name": "Alvin Hines por sumisión",
+                            "displayOrder": 5,
+                            "decimalOdds": 10,
+                            "americanOdds": "+900"
+                        },
+                        {
+                            "code": "blue_decision",
+                            "name": "Alvin Hines por decisión",
+                            "displayOrder": 6,
+                            "decimalOdds": 3.6,
+                            "americanOdds": "+260"
+                        }
+                    ]
+                },
+                {
+                    "type": "total_rounds",
+                    "name": "Total de asaltos",
+                    "displayOrder": 3,
+                    "line": 2.5,
+                    "selections": [
+                        {
+                            "code": "over",
+                            "name": "Más de 2.5 asaltos",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8475,
+                            "americanOdds": "-118"
+                        },
+                        {
+                            "code": "under",
+                            "name": "Menos de 2.5 asaltos",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                },
+                {
+                    "type": "go_to_decision",
+                    "name": "¿Llega a decisión?",
+                    "displayOrder": 4,
+                    "selections": [
+                        {
+                            "code": "yes",
+                            "name": "Sí, llega a decisión",
+                            "displayOrder": 1,
+                            "decimalOdds": 1.8,
+                            "americanOdds": "-125"
+                        },
+                        {
+                            "code": "no",
+                            "name": "No, no llega a decisión",
+                            "displayOrder": 2,
+                            "decimalOdds": 2.05,
+                            "americanOdds": "+105"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

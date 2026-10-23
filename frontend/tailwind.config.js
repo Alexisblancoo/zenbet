@@ -90,7 +90,7 @@ export default {
           voidDark: token('--zb-obsidian-850'),
         },
 
-        /* Semántica de cuotas. Verde = sube, rojo = baja, ámbar = live. */
+        /* Semántica de color: verde dinero, rojo acción/live, azul técnico. */
         odds: {
           up: token('--zb-odds-up'),
           'up-strong': token('--zb-odds-up-strong'),
@@ -99,6 +99,14 @@ export default {
           live: token('--zb-odds-live'),
           neutral: token('--zb-odds-neutral'),
           draw: token('--zb-odds-draw'),
+        },
+        money: {
+          DEFAULT: token('--zb-money-500'),
+          bright: token('--zb-money-400'),
+        },
+        electric: {
+          DEFAULT: token('--zb-electric-500'),
+          soft: token('--zb-electric-400'),
         },
         state: {
           success: token('--zb-positive'),
@@ -109,11 +117,11 @@ export default {
       },
 
       fontFamily: {
-        display: ['Syne', 'Clash Display', 'Monument Extended', 'sans-serif'],
-        sans: ['Space Grotesk', 'Noto Sans', 'Segoe UI', 'sans-serif'],
+        display: ['Space Grotesk', 'Inter', 'Segoe UI', 'sans-serif'],
+        sans: ['Inter', 'Space Grotesk', 'Segoe UI', 'sans-serif'],
         mono: ['JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', 'monospace'],
-        odds: ['JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', 'monospace'],
-        technical: ['IBM Plex Mono', 'JetBrains Mono', 'monospace'],
+        odds: ['Space Grotesk', 'Inter', 'sans-serif'],
+        technical: ['JetBrains Mono', 'IBM Plex Mono', 'monospace'],
       },
 
       fontSize: {
@@ -122,17 +130,17 @@ export default {
         'odds-sm': ['0.8125rem', { lineHeight: '1', letterSpacing: '-0.015em', fontWeight: '600' }],
         'odds-md': ['1rem', { lineHeight: '1', letterSpacing: '-0.025em', fontWeight: '700' }],
         'odds-lg': ['1.375rem', { lineHeight: '1', letterSpacing: '-0.035em', fontWeight: '700' }],
-        'display-sm': ['clamp(1.75rem, 3vw, 2.25rem)', { lineHeight: '1.04', letterSpacing: '-0.045em' }],
-        display: ['clamp(2.5rem, 5vw, 4rem)', { lineHeight: '0.96', letterSpacing: '-0.055em' }],
+        'display-sm': ['clamp(1.75rem, 3vw, 2.25rem)', { lineHeight: '1.08', letterSpacing: '-0.03em' }],
+        display: ['clamp(2.5rem, 5vw, 4rem)', { lineHeight: '1', letterSpacing: '-0.035em' }],
       },
 
       letterSpacing: {
-        tightest: '-0.06em',
-        tighter: '-0.04em',
-        tight: '-0.02em',
-        odds: '-0.025em',
-        brutal: '0.18em',
-        ultra: '0.3em',
+        tightest: '-0.035em',
+        tighter: '-0.02em',
+        tight: '-0.01em',
+        odds: '-0.015em',
+        brutal: '0.08em',
+        ultra: '0.12em',
       },
 
       lineHeight: {

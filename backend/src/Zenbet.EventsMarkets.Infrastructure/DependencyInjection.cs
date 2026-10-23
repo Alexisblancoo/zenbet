@@ -13,6 +13,8 @@ using Zenbet.EventsMarkets.Infrastructure.Persistence.Outbox;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Repositories;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Seeding;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Services;
+using Zenbet.EventsMarkets.Infrastructure.Security;
+using Zenbet.EventsMarkets.Infrastructure.Services;
 
 public static class DependencyInjection
 {
@@ -47,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<ISelectionRepository, SelectionRepository>();
         services.AddScoped<IWalletRepository, WalletRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<IWalletReadRepository, WalletReadRepository>();
 
         // Outbox / Inbox
         services.AddScoped<IOutboxWriter, OutboxWriter>();
@@ -57,6 +60,19 @@ public static class DependencyInjection
         services.AddScoped<IIdempotencyService, EfIdempotencyService>();
         services.AddScoped<ISettlementAuditService, EfSettlementAuditService>();
         services.AddScoped<IBulkOddsUpdater, NpgsqlBulkOddsUpdater>();
+
+        // Authentication & player accounts
+        services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
+        var signingKey = configuration[$"{AuthOptions.SectionName}:SigningKey"];
+        if (string.IsNullOrWhiteSpace(signingKey) || signingKey.Length < 32)
+        {
+            throw new InvalidOperationException(
+                "Auth:SigningKey debe estar configurado con al menos 32 caracteres.");
+        }
+
+        services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+        services.AddSingleton<IAuthTokenService, HmacAuthTokenService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         // Risk Management
         services.AddScoped<IRiskManagementService, EfRiskManagementService>();

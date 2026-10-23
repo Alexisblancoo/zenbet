@@ -53,6 +53,31 @@ public sealed class MarketConfiguration : IEntityTypeConfiguration<Market>
             .HasDefaultValue(0)
             .IsRequired();
 
+        builder.OwnsOne(m => m.Provenance, provenance =>
+        {
+            provenance.Property(p => p.Provider)
+                .HasColumnName("source_provider")
+                .HasMaxLength(80);
+
+            provenance.Property(p => p.Kind)
+                .HasColumnName("source_kind")
+                .HasConversion<int>();
+
+            provenance.Property(p => p.Url)
+                .HasColumnName("source_url")
+                .HasMaxLength(500);
+
+            provenance.Property(p => p.ObservedAt)
+                .HasColumnName("source_observed_at");
+
+            provenance.Property(p => p.Note)
+                .HasColumnName("source_note")
+                .HasMaxLength(240);
+        });
+
+        builder.Navigation(m => m.Provenance)
+            .IsRequired(false);
+
         builder.Property(m => m.MarketSettlementResult)
             .HasField("_settlementResultValue")
             .HasColumnName("settlement_result")

@@ -29,7 +29,7 @@ export function WalletMetrics({ metrics, className = '' }: WalletMetricsProps) {
       detail: `${metrics.openBets} ${metrics.openBets === 1 ? 'apuesta abierta' : 'apuestas abiertas'}`,
       icon: Clock3,
       iconTone: 'border-odds-live/25 bg-odds-live/5 text-odds-live',
-      valueTone: 'text-white',
+      valueTone: 'text-money',
     },
     {
       label: 'Ganancia neta',
@@ -47,7 +47,7 @@ export function WalletMetrics({ metrics, className = '' }: WalletMetricsProps) {
       value: formatWinRate(metrics.winRate),
       detail: `${metrics.wonCount}G · ${metrics.lostCount}P`,
       icon: Target,
-      iconTone: 'border-gold/25 bg-gold/5 text-gold-imperial',
+      iconTone: 'border-electric/25 bg-electric/5 text-electric-soft',
       valueTone: 'text-white',
     },
     {

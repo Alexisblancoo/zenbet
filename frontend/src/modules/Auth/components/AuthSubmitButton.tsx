@@ -21,7 +21,7 @@ export default function AuthSubmitButton({
       type='submit'
       disabled={isDisabled}
       aria-busy={isSubmitting}
-      className='focus-ring group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-md border border-crimson/60 bg-gradient-crimson-fire px-4 py-3 font-display text-xs font-bold uppercase tracking-brutal text-white shadow-glow-crimson transition-all duration-base out-expo hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none'
+      className='focus-ring flex min-h-12 w-full items-center justify-center gap-2 border border-crimson-pure bg-crimson-pure px-4 font-display text-[11px] font-bold uppercase tracking-[0.08em] text-white shadow-[0_14px_40px_-16px_rgba(239,68,68,0.85)] transition-all duration-150 hover:brightness-110 active:translate-y-px disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.06] disabled:text-metallic-slate disabled:shadow-none'
     >
       {isSubmitting ? (
         <>

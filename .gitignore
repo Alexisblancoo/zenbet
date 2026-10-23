@@ -34,6 +34,9 @@ dist-ssr/
 TestResults/
 *.trx
 
+# Local verification artifacts (Playwright captures, reports)
+artifacts/
+
 # Package cache
 *.nupkg
 packages/

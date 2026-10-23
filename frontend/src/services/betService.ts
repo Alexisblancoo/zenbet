@@ -74,8 +74,7 @@ const FAILURE_COPY: Readonly<Record<BetFailureCode, { title: string; message: st
   },
   COMBINED_NOT_SUPPORTED: {
     title: 'Combinadas no disponibles',
-    message:
-      'La API actual registra una selección por apuesta. Envía una apuesta simple por ahora.',
+    message: 'Por ahora las apuestas se envían de una en una. Elige una selección para continuar.',
   },
   ODDS_CHANGED: {
     title: 'Cuotas desactualizadas',
@@ -86,14 +85,12 @@ const FAILURE_COPY: Readonly<Record<BetFailureCode, { title: string; message: st
     message: 'Ingresa un monto válido dentro de los límites permitidos.',
   },
   WALLET_NOT_LINKED: {
-    title: 'Billetera no vinculada',
-    message:
-      'Tu sesión no incluye una billetera válida (walletId). Inicia sesión con una cuenta vinculada a la billetera de Zenbet.',
+    title: 'Billetera no disponible',
+    message: 'No encontramos tu billetera. Vuelve a iniciar sesión para continuar.',
   },
   INVALID_SELECTION: {
-    title: 'Selección de demostración',
-    message:
-      'Esta selección pertenece a la cartelera de demostración y aún no está vinculada a la API de apuestas.',
+    title: 'Selección no disponible',
+    message: 'Esta selección ya no está disponible. Actualiza la cartelera e inténtalo de nuevo.',
   },
   INSUFFICIENT_BALANCE: {
     title: 'Saldo insuficiente',
@@ -101,17 +98,15 @@ const FAILURE_COPY: Readonly<Record<BetFailureCode, { title: string; message: st
   },
   RATE_LIMITED: {
     title: 'Demasiadas solicitudes',
-    message:
-      'El servidor limita las apuestas a 5 por segundo. Espera un momento antes de volver a intentar.',
+    message: 'Espera un momento antes de volver a intentar.',
   },
   NETWORK_ERROR: {
     title: 'Sin conexión',
     message: 'No se pudo contactar al servidor. Revisa tu red e inténtalo de nuevo.',
   },
   SERVER_ERROR: {
-    title: 'Error del servidor',
-    message:
-      'El servidor no pudo confirmar la apuesta. Revisa tu historial antes de reintentar; la idempotencia evita cargos duplicados.',
+    title: 'No pudimos confirmar',
+    message: 'Revisa tu historial antes de reintentar. No se hará un cargo duplicado.',
   },
   VALIDATION_ERROR: {
     title: 'No se pudo confirmar',
@@ -273,7 +268,7 @@ function fromProblemDetails(problem: ProblemDetailsException): BetFailure {
     return createBetFailure('WALLET_NOT_LINKED', {
       status,
       title: 'Billetera inválida',
-      message: 'El identificador de la billetera no es válido para la API.',
+      message: 'La billetera de tu sesión no es válida. Vuelve a iniciar sesión.',
       ...(fieldErrors.length > 0 ? { fieldErrors } : {}),
     });
   }
@@ -282,7 +277,7 @@ function fromProblemDetails(problem: ProblemDetailsException): BetFailure {
     return createBetFailure('INVALID_SELECTION', {
       status,
       title: 'Selección inválida',
-      message: 'El identificador de la selección no es válido para la API.',
+      message: 'La selección ya no está disponible.',
       ...(fieldErrors.length > 0 ? { fieldErrors } : {}),
     });
   }

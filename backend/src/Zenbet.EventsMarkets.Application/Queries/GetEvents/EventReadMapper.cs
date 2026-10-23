@@ -50,7 +50,9 @@ internal static class EventReadMapper
             bout.Venue,
             bout.Location,
             ToDto(bout.Red),
-            ToDto(bout.Blue));
+            ToDto(bout.Blue),
+            bout.Red.ImageUrl,
+            bout.Blue.ImageUrl);
     }
 
     private static FighterDto ToDto(Fighter fighter)
@@ -65,7 +67,8 @@ internal static class EventReadMapper
             fighter.Record,
             fighter.Rank,
             division.Slug,
-            division.Label);
+            division.Label,
+            fighter.ImageUrl);
     }
 
     private static MarketDto ToDto(Market market)
@@ -86,7 +89,21 @@ internal static class EventReadMapper
             market.Status.ToString().ToLowerInvariant(),
             selections.Select(selection => selection.Provider).FirstOrDefault(provider => provider is not null),
             selections.Select(selection => selection.UpdatedAt).Where(timestamp => timestamp.HasValue).Max(),
+            ToSource(market),
             selections);
+    }
+
+    private static MarketSourceDto? ToSource(Market market)
+    {
+        if (market.Provenance is null)
+            return null;
+
+        return new MarketSourceDto(
+            market.Provenance.Kind.ToString().ToLowerInvariant(),
+            market.Provenance.Provider,
+            market.Provenance.Url,
+            market.Provenance.ObservedAt,
+            market.Provenance.Note);
     }
 
     private static SelectionDto ToDto(Selection selection) =>

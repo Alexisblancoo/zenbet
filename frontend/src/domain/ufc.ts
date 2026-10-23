@@ -16,6 +16,7 @@ export interface UfcFighter {
   readonly rank: string | null;
   readonly division: string;
   readonly divisionLabel: string;
+  readonly imageUrl: string | null;
 }
 
 export interface UfcBout {
@@ -29,6 +30,8 @@ export interface UfcBout {
   readonly billingOrder: number;
   readonly venue: string;
   readonly location: string;
+  readonly fighter1ImageUrl: string | null;
+  readonly fighter2ImageUrl: string | null;
   readonly red: UfcFighter;
   readonly blue: UfcFighter;
 }
@@ -45,6 +48,14 @@ export interface UfcSelection {
   readonly updatedAt: string | null;
 }
 
+export interface UfcMarketSource {
+  readonly kind: string;
+  readonly name: string;
+  readonly url: string | null;
+  readonly observedAt: string;
+  readonly note: string | null;
+}
+
 export interface UfcMarket {
   readonly id: string;
   readonly type: string;
@@ -55,6 +66,7 @@ export interface UfcMarket {
   readonly status: string;
   readonly provider: string | null;
   readonly updatedAt: string | null;
+  readonly source: UfcMarketSource | null;
   readonly selections: readonly UfcSelection[];
 }
 
@@ -78,6 +90,23 @@ export interface UfcEventsPage {
   readonly pageSize: number;
 }
 
+/**
+ * Agrupación de presentación de una cartelera. La API entrega un evento por
+ * combate; esta estructura reúne los combates del mismo sábado sin inventar
+ * datos ni alterar los IDs que consume el boleto.
+ */
+export interface UfcCard {
+  readonly key: string;
+  readonly competition: string;
+  readonly startTime: string;
+  readonly events: readonly UfcEvent[];
+  readonly mainEvent: UfcEvent;
+  readonly venue: string;
+  readonly location: string;
+  readonly marketCount: number;
+  readonly selectionCount: number;
+}
+
 export type UfcMarketTypeKey =
   | 'moneyline'
   | 'method_of_victory'
@@ -91,10 +120,51 @@ export const UFC_MARKET_LABELS: Record<UfcMarketTypeKey, string> = {
   go_to_decision: 'Decisión',
 };
 
+/**
+ * Orden editorial de la matriz. Las cuatro familias se muestran a la vez para
+ * que el usuario compare sin cambiar de pestaña, como en una cartelera densa.
+ */
+export const UFC_MARKET_FAMILIES = [
+  {
+    key: 'moneyline',
+    label: 'Ganador',
+    shortLabel: 'ML',
+    caption: 'Moneyline',
+    description: 'Quién gana el combate',
+  },
+  {
+    key: 'method_of_victory',
+    label: 'Método',
+    shortLabel: 'MÉT',
+    caption: 'Method',
+    description: 'KO/TKO, sumisión o decisión',
+  },
+  {
+    key: 'total_rounds',
+    label: 'Asaltos',
+    shortLabel: 'O/U',
+    caption: 'Total rounds',
+    description: 'Línea de asaltos completados',
+  },
+  {
+    key: 'go_to_decision',
+    label: 'Decisión',
+    shortLabel: 'DIST',
+    caption: 'Distance',
+    description: 'Si el combate llega a las tarjetas',
+  },
+] as const satisfies readonly {
+  key: UfcMarketTypeKey;
+  label: string;
+  shortLabel: string;
+  caption: string;
+  description: string;
+}[];
+
 export const UFC_BILLING_SECTIONS = [
   { key: 'main', label: 'Cartelera estelar', shortLabel: 'Estelar' },
   { key: 'prelims', label: 'Preliminares', shortLabel: 'Prelims' },
-  { key: 'early_prelims', label: 'Preliminares tempranas', shortLabel: 'Early' },
+  { key: 'early_prelims', label: 'Preliminares tempranas', shortLabel: 'Tempranas' },
 ] as const;
 
 type JsonRecord = Record<string, unknown>;
@@ -142,6 +212,7 @@ function normalizeFighter(value: unknown): UfcFighter | null {
     rank: readString(raw.rank),
     division,
     divisionLabel: readString(raw.divisionLabel) ?? division,
+    imageUrl: readString(raw.imageUrl),
   };
 }
 
@@ -152,6 +223,9 @@ function normalizeBout(value: unknown): UfcBout | null {
   const red = normalizeFighter(raw.red);
   const blue = normalizeFighter(raw.blue);
   if (!red || !blue) return null;
+
+  const fighter1ImageUrl = readString(raw.fighter1ImageUrl) ?? red.imageUrl;
+  const fighter2ImageUrl = readString(raw.fighter2ImageUrl) ?? blue.imageUrl;
 
   return {
     weightDivision: readString(raw.weightDivision) ?? red.division,
@@ -164,8 +238,10 @@ function normalizeBout(value: unknown): UfcBout | null {
     billingOrder: readNumber(raw.billingOrder) ?? 99,
     venue: readString(raw.venue) ?? '',
     location: readString(raw.location) ?? '',
-    red,
-    blue,
+    fighter1ImageUrl,
+    fighter2ImageUrl,
+    red: { ...red, imageUrl: fighter1ImageUrl },
+    blue: { ...blue, imageUrl: fighter2ImageUrl },
   };
 }
 
@@ -188,6 +264,23 @@ function normalizeSelection(value: unknown): UfcSelection | null {
     settled: readBoolean(raw.settled),
     provider: readString(raw.provider),
     updatedAt: readString(raw.updatedAt),
+  };
+}
+
+function normalizeMarketSource(value: unknown): UfcMarketSource | null {
+  const raw = asRecord(value);
+  if (!raw) return null;
+
+  const name = readString(raw.name);
+  const observedAt = readString(raw.observedAt);
+  if (!name || !observedAt) return null;
+
+  return {
+    kind: readString(raw.kind) ?? 'unknown',
+    name,
+    url: readString(raw.url),
+    observedAt,
+    note: readString(raw.note),
   };
 }
 
@@ -219,6 +312,7 @@ function normalizeMarket(value: unknown): UfcMarket | null {
     status: readString(raw.status) ?? 'open',
     provider: readString(raw.provider),
     updatedAt: readString(raw.updatedAt),
+    source: normalizeMarketSource(raw.source),
     selections,
   };
 }
@@ -293,11 +387,152 @@ export function eventsForBilling(
     .sort((a, b) => a.bout.billingOrder - b.bout.billingOrder);
 }
 
+/**
+ * Clave estable para navegar entre sábados. La fecha UTC coincide con la fecha
+ * editorial que publica la UFC para estas carteleras.
+ */
+export function cardKeyForEvent(event: UfcEvent): string {
+  return event.startTime.slice(0, 10);
+}
+
+export function buildUfcCards(events: readonly UfcEvent[]): readonly UfcCard[] {
+  const groups = new Map<string, UfcEvent[]>();
+
+  for (const event of events) {
+    const key = cardKeyForEvent(event);
+    const group = groups.get(key);
+    if (group) group.push(event);
+    else groups.set(key, [event]);
+  }
+
+  return [...groups.entries()]
+    .map(([key, groupEvents]) => {
+      const sorted = [...groupEvents].sort((a, b) => {
+        const time = a.startTime.localeCompare(b.startTime);
+        return time !== 0 ? time : a.bout.billingOrder - b.bout.billingOrder;
+      });
+      const mainEvent =
+        sorted.find(
+          (event) => event.bout.billing === 'main' && event.bout.billingOrder === 1,
+        ) ?? sorted[0];
+
+      return {
+        key,
+        competition: mainEvent.competition ?? mainEvent.name,
+        startTime: mainEvent.startTime,
+        events: sorted,
+        mainEvent,
+        venue: mainEvent.bout.venue,
+        location: mainEvent.bout.location,
+        marketCount: sorted.reduce((count, event) => count + event.markets.length, 0),
+        selectionCount: sorted.reduce(
+          (count, event) =>
+            count + event.markets.reduce((sum, market) => sum + market.selections.length, 0),
+          0,
+        ),
+      } satisfies UfcCard;
+    })
+    .sort((a, b) => a.startTime.localeCompare(b.startTime));
+}
+
+export function findUfcCard(
+  cards: readonly UfcCard[],
+  key: string | null,
+): UfcCard | undefined {
+  if (!key) return cards[0];
+  return cards.find((card) => card.key === key) ?? cards[0];
+}
+
+export function ufcCardNumber(competition: string): string | null {
+  const match = competition.match(/\bUFC\s+(\d{2,4})\b/i);
+  return match?.[1] ?? null;
+}
+
+export function formatCardDayBadge(startTime: string): string {
+  const date = new Date(startTime);
+  if (Number.isNaN(date.getTime())) return startTime;
+
+  return new Intl.DateTimeFormat('es-MX', {
+    day: '2-digit',
+    month: '2-digit',
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .replace('/', '.');
+}
+
+export function formatCardLongDate(startTime: string, locale = 'es-MX'): string {
+  const date = new Date(startTime);
+  if (Number.isNaN(date.getTime())) return startTime;
+
+  return new Intl.DateTimeFormat(locale, {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+export function cardCity(location: string): string {
+  return location.split(',')[0]?.trim() || location;
+}
+
 export function findMarket(
   event: UfcEvent,
   typeKey: UfcMarketTypeKey,
+  line?: number | null,
 ): UfcMarket | undefined {
-  return event.markets.find((market) => market.typeKey === typeKey);
+  return event.markets.find(
+    (market) =>
+      market.typeKey === typeKey &&
+      (line === undefined || line === null || market.line === line),
+  );
+}
+
+export function findEventSource(event: UfcEvent): UfcMarketSource | null {
+  return event.markets.find((market) => market.source !== null)?.source ?? null;
+}
+
+export function findSelectionByCode(
+  market: UfcMarket | undefined,
+  code: string,
+): UfcSelection | undefined {
+  return market?.selections.find((selection) => selection.code === code);
+}
+
+export function marketSourceLabel(source: UfcMarketSource | null): string {
+  if (!source) return 'Cuota de referencia';
+  if (source.kind === 'aggregator') return `Consenso ${source.name}`;
+  if (source.kind === 'exchange') return `Exchange ${source.name}`;
+  if (source.kind === 'model') return `Modelo ${source.name}`;
+  if (source.kind === 'bookmaker') return source.name;
+  return source.name;
+}
+
+export function formatSnapshotAt(value: string | null, locale = 'es-MX'): string | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat(locale, {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'UTC',
+    timeZoneName: 'short',
+  })
+    .format(date)
+    .replace(',', ' ·')
+    .replace(/\./g, '')
+    .toUpperCase();
+}
+
+export function shortFighterName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return parts.length > 1 ? parts[parts.length - 1] : name;
 }
 
 export function formatWeightDivision(bout: UfcBout): string {

@@ -132,8 +132,8 @@ export function BetHistoryPanel({ bets, isDemo, className = '' }: BetHistoryPane
               </span>
               {isDemo ? (
                 <span
-                  title='El backend aún no expone consultas de apuestas; este historial es de demostración.'
-                  className='inline-flex items-center gap-1.5 rounded-sm border border-gold/25 bg-gold/5 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-brutal text-gold-imperial'
+                  title='Historial de demostración; las consultas ampliadas estarán disponibles próximamente.'
+                  className='inline-flex items-center gap-1.5 rounded-sm border border-electric/25 bg-electric/5 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-brutal text-electric-soft'
                 >
                   <FlaskConical size={9} aria-hidden='true' />
                   Demo

@@ -25,6 +25,7 @@ export default function AuthModal({
 
   const handleSuccess = (authenticatedUser) => {
     onAuthSuccess?.(authenticatedUser);
+    onClose();
   };
 
   if (mode === 'login') {

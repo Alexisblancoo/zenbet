@@ -1,5 +1,8 @@
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+
 import { useAuth } from '@/context/authState';
+
+import AuthPageLayout from './components/AuthPageLayout';
 import RegisterModal from './RegisterModal';
 
 export default function RegisterPage() {
@@ -13,13 +16,14 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className='flex min-h-screen w-full items-center justify-center bg-canvas p-4'>
+    <AuthPageLayout mode='register'>
       <RegisterModal
-        isOpen={true}
+        isOpen
+        variant='page'
         onClose={() => navigate('/')}
         onSuccess={() => navigate(redirectTo, { replace: true })}
         onSwitchToLogin={() => navigate('/login')}
       />
-    </div>
+    </AuthPageLayout>
   );
 }

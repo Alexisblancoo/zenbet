@@ -12,14 +12,14 @@
      Primitivos / superficies
      Prohibido el negro puro: todos los neutros llevan una traza azul-violeta.
      ------------------------------------------------------------------------ */
-  --zb-obsidian-1000: 4 5 8;
+  --zb-obsidian-1000: 4 6 10;
   --zb-obsidian-950: 7 9 14;
-  --zb-obsidian-900: 11 14 21;
-  --zb-obsidian-850: 15 19 29;
-  --zb-obsidian-800: 17 22 33;
-  --zb-obsidian-750: 23 29 42;
-  --zb-obsidian-700: 30 37 53;
-  --zb-obsidian-600: 40 49 68;
+  --zb-obsidian-900: 10 14 22;
+  --zb-obsidian-850: 14 19 28;
+  --zb-obsidian-800: 17 23 34;
+  --zb-obsidian-750: 22 29 42;
+  --zb-obsidian-700: 30 38 52;
+  --zb-obsidian-600: 42 51 66;
 
   /* Líneas y separadores */
   --zb-line-subtle: 28 34 48;
@@ -28,31 +28,33 @@
   --zb-line-glass: 226 232 240;
 
   /* Tinta */
-  --zb-ink-primary: 244 247 252;
-  --zb-ink-secondary: 185 195 212;
-  --zb-ink-muted: 132 144 165;
-  --zb-ink-faint: 91 102 122;
+  --zb-ink-primary: 255 255 255;
+  --zb-ink-secondary: 203 213 225;
+  --zb-ink-muted: 148 163 184;
+  --zb-ink-faint: 100 116 139;
   --zb-ink-inverse: 7 9 14;
 
   /* ------------------------------------------------------------------------
      Marca / Zenbet
      ------------------------------------------------------------------------ */
-  --zb-crimson-50: 255 235 239;
-  --zb-crimson-100: 255 214 223;
-  --zb-crimson-200: 255 173 192;
-  --zb-crimson-300: 255 133 160;
-  --zb-crimson-400: 255 92 129;
-  --zb-crimson-500: 255 46 81;
-  --zb-crimson-600: 230 0 38;
-  --zb-crimson-700: 179 0 30;
-  --zb-crimson-800: 128 0 21;
-  --zb-crimson-900: 77 0 13;
+  --zb-crimson-50: 255 241 244;
+  --zb-crimson-100: 255 218 226;
+  --zb-crimson-200: 255 173 190;
+  --zb-crimson-300: 255 122 148;
+  --zb-crimson-400: 255 76 110;
+  --zb-crimson-500: 255 42 85;
+  --zb-crimson-600: 239 68 68;
+  --zb-crimson-700: 190 42 60;
+  --zb-crimson-800: 140 30 45;
+  --zb-crimson-900: 80 17 26;
 
-  --zb-gold-100: 253 243 199;
-  --zb-gold-400: 245 158 11;
-  --zb-gold-500: 212 175 55;
-  --zb-gold-700: 153 125 32;
-  --zb-gold-900: 82 67 16;
+  /* Retirado de la interfaz. Los canales resuelven a plata fría para que
+     cualquier clase heredada no introduzca un cuarto acento. */
+  --zb-gold-100: 255 255 255;
+  --zb-gold-400: 226 232 240;
+  --zb-gold-500: 203 213 225;
+  --zb-gold-700: 148 163 184;
+  --zb-gold-900: 51 65 85;
 
   /* Metales fríos: soporte para cromo, titanio y acero */
   --zb-metal-50: 242 245 250;
@@ -60,31 +62,37 @@
   --zb-metal-200: 203 213 225;
   --zb-metal-300: 180 192 208;
   --zb-metal-400: 148 163 184;
-  --zb-metal-500: 100 116 139;
-  --zb-metal-600: 51 65 85;
+  --zb-metal-500: 124 139 161;
+  --zb-metal-600: 91 107 130;
   --zb-metal-700: 30 41 59;
 
   /* ------------------------------------------------------------------------
-     Semántica de apuestas
-     Subida = verde neón; bajada = rojo fresco; live = ámbar; neutro = cian.
+     Semántica de color
+     Verde dinero = selección/saldo/éxito/monto. Rojo = acción/live/riesgo.
+     Azul = procedencia, metadatos y foco técnico.
      ------------------------------------------------------------------------ */
-  --zb-odds-up: 61 245 165;
-  --zb-odds-up-strong: 19 216 138;
-  --zb-odds-down: 255 77 109;
-  --zb-odds-down-strong: 224 35 74;
-  --zb-odds-live: 255 184 77;
-  --zb-odds-neutral: 125 211 252;
-  --zb-odds-draw: 167 139 250;
+  --zb-money-500: 16 185 129;
+  --zb-money-400: 0 255 135;
+  --zb-electric-500: 59 130 246;
+  --zb-electric-400: 96 165 250;
+
+  --zb-odds-up: 16 185 129;
+  --zb-odds-up-strong: 0 255 135;
+  --zb-odds-down: 239 68 68;
+  --zb-odds-down-strong: 255 42 85;
+  --zb-odds-live: 255 42 85;
+  --zb-odds-neutral: 59 130 246;
+  --zb-odds-draw: 96 165 250;
 
   /* ------------------------------------------------------------------------
      Alias semánticos (consumir estos en la UI, no los primitivos)
      ------------------------------------------------------------------------ */
-  --zb-canvas: var(--zb-obsidian-1000);
-  --zb-canvas-raised: var(--zb-obsidian-950);
+  --zb-canvas: var(--zb-obsidian-950);
+  --zb-canvas-raised: var(--zb-obsidian-900);
   --zb-surface: var(--zb-obsidian-900);
-  --zb-surface-raised: var(--zb-obsidian-800);
-  --zb-surface-elevated: var(--zb-obsidian-750);
-  --zb-surface-interactive: var(--zb-obsidian-700);
+  --zb-surface-raised: var(--zb-obsidian-850);
+  --zb-surface-elevated: var(--zb-obsidian-800);
+  --zb-surface-interactive: var(--zb-obsidian-750);
 
   --zb-border: var(--zb-line-subtle);
   --zb-border-strong: var(--zb-line);
@@ -98,19 +106,22 @@
   --zb-accent: var(--zb-crimson-500);
   --zb-accent-strong: var(--zb-crimson-600);
   --zb-accent-soft: var(--zb-crimson-200);
-  --zb-positive: var(--zb-odds-up);
-  --zb-negative: var(--zb-odds-down);
-  --zb-warning: var(--zb-odds-live);
-  --zb-info: var(--zb-odds-neutral);
+  --zb-money: var(--zb-money-500);
+  --zb-money-bright: var(--zb-money-400);
+  --zb-electric: var(--zb-electric-500);
+  --zb-positive: var(--zb-money-500);
+  --zb-negative: var(--zb-crimson-500);
+  --zb-warning: var(--zb-crimson-500);
+  --zb-info: var(--zb-electric-500);
 
   /* ------------------------------------------------------------------------
      Tipografía
      Display para titulares; sans para lectura; mono para cuotas y cifras.
      ------------------------------------------------------------------------ */
-  --zb-font-display: 'Syne', 'Clash Display', 'Monument Extended', sans-serif;
-  --zb-font-sans: 'Space Grotesk', 'Noto Sans', 'Segoe UI', sans-serif;
+  --zb-font-display: 'Space Grotesk', 'Inter', 'Segoe UI', sans-serif;
+  --zb-font-sans: 'Inter', 'Space Grotesk', 'Segoe UI', sans-serif;
   --zb-font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', monospace;
-  --zb-font-odds: var(--zb-font-mono);
+  --zb-font-odds: 'Space Grotesk', 'Inter', sans-serif;
 
   --zb-text-2xs: 0.625rem;
   --zb-text-xs: 0.6875rem;
@@ -188,16 +199,16 @@
     inset 0 -1px 0 rgb(255 255 255 / 0.025);
   --zb-shadow-focus:
     0 0 0 2px rgb(7 9 14 / 1),
-    0 0 0 4px rgb(var(--zb-accent) / 0.55);
-  --zb-shadow-up: 0 0 28px -6px rgb(var(--zb-odds-up) / 0.34);
-  --zb-shadow-down: 0 0 28px -6px rgb(var(--zb-odds-down) / 0.34);
-  --zb-shadow-live: 0 0 32px -8px rgb(var(--zb-odds-live) / 0.36);
+    0 0 0 4px rgb(var(--zb-electric-500) / 0.8);
+  --zb-shadow-up: 0 0 28px -6px rgb(var(--zb-money-500) / 0.4);
+  --zb-shadow-down: 0 0 28px -6px rgb(var(--zb-crimson-500) / 0.36);
+  --zb-shadow-live: 0 0 32px -8px rgb(var(--zb-crimson-500) / 0.38);
 
-  --zb-glass-bg: rgb(11 14 21 / 0.72);
-  --zb-glass-bg-strong: rgb(11 14 21 / 0.88);
-  --zb-glass-border: rgb(226 232 240 / 0.09);
-  --zb-glass-highlight: rgb(255 255 255 / 0.055);
-  --zb-glass-blur: 20px;
+  --zb-glass-bg: rgb(10 14 22 / 0.88);
+  --zb-glass-bg-strong: rgb(8 12 19 / 0.96);
+  --zb-glass-border: rgb(226 232 240 / 0.14);
+  --zb-glass-highlight: rgb(255 255 255 / 0.06);
+  --zb-glass-blur: 16px;
 
   /* ------------------------------------------------------------------------
      Movimiento: salida exponencial, sin rebote

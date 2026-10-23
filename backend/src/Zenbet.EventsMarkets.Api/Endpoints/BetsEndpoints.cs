@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +7,7 @@ using MediatR;
 using Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 using Zenbet.EventsMarkets.Application.Commands.SettleMarket;
 using Zenbet.EventsMarkets.Application.Commands.UpdateOdds;
+using Zenbet.EventsMarkets.Application.Queries.GetWalletBets;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 using Zenbet.EventsMarkets.Domain.Enums;
 
@@ -19,12 +21,46 @@ public static class BetsEndpoints
             .WithTags("Bets")
             .RequireRateLimiting("BettingPolicy");
 
-        // Place a bet
-        group.MapPost("", async (
-            [FromBody] PlaceBetRequest request,
+        // Historial de apuestas del jugador autenticado.
+        group.MapGet("", async (
+            ClaimsPrincipal user,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {
+            if (!WalletEndpoints.TryReadWalletId(user, out var walletId))
+            {
+                return Results.Unauthorized();
+            }
+
+            var bets = await mediator.Send(
+                new GetWalletBetsQuery(walletId),
+                cancellationToken);
+
+            return Results.Ok(bets);
+        })
+        .RequireAuthorization()
+        .WithName("GetMyBets")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status429TooManyRequests);
+
+        // Place a bet
+        group.MapPost("", async (
+            [FromBody] PlaceBetRequest request,
+            ClaimsPrincipal user,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var authenticatedWalletId = user.FindFirstValue("wallet_id");
+            if (!Guid.TryParse(authenticatedWalletId, out var walletId) ||
+                walletId != request.WalletId)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status403Forbidden,
+                    title: "Billetera no autorizada",
+                    detail: "La billetera no pertenece a tu cuenta.");
+            }
+
             var command = new PlaceBetCommand(
                 WalletId.From(request.WalletId),
                 SelectionId.From(request.SelectionId),
@@ -51,8 +87,11 @@ public static class BetsEndpoints
                 newBalance = result.NewBalance?.Amount
             });
         })
+        .RequireAuthorization()
         .WithName("PlaceBet")
         .Produces(StatusCodes.Status201Created)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
         .Produces(StatusCodes.Status422UnprocessableEntity)
         .Produces(StatusCodes.Status429TooManyRequests);
 

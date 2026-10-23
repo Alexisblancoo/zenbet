@@ -54,7 +54,7 @@ export default function Terms() {
               Cada usuario puede registrar únicamente una (1) cuenta personal e intransferible. Todas las contraseñas se almacenan mediante algoritmos de cifrado unidireccional de alta seguridad (BCrypt). Es responsabilidad exclusiva del usuario mantener la confidencialidad de sus credenciales y de cualquier factor de autenticación asociado.
             </p>
             <div className='mt-4 flex items-start gap-3 border border-obsidian-border bg-obsidian-void p-3 text-xs'>
-              <CheckCircle2 size={16} className='text-emerald-400 shrink-0 mt-0.5' aria-hidden='true' />
+              <CheckCircle2 size={16} className='text-money shrink-0 mt-0.5' aria-hidden='true' />
               <span>
                 Zenbet nunca solicitará su contraseña o claves privadas en comunicaciones no autorizadas.
               </span>

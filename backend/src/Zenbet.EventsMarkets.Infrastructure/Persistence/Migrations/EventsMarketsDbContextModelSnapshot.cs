@@ -179,8 +179,8 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                                 .HasColumnName("current_odds_timestamp");
 
                             b1.Property<decimal>("Value")
-                                .HasPrecision(5, 2)
-                                .HasColumnType("numeric(5,2)")
+                                .HasPrecision(7, 4)
+                                .HasColumnType("numeric(7,4)")
                                 .HasColumnName("current_odds_value");
                         });
 
@@ -273,6 +273,70 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_transactions_wallet_id_created_at");
 
                     b.ToTable("transactions", "events_markets");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.UserAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)")
+                        .HasColumnName("normalized_email");
+
+                    b.Property<string>("NormalizedUsername")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("normalized_username");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("password_hash");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("role");
+
+                    b.Property<DateTimeOffset>("TermsAcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("terms_accepted_at");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("username");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique()
+                        .HasDatabaseName("ux_user_accounts_normalized_email");
+
+                    b.HasIndex("NormalizedUsername")
+                        .IsUnique()
+                        .HasDatabaseName("ux_user_accounts_normalized_username");
+
+                    b.ToTable("user_accounts", "events_markets");
                 });
 
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Wallet", b =>
@@ -545,6 +609,30 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.ToTable("settlement_audit", "events_markets");
                 });
 
+            modelBuilder.Entity("Zenbet.EventsMarkets.Infrastructure.Persistence.Seeding.UfcSeedState", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("key");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("applied_at");
+
+                    b.Property<DateTimeOffset>("SourceObservedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("source_observed_at");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("ufc_seed_states", "events_markets");
+                });
+
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Event", b =>
                 {
                     b.OwnsOne("Zenbet.EventsMarkets.Domain.ValueObjects.MmaBout", "Bout", b1 =>
@@ -624,6 +712,11 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                                         .HasColumnType("character varying(80)")
                                         .HasColumnName("blue_fighter_id");
 
+                                    b2.Property<string>("ImageUrl")
+                                        .HasMaxLength(512)
+                                        .HasColumnType("character varying(512)")
+                                        .HasColumnName("blue_image_url");
+
                                     b2.Property<string>("Name")
                                         .IsRequired()
                                         .HasMaxLength(120)
@@ -678,6 +771,11 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                                         .HasColumnType("character varying(80)")
                                         .HasColumnName("red_fighter_id");
 
+                                    b2.Property<string>("ImageUrl")
+                                        .HasMaxLength(512)
+                                        .HasColumnType("character varying(512)")
+                                        .HasColumnName("red_image_url");
+
                                     b2.Property<string>("Name")
                                         .IsRequired()
                                         .HasMaxLength(120)
@@ -720,6 +818,45 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.OwnsOne("Zenbet.EventsMarkets.Domain.ValueObjects.MarketProvenance", "Provenance", b1 =>
+                        {
+                            b1.Property<Guid>("MarketId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("Kind")
+                                .HasColumnType("integer")
+                                .HasColumnName("source_kind");
+
+                            b1.Property<string>("Note")
+                                .HasMaxLength(240)
+                                .HasColumnType("character varying(240)")
+                                .HasColumnName("source_note");
+
+                            b1.Property<DateTimeOffset>("ObservedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("source_observed_at");
+
+                            b1.Property<string>("Provider")
+                                .IsRequired()
+                                .HasMaxLength(80)
+                                .HasColumnType("character varying(80)")
+                                .HasColumnName("source_provider");
+
+                            b1.Property<string>("Url")
+                                .HasMaxLength(500)
+                                .HasColumnType("character varying(500)")
+                                .HasColumnName("source_url");
+
+                            b1.HasKey("MarketId");
+
+                            b1.ToTable("markets", "events_markets");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MarketId");
+                        });
+
+                    b.Navigation("Provenance");
                 });
 
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Selection", b =>

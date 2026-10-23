@@ -53,7 +53,7 @@ export default function ConsentNotice() {
               <h2 className='font-display text-xs font-bold uppercase tracking-wider text-white'>
                 Privacidad & Cookies Técnicas
               </h2>
-              <span className='border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.2 font-mono text-[9px] font-bold text-emerald-400'>
+              <span className='border border-money/40 bg-money/10 px-1.5 py-0.2 font-mono text-[9px] font-bold text-money'>
                 Sin Rastro Publicitario
               </span>
             </div>
@@ -90,7 +90,7 @@ export default function ConsentNotice() {
           <button
             type='button'
             onClick={handleAcceptAll}
-            className='flex-1 md:flex-initial border-brutal-crimson bg-crimson px-4 py-2 font-display text-xs font-bold uppercase tracking-wider text-white shadow-brutal-crimson-sm hover:bg-crimson-pure transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+            className='flex-1 md:flex-initial border border-crimson bg-crimson px-4 py-2 font-display text-xs font-bold uppercase tracking-wide text-white shadow-brutal-crimson-sm hover:bg-crimson-pure transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
             aria-label='Aceptar todas las cookies'
           >
             Aceptar Todas
