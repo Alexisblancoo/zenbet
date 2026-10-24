@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+**/TestResults/
+**/.vs/
+**/.vscode/
+.git/
+.gitignore
+docker/
+legacy/
+README.md
+.env
+.env.*
+*.user
+*.suo

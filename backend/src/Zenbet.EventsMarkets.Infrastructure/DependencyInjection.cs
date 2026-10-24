@@ -20,8 +20,12 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("EventsMarkets")
-            ?? throw new InvalidOperationException("Connection string 'EventsMarkets' not found");
+        var connectionString = configuration.GetConnectionString("EventsMarkets");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "ConnectionStrings:EventsMarkets debe configurarse mediante variables de entorno.");
+        }
 
         services.AddDbContext<EventsMarketsDbContext>(options =>
         {

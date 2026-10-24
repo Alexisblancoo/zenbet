@@ -1,16 +1,53 @@
-# React + Vite
+# ZenBet
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Plataforma de apuestas deportivas UFC con backend .NET 10 (Clean Architecture)
+y frontend React + Vite.
 
-Currently, two official plugins are available:
+## Estructura
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `backend/`: solución .NET 10, API, dominio, aplicación, infraestructura y tests.
+- `frontend/`: SPA React + TypeScript + Vite.
+- `docker-compose.yml`: PostgreSQL, API y frontend para ejecución local.
+- `.github/workflows/ci.yml`: build de .NET y del frontend en cada push/PR a `main`.
 
-## React Compiler
+## Docker
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Copia el archivo de ejemplo y completa los secretos:
 
-## Expanding the Oxlint configuration
+   ```bash
+   cp .env.example .env
+   ```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+2. Levanta el stack:
+
+   ```bash
+   docker compose up --build
+   ```
+
+Servicios:
+
+- Frontend: http://localhost
+- API: http://localhost:5000
+- PostgreSQL: `localhost:5432`
+
+El frontend se sirve con Nginx y proxea `/api/` y `/odds-hub` al backend, por lo
+que las URLs de producción son relativas y no requieren CORS.
+
+## Desarrollo local
+
+Backend:
+
+```bash
+dotnet run --project backend/src/Zenbet.EventsMarkets.Api
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+La API lee los secretos desde variables de entorno:
+`ConnectionStrings__EventsMarkets`, `Auth__SigningKey` y `Settlement__ApiKey`.

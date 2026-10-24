@@ -71,13 +71,14 @@ tests/
 ## Running Tests
 
 ### Prerequisites
-- .NET 8.0 SDK
-- Docker (for Testcontainers)
+- .NET 10.0 SDK
+- Docker (for Testcontainers and the containerized stack)
 
 ### Local Development
 ```bash
+# From the repository root: copy .env.example to .env and fill the secrets first.
 # Start PostgreSQL
-docker-compose -f docker/docker-compose.yml up -d postgres
+docker compose up -d postgres
 
 # Run tests
 dotnet test tests/Zenbet.EventsMarkets.Application.Tests/
@@ -88,12 +89,16 @@ dotnet test --filter "FullyQualifiedName~SettleMarketCommandHandlerConcurrencyTe
 
 ### Docker
 ```bash
-# Run all tests in container
-docker-compose -f docker/docker-compose.yml up test-runner
+# Build and start PostgreSQL, the API and the frontend (from the repository root)
+docker compose up --build
 
-# Run API locally
-docker-compose -f docker/docker-compose.yml up app
+# API:      http://localhost:5000
+# Frontend: http://localhost
 ```
+
+Copy `.env.example` to `.env` before starting the stack and replace the
+placeholder secrets. The API reads `ConnectionStrings__EventsMarkets`,
+`Auth__SigningKey` and `Settlement__ApiKey` from the environment.
 
 ## Concurrency Test Scenarios
 
@@ -142,7 +147,7 @@ Key tables in `events_markets` schema:
 ```json
 {
   "ConnectionStrings": {
-    "EventsMarkets": "Host=localhost;Database=zenbet_events_markets;Username=zenbet;Password=secret"
+    "EventsMarkets": "<set via ConnectionStrings__EventsMarkets>"
   },
   "UpdateOdds": {
     "BatchSize": 500,
