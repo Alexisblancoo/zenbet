@@ -211,6 +211,7 @@ export default function MobileDock() {
                 maxStake={5000}
                 onClose={() => setSlipOpen(false)}
                 className='h-full border-0'
+                tourEnabled
               />
             </div>
           </div>

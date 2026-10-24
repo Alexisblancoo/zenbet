@@ -27,5 +27,10 @@ public sealed class PlaceBetCommandValidator : AbstractValidator<PlaceBetCommand
         RuleFor(x => x.IdempotencyKey)
             .NotEqual(Guid.Empty)
             .WithMessage("IdempotencyKey is required");
+
+        RuleFor(x => x.PromoCode)
+            .MaximumLength(40)
+            .When(x => !string.IsNullOrWhiteSpace(x.PromoCode))
+            .WithMessage("El código promocional no puede superar 40 caracteres");
     }
 }

@@ -74,10 +74,19 @@ public sealed class Wallet : AggregateRoot<WalletId>
         return transaction;
     }
 
-    public Transaction PlaceBet(Money amount, SelectionId selectionId, string? description = null, string? referenceId = null)
+    public Transaction PlaceBet(
+        Money amount,
+        SelectionId selectionId,
+        string? description = null,
+        string? referenceId = null,
+        decimal? acceptedOdds = null,
+        string? promoCode = null)
     {
         if (amount <= Money.Zero)
             throw new InvalidTransactionAmountException("Bet amount must be positive");
+
+        if (acceptedOdds is <= 1m)
+            throw new InvalidTransactionAmountException("Accepted odds must be greater than 1");
 
         if (Balance < amount)
             throw new InsufficientFundsException(Id, amount, Balance);
@@ -90,7 +99,10 @@ public sealed class Wallet : AggregateRoot<WalletId>
             Balance - amount,
             description,
             referenceId,
-            selectionId);
+            selectionId,
+            acceptedOdds,
+            promoCode,
+            BetStatus.Pending);
 
         _transactions.Add(transaction);
         Balance -= amount;
@@ -105,7 +117,12 @@ public sealed class Wallet : AggregateRoot<WalletId>
         if (amount <= Money.Zero)
             throw new InvalidTransactionAmountException("Settlement amount must be positive");
 
-        var netAmount = result == SettlementResult.Won ? amount : Money.Zero;
+        // En una apuesta ganadora el importe es el retorno bruto; en un void o
+        // push se devuelve el stake. Una apuesta perdida no mueve saldo y el
+        // worker no crea movimiento de liquidación.
+        var netAmount = result is SettlementResult.Won or SettlementResult.Void or SettlementResult.Push
+            ? amount
+            : Money.Zero;
 
         var transaction = new Transaction(
             TransactionId.New(),
@@ -205,7 +222,10 @@ public sealed class Transaction : Entity<TransactionId>
         Money balanceAfter,
         string? description = null,
         string? referenceId = null,
-        SelectionId? selectionId = null)
+        SelectionId? selectionId = null,
+        decimal? acceptedOdds = null,
+        string? promoCode = null,
+        BetStatus? betStatus = null)
         : base(id)
     {
         WalletId = walletId;
@@ -215,6 +235,9 @@ public sealed class Transaction : Entity<TransactionId>
         Description = description;
         ReferenceId = referenceId;
         SelectionId = selectionId;
+        AcceptedOdds = acceptedOdds;
+        PromoCode = string.IsNullOrWhiteSpace(promoCode) ? null : promoCode.Trim().ToUpperInvariant();
+        BetStatus = betStatus;
         Status = TransactionStatus.Pending;
         CreatedAt = DateTimeOffset.UtcNow;
     }
@@ -226,10 +249,42 @@ public sealed class Transaction : Entity<TransactionId>
     public string? Description { get; init; }
     public string? ReferenceId { get; init; }
     public SelectionId? SelectionId { get; init; }
+
+    /// <summary>Cuota aceptada al confirmar la apuesta; base del pago real.</summary>
+    public decimal? AcceptedOdds { get; init; }
+
+    /// <summary>Código promocional aplicado al boleto, si existe.</summary>
+    public string? PromoCode { get; init; }
+
+    /// <summary>Estado deportivo de la apuesta (solo para cargos de apuesta).</summary>
+    public BetStatus? BetStatus { get; private set; }
+
     public TransactionStatus Status { get; private set; }
     public required DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? CompletedAt { get; private set; }
     public string? FailureReason { get; private set; }
+
+    /// <summary>
+    /// Marca la apuesta como ganadora, perdedora o anulada. El movimiento de
+    /// cargo queda completado en el mismo acto para que la billetera y el
+    /// historial deportivo compartan la misma línea temporal.
+    /// </summary>
+    public void SettleBet(BetStatus outcome)
+    {
+        if (Type != TransactionType.BetPlacement)
+            throw new InvalidOperationException("Solo un cargo de apuesta puede liquidarse.");
+
+        if (outcome == Zenbet.EventsMarkets.Domain.Enums.BetStatus.Pending)
+            throw new ArgumentOutOfRangeException(nameof(outcome), "El resultado de la apuesta no puede ser Pending.");
+
+        if (BetStatus.HasValue && BetStatus.Value != Zenbet.EventsMarkets.Domain.Enums.BetStatus.Pending)
+            throw new InvalidOperationException($"La apuesta ya fue liquidada como {BetStatus}.");
+
+        BetStatus = outcome;
+
+        if (Status == TransactionStatus.Pending)
+            Complete();
+    }
 
     public void Complete()
     {

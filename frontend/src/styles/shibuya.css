@@ -290,6 +290,29 @@
     background: linear-gradient(90deg, #d4af37 0%, #ffd700 100%);
     box-shadow: 0 0 14px -3px rgb(255 215 0 / 0.55);
   }
+
+  .shibuya-tour-card {
+    background:
+      radial-gradient(ellipse at 10% 0%, rgb(212 175 55 / 0.14), transparent 38%),
+      linear-gradient(160deg, #0b0f17 0%, #07090e 62%, #0a0c12 100%);
+  }
+
+  .shibuya-tour-card::after {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.028) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.028) 1px, transparent 1px);
+    background-size: 26px 26px;
+    content: '';
+    mask-image: radial-gradient(ellipse at 82% 0%, #000 0%, transparent 72%);
+    pointer-events: none;
+  }
+
+  .shibuya-tour-card > * {
+    position: relative;
+    z-index: 1;
+  }
 }
 
 @keyframes shibuya-scan {

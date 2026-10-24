@@ -127,6 +127,26 @@ public sealed class EventConfiguration : IEntityTypeConfiguration<Event>
             });
         });
 
+        builder.OwnsOne(e => e.Result, result =>
+        {
+            result.Property(r => r.WinnerCorner)
+                .HasColumnName("result_winner_corner")
+                .HasConversion<int>();
+
+            result.Property(r => r.Method)
+                .HasColumnName("result_method")
+                .HasConversion<int>();
+
+            result.Property(r => r.Round)
+                .HasColumnName("result_round");
+
+            result.Property(r => r.RecordedAt)
+                .HasColumnName("result_recorded_at");
+        });
+
+        builder.Navigation(e => e.Result)
+            .IsRequired(false);
+
         builder.Property(e => e.Version)
             .HasColumnName("version")
             .IsRequired()

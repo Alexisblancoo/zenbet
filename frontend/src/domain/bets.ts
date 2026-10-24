@@ -82,6 +82,9 @@ export interface BetReceipt {
   readonly selectionCount: number;
   readonly idempotentReplay: boolean;
   readonly placedAt: number;
+  /** Código promocional aplicado y bono estimado sobre ganancias netas. */
+  readonly promoCode?: string;
+  readonly promoBonus?: number;
   /** Metadatos para el historial de billetera (no alteran el contrato de la API). */
   readonly eventName?: string;
   readonly selectionName?: string;
@@ -222,6 +225,40 @@ export function getStakeIssue(
   if (stake < minStake) return 'below-min';
   if (stake > maxStake) return 'above-max';
   return null;
+}
+
+/** Promociones que el backend reconoce; la UI solo replica su copy y tasa. */
+export interface PromoCodeDefinition {
+  readonly code: string;
+  readonly bonusRate: number;
+  readonly label: string;
+}
+
+export const PROMO_CODES: readonly PromoCodeDefinition[] = [
+  {
+    code: 'SHIBUYA10',
+    bonusRate: 0.1,
+    label: '10% extra sobre ganancias netas',
+  },
+];
+
+export function resolvePromoCode(rawCode: string): PromoCodeDefinition | null {
+  const normalized = rawCode.trim().toUpperCase();
+  if (!normalized) return null;
+
+  return PROMO_CODES.find((promo) => promo.code === normalized) ?? null;
+}
+
+/** Bono estimado sobre las ganancias netas de una apuesta ganadora. */
+export function calculatePromoBonus(
+  potentialPayout: number,
+  stake: number,
+  bonusRate: number,
+): number {
+  const netWinnings = potentialPayout - stake;
+  if (!Number.isFinite(netWinnings) || netWinnings <= 0) return 0;
+
+  return roundMoney(netWinnings * bonusRate);
 }
 
 /** Compara cuotas con tolerancia para evitar falsos cambios por IEEE-754. */

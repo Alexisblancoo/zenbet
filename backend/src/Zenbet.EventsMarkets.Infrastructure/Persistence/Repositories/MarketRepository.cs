@@ -30,6 +30,23 @@ public sealed class MarketRepository : IMarketRepository
             .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
     }
 
+    public async Task<Market?> GetBySelectionIdAsync(
+        SelectionId selectionId,
+        CancellationToken cancellationToken = default)
+    {
+        var marketId = await _dbContext.Selections
+            .AsNoTracking()
+            .Where(selection => selection.Id == selectionId)
+            .Select(selection => EF.Property<MarketId>(selection, "MarketId"))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (marketId == default) return null;
+
+        return await _dbContext.Markets
+            .AsNoTracking()
+            .FirstOrDefaultAsync(market => market.Id == marketId, cancellationToken);
+    }
+
     public async Task AddAsync(Market market, CancellationToken cancellationToken = default)
     {
         await _dbContext.Markets.AddAsync(market, cancellationToken);

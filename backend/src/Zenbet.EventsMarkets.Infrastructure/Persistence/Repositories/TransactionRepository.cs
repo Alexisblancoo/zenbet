@@ -22,6 +22,20 @@ public sealed class TransactionRepository : ITransactionRepository
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
     }
 
+    public async Task<Transaction?> GetByReferenceIdAsync(
+        WalletId walletId,
+        string referenceId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Transactions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                transaction => transaction.WalletId == walletId
+                    && transaction.ReferenceId == referenceId
+                    && transaction.Type == Zenbet.EventsMarkets.Domain.Enums.TransactionType.BetPlacement,
+                cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Transaction>> GetByWalletIdAsync(WalletId walletId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Transactions

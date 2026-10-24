@@ -36,7 +36,7 @@ export interface BetSlipContextValue {
   acceptLiveOdds(): void;
   clearError(): void;
   clearReceipt(): void;
-  placeBet(stake: number): Promise<PlaceBetOutcome>;
+  placeBet(stake: number, promoCode?: string): Promise<PlaceBetOutcome>;
 }
 
 export const BetSlipContext = createContext<BetSlipContextValue | null>(null);

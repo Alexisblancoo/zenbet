@@ -36,6 +36,7 @@ interface PlaceBetWireRequest {
   readonly amount: number;
   readonly description: string;
   readonly idempotencyKey: string;
+  readonly promoCode?: string;
 }
 
 interface PlaceBetWireResponse {
@@ -43,6 +44,7 @@ interface PlaceBetWireResponse {
   readonly betId?: unknown;
   readonly transactionId?: unknown;
   readonly newBalance?: unknown;
+  readonly idempotentReplay?: unknown;
 }
 
 export interface PlaceBetCommand {
@@ -50,6 +52,7 @@ export interface PlaceBetCommand {
   readonly selection: BetSelection;
   readonly stake: number;
   readonly idempotencyKey: string;
+  readonly promoCode?: string;
 }
 
 export interface PlacedBet {
@@ -340,6 +343,7 @@ export const betService = {
     selection,
     stake,
     idempotencyKey,
+    promoCode,
   }: PlaceBetCommand): Promise<PlacedBet> {
     if (!isUuid(walletId)) {
       throw new BetSlipError(
@@ -370,6 +374,7 @@ export const betService = {
         amount,
         description: buildDescription(selection),
         idempotencyKey,
+        ...(promoCode ? { promoCode } : {}),
       },
       {
         headers: { [IDEMPOTENCY_HEADER]: idempotencyKey },
@@ -386,10 +391,11 @@ export const betService = {
 
     const betId = normalizeGuid(response.betId);
     const transactionId = normalizeGuid(response.transactionId);
-    const idempotentReplay = !betId || betId === EMPTY_GUID;
+    const idempotentReplay =
+      response.idempotentReplay === true || !betId || betId === EMPTY_GUID;
 
     return {
-      betId: idempotentReplay ? '' : betId,
+      betId: !betId || betId === EMPTY_GUID ? '' : betId,
       transactionId: transactionId === EMPTY_GUID ? '' : (transactionId ?? ''),
       newBalance: readNumber(response.newBalance),
       idempotentReplay,

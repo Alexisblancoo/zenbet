@@ -121,3 +121,31 @@ public enum TransactionStatus
     Failed = 3,
     Cancelled = 4
 }
+
+/// <summary>
+/// Ciclo de vida deportivo de una apuesta materializada en el cargo de
+/// billetera. Se mantiene separado del estado contable para que la liquidación
+/// pueda actualizar ambos sin confundir un pago con un resultado.
+/// </summary>
+public enum BetStatus
+{
+    Pending = 1,
+    Won = 2,
+    Lost = 3,
+    Void = 4
+}
+
+/// <summary>Esquina ganadora de un combate de MMA.</summary>
+public enum FightCorner
+{
+    Red = 1,
+    Blue = 2
+}
+
+/// <summary>Método por el que finaliza un combate de MMA.</summary>
+public enum MmaVictoryMethod
+{
+    Knockout = 1,
+    Submission = 2,
+    Decision = 3
+}

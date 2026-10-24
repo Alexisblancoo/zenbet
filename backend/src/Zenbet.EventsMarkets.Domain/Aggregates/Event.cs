@@ -41,6 +41,10 @@ public sealed class Event : AggregateRoot<EventId>
     public required DateTimeOffset StartTime { get; init; }
     public string? Competition { get; init; }
     public MmaBout? Bout { get; private set; }
+
+    /// <summary>Resultado oficial del combate, una vez registrado por operaciones.</summary>
+    public MmaResult? Result { get; private set; }
+
     public EventStatus Status { get; private set; }
     public uint Version { get; private set; } // Optimistic concurrency token
     public IReadOnlyCollection<Market> Markets => _markets.AsReadOnly();
@@ -84,6 +88,45 @@ public sealed class Event : AggregateRoot<EventId>
         Version++; // Increment for optimistic concurrency
 
         AddDomainEvent(new EventStatusChangedDomainEvent(Id, oldStatus, newStatus, DateTimeOffset.UtcNow));
+    }
+
+    /// <summary>
+    /// Registra el resultado oficial y cierra el evento. Un segundo resultado
+    /// idéntico es idempotente; uno distinto se rechaza para no reescribir una
+    /// liquidación ya ejecutada.
+    /// </summary>
+    public void RecordResult(MmaResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        if (SportType != SportType.MixedMartialArts || Bout is null)
+            throw new InvalidOperationException("Solo un combate de MMA puede registrar un resultado.");
+
+        if (Status is EventStatus.Cancelled or EventStatus.Void)
+            throw new InvalidOperationException($"No se puede registrar un resultado para un evento {Status}.");
+
+        if (result.Round > Bout.ScheduledRounds)
+            throw new ArgumentOutOfRangeException(
+                nameof(result),
+                $"El resultado declara el asalto {result.Round}, pero el combate es a {Bout.ScheduledRounds}.");
+
+        if (result.Method == MmaVictoryMethod.Decision && result.Round != Bout.ScheduledRounds)
+            throw new ArgumentException(
+                "Una decisión debe registrarse en el último asalto programado.",
+                nameof(result));
+
+        if (Result is not null)
+        {
+            if (Result.Matches(result.WinnerCorner, result.Method, result.Round)) return;
+
+            throw new InvalidOperationException(
+                "El evento ya tiene un resultado oficial distinto. No se puede reescribir.");
+        }
+
+        Result = result;
+
+        if (Status is not EventStatus.Finished and not EventStatus.Cancelled and not EventStatus.Void)
+            UpdateStatus(EventStatus.Finished);
     }
 
     public void Start()

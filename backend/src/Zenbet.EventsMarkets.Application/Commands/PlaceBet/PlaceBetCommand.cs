@@ -8,14 +8,16 @@ public sealed record PlaceBetCommand(
     SelectionId SelectionId,
     Money Amount,
     string Description,
-    Guid IdempotencyKey) : IRequest<PlaceBetResult>;
+    Guid IdempotencyKey,
+    string? PromoCode = null) : IRequest<PlaceBetResult>;
 
 public sealed record PlaceBetResult(
     bool Success,
     BetId? BetId,
     TransactionId? TransactionId,
     Money? NewBalance,
-    string? ErrorMessage);
+    string? ErrorMessage,
+    bool IdempotentReplay = false);
 
 public readonly record struct BetId(Guid Value)
 {

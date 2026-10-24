@@ -58,6 +58,9 @@ public sealed class WalletReadRepository : IWalletReadRepository
                 transaction.Amount.Amount,
                 transaction.CreatedAt,
                 transaction.Status,
+                transaction.BetStatus,
+                transaction.AcceptedOdds,
+                transaction.CompletedAt,
                 @event.Name,
                 selection.Name,
                 market.Name,
@@ -98,9 +101,12 @@ public sealed class WalletReadRepository : IWalletReadRepository
 
         return rows.Select(row =>
         {
-            var status = ResolveStatus(row.TransactionStatus, row.SettlementResult);
+            var status = ResolveStatus(
+                row.BetStatus,
+                row.TransactionStatus,
+                row.SettlementResult);
             var stake = RoundMoney(row.Stake);
-            var odds = row.Odds;
+            var odds = row.AcceptedOdds ?? row.Odds;
             var potentialPayout = RoundMoney(stake * odds);
             settlementByBet.TryGetValue(row.Id.ToString("N"), out var settlement);
 
@@ -114,6 +120,7 @@ public sealed class WalletReadRepository : IWalletReadRepository
 
             var settledAt = settlement?.CompletedAt
                 ?? settlement?.CreatedAt
+                ?? row.CompletedAt
                 ?? (status is "cancelled" ? row.PlacedAt : null);
 
             return new WalletBetDto(
@@ -182,9 +189,21 @@ public sealed class WalletReadRepository : IWalletReadRepository
             : amount;
 
     private static string ResolveStatus(
+        BetStatus? betStatus,
         TransactionStatus transactionStatus,
         SettlementResult? settlementResult)
     {
+        if (betStatus is not null)
+        {
+            return betStatus switch
+            {
+                BetStatus.Won => "won",
+                BetStatus.Lost => "lost",
+                BetStatus.Void => "cancelled",
+                _ => "pending",
+            };
+        }
+
         if (transactionStatus == TransactionStatus.Cancelled) return "cancelled";
         if (transactionStatus == TransactionStatus.Failed) return "lost";
 
@@ -232,6 +251,9 @@ public sealed class WalletReadRepository : IWalletReadRepository
         decimal Stake,
         DateTimeOffset PlacedAt,
         TransactionStatus TransactionStatus,
+        BetStatus? BetStatus,
+        decimal? AcceptedOdds,
+        DateTimeOffset? CompletedAt,
         string EventName,
         string SelectionName,
         string MarketName,

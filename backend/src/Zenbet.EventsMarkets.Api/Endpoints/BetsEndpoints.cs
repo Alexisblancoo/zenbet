@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Configuration;
 using MediatR;
 using Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 using Zenbet.EventsMarkets.Application.Commands.SettleMarket;
@@ -66,7 +67,8 @@ public static class BetsEndpoints
                 SelectionId.From(request.SelectionId),
                 new Money(request.Amount),
                 request.Description,
-                request.IdempotencyKey);
+                request.IdempotencyKey,
+                request.PromoCode);
 
             var result = await mediator.Send(command, cancellationToken);
 
@@ -84,7 +86,8 @@ public static class BetsEndpoints
                 success = true,
                 betId = result.BetId?.Value,
                 transactionId = result.TransactionId?.Value,
-                newBalance = result.NewBalance?.Amount
+                newBalance = result.NewBalance?.Amount,
+                idempotentReplay = result.IdempotentReplay
             });
         })
         .RequireAuthorization()
@@ -98,9 +101,28 @@ public static class BetsEndpoints
         // Settle a market (admin/internal)
         group.MapPost("/settle", async (
             [FromBody] SettleMarketRequest request,
+            HttpRequest httpRequest,
+            IConfiguration configuration,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {
+            var configuredKey = configuration["Settlement:ApiKey"];
+            if (string.IsNullOrWhiteSpace(configuredKey))
+            {
+                return Results.Problem(
+                    title: "Liquidación no configurada",
+                    detail: "Falta Settlement:ApiKey en la configuración del servidor.",
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (!EventsEndpoints.HasValidSettlementKey(httpRequest, configuredKey))
+            {
+                return Results.Problem(
+                    title: "No autorizado",
+                    detail: "El header X-Settlement-Key es obligatorio para liquidar un mercado.",
+                    statusCode: StatusCodes.Status401Unauthorized);
+            }
+
             var command = new SettleMarketCommand(
                 MarketId.From(request.MarketId),
                 SelectionId.From(request.WinnerSelectionId),
@@ -160,7 +182,8 @@ public sealed record PlaceBetRequest(
     Guid SelectionId,
     decimal Amount,
     string Description,
-    Guid IdempotencyKey);
+    Guid IdempotencyKey,
+    string? PromoCode = null);
 
 public sealed record SettleMarketRequest(
     Guid MarketId,

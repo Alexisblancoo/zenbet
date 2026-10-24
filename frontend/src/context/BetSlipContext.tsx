@@ -4,8 +4,10 @@ import { createIdempotencyKey } from '@/api';
 import { BALANCE_UPDATED_EVENT, useAuth } from '@/context/authState';
 import {
   areOddsEqual,
+  calculatePromoBonus,
   countPendingOdds,
   normalizeSelectionInput,
+  resolvePromoCode,
   roundMoney,
   type BetFailure,
   type BetReceipt,
@@ -165,7 +167,7 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
   /* ---------------------------------------------------------------------- */
 
   const placeBet = useCallback(
-    async (stake: number): Promise<PlaceBetOutcome> => {
+    async (stake: number, promoCode?: string): Promise<PlaceBetOutcome> => {
       if (placingRef.current) {
         return {
           ok: false,
@@ -188,6 +190,7 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
 
       const selection = liveSelections[0];
       const normalizedStake = roundMoney(stake);
+      const normalizedPromoCode = promoCode?.trim().toUpperCase() || undefined;
 
       if (!Number.isFinite(normalizedStake) || normalizedStake <= 0) {
         return reject(createBetFailure('INVALID_STAKE'));
@@ -196,10 +199,11 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
       const walletId = resolveWalletId(user);
       if (!walletId) return reject(createBetFailure('WALLET_NOT_LINKED'));
 
-      // Una misma intención (selección + cuota aceptada + stake) reutiliza la
-      // llave si el intento anterior murió sin respuesta. Cambiar cualquier
-      // dato genera una llave nueva para no reutilizar efectos de negocio.
-      const signature = `${selection.selectionId}|${selection.odds.toFixed(2)}|${normalizedStake.toFixed(2)}`;
+      // Una misma intención (selección + cuota aceptada + stake + promo)
+      // reutiliza la llave si el intento anterior murió sin respuesta. Cambiar
+      // cualquier dato genera una llave nueva para no reutilizar efectos de
+      // negocio.
+      const signature = `${selection.selectionId}|${selection.odds.toFixed(2)}|${normalizedStake.toFixed(2)}|${normalizedPromoCode ?? ''}`;
       const idempotencyKey =
         attemptRef.current?.signature === signature
           ? attemptRef.current.key
@@ -216,21 +220,31 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
           selection,
           stake: normalizedStake,
           idempotencyKey,
+          promoCode: normalizedPromoCode,
         });
 
         // La cuota aceptada es la que el usuario vio al confirmar; liveOdds ya
         // coincide porque el envío se bloquea mientras haya cambios pendientes.
         const odds = selection.odds;
+        const basePayout = roundMoney(normalizedStake * odds);
+        const promo = normalizedPromoCode
+          ? resolvePromoCode(normalizedPromoCode)
+          : null;
+        const promoBonus = promo
+          ? calculatePromoBonus(basePayout, normalizedStake, promo.bonusRate)
+          : 0;
         const nextReceipt: BetReceipt = {
           betId: result.betId,
           transactionId: result.transactionId,
           stake: normalizedStake,
           odds,
-          potentialPayout: roundMoney(normalizedStake * odds),
+          potentialPayout: roundMoney(basePayout + promoBonus),
           newBalance: result.newBalance,
           selectionCount: 1,
           idempotentReplay: result.idempotentReplay,
           placedAt: Date.now(),
+          promoCode: promo?.code,
+          promoBonus,
           eventName: selection.eventName,
           selectionName: selection.selectionName,
           marketLabel: selection.marketLabel,

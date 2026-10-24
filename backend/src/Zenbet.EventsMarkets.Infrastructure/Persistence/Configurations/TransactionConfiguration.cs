@@ -63,6 +63,18 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
                 guid => guid.HasValue ? SelectionId.From(guid.Value) : (SelectionId?)null)
             .HasColumnName("selection_id");
 
+        builder.Property(t => t.AcceptedOdds)
+            .HasColumnName("accepted_odds")
+            .HasPrecision(7, 4);
+
+        builder.Property(t => t.PromoCode)
+            .HasColumnName("promo_code")
+            .HasMaxLength(40);
+
+        builder.Property(t => t.BetStatus)
+            .HasColumnName("bet_status")
+            .HasConversion<int>();
+
         builder.Property(t => t.Status)
             .HasColumnName("status")
             .HasConversion<int>()
@@ -86,5 +98,7 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
         builder.HasIndex("WalletId", "CreatedAt").HasDatabaseName("ix_transactions_wallet_id_created_at");
         builder.HasIndex(t => t.ReferenceId).HasDatabaseName("ix_transactions_reference_id");
         builder.HasIndex("SelectionId").HasDatabaseName("ix_transactions_selection_id");
+        builder.HasIndex(t => new { t.Type, t.BetStatus })
+            .HasDatabaseName("ix_transactions_type_bet_status");
     }
 }

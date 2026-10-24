@@ -201,6 +201,11 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<decimal?>("AcceptedOdds")
+                        .HasPrecision(7, 4)
+                        .HasColumnType("numeric(7,4)")
+                        .HasColumnName("accepted_odds");
+
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
@@ -210,6 +215,10 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("balance_after");
+
+                    b.Property<int?>("BetStatus")
+                        .HasColumnType("integer")
+                        .HasColumnName("bet_status");
 
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("timestamp with time zone")
@@ -228,6 +237,11 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("failure_reason");
+
+                    b.Property<string>("PromoCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("promo_code");
 
                     b.Property<string>("ReferenceId")
                         .HasMaxLength(100)
@@ -268,6 +282,9 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("WalletId")
                         .HasDatabaseName("ix_transactions_wallet_id");
+
+                    b.HasIndex("Type", "BetStatus")
+                        .HasDatabaseName("ix_transactions_type_bet_status");
 
                     b.HasIndex("WalletId", "CreatedAt")
                         .HasDatabaseName("ix_transactions_wallet_id_created_at");
@@ -846,7 +863,38 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                                 .IsRequired();
                         });
 
+                    b.OwnsOne("Zenbet.EventsMarkets.Domain.ValueObjects.MmaResult", "Result", b1 =>
+                        {
+                            b1.Property<Guid>("EventId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("Method")
+                                .HasColumnType("integer")
+                                .HasColumnName("result_method");
+
+                            b1.Property<DateTimeOffset>("RecordedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("result_recorded_at");
+
+                            b1.Property<int>("Round")
+                                .HasColumnType("integer")
+                                .HasColumnName("result_round");
+
+                            b1.Property<int>("WinnerCorner")
+                                .HasColumnType("integer")
+                                .HasColumnName("result_winner_corner");
+
+                            b1.HasKey("EventId");
+
+                            b1.ToTable("events", "events_markets");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EventId");
+                        });
+
                     b.Navigation("Bout");
+
+                    b.Navigation("Result");
                 });
 
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Market", b =>
