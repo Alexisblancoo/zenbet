@@ -16,21 +16,27 @@ import { useBetSlip } from '@/context/betSlipState';
 import type { SelectionInput } from '@/domain/bets';
 import { formatDecimalOdds, type OddsQuote } from '@/domain/odds';
 import {
+  applyFightUpdates,
   buildUfcCards,
   cardCity,
+  cardKeyForEvent,
   eventsForBilling,
   findEventSource,
   findMarket,
   findSelectionByCode,
   findUfcCard,
+  fightResultLabel,
+  fightStatusLabel,
   formatAmericanOdds,
   formatCardDayBadge,
   formatCardLongDate,
+  formatFightClock,
   formatFightDate,
   formatFighterStance,
   formatRank,
   formatSnapshotAt,
   formatWeightDivision,
+  isTerminalEventStatus,
   ufcCardNumber,
   UFC_BILLING_SECTIONS,
   UFC_MARKET_FAMILIES,
@@ -39,6 +45,7 @@ import {
   type UfcMarket,
   type UfcSelection,
 } from '@/domain/ufc';
+import { useFightHub } from '@/hooks/useFightHub';
 import { useUfcEvents } from '@/hooks/useUfcEvents';
 import CardNav, { type CardSectionKey } from '../components/CardNav';
 import CardSelector from '../components/CardSelector';
@@ -97,14 +104,14 @@ function SectionHeading({
 
 function LoadingCard() {
   return (
-    <div className='overflow-hidden border border-white/[0.06] bg-[#090C12]'>
+    <div className='overflow-hidden border border-white/[0.06] bg-[#0C0C0C]'>
       <div className='h-[2px] w-full bg-white/[0.06]' />
       <div className='space-y-3 p-4'>
         <div className='h-2.5 w-24 animate-pulse bg-white/[0.05]' />
         <div className='h-5 w-2/3 animate-pulse bg-white/[0.06]' />
         <div className='grid grid-cols-2 gap-px border border-white/[0.05] bg-white/[0.05] md:grid-cols-4'>
           {[0, 1, 2, 3].map((item) => (
-            <div key={item} className='h-36 animate-pulse bg-[#0A0D14]' />
+            <div key={item} className='h-36 animate-pulse bg-[#111111]' />
           ))}
         </div>
       </div>
@@ -159,25 +166,43 @@ interface HeroPickProps {
   readonly selected: boolean;
   readonly quote?: OddsQuote;
   readonly onToggle: (market: UfcMarket, selection: UfcSelection) => void;
+  readonly closed?: boolean;
 }
 
-function HeroPick({ market, selection, corner, selected, quote, onToggle }: HeroPickProps) {
+function HeroPick({
+  market,
+  selection,
+  corner,
+  selected,
+  quote,
+  onToggle,
+  closed = false,
+}: HeroPickProps) {
   const odds = quote && quote.odds > 1 ? quote.odds : selection.decimalOdds;
   const isRed = corner === 'red';
+  const isSelected = selected && !closed;
 
   return (
     <button
       type='button'
       onClick={() => onToggle(market, selection)}
-      aria-pressed={selected}
-      aria-label={`${selection.name}: ${formatDecimalOdds(odds)} decimal, ${formatAmericanOdds(odds)} americana`}
-      data-selected={selected}
+      disabled={closed}
+      aria-pressed={isSelected}
+      aria-label={`${selection.name}: ${formatDecimalOdds(odds)} decimal, ${formatAmericanOdds(odds)} americana${isSelected ? ', seleccionada' : ''}${closed ? ', mercado cerrado' : ''}`}
+      data-selected={isSelected}
       data-trend={quote?.trend ?? 'unchanged'}
+      data-closed={closed}
       className={`hero-pick group relative flex min-h-[68px] min-w-0 flex-col justify-between gap-2 overflow-hidden rounded-lg border p-3 text-left transition duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric ${
-        isRed
-          ? 'border-crimson/25 bg-crimson/[0.05] hover:border-crimson/50 hover:bg-crimson/[0.09]'
-          : 'border-electric/25 bg-electric/[0.05] hover:border-electric/50 hover:bg-electric/[0.09]'
-      } data-[selected=true]:border-money/75 data-[selected=true]:bg-money/[0.11] data-[selected=true]:shadow-[0_0_24px_-14px_rgb(16_185_129_/_0.9)]`}
+        closed
+          ? 'cursor-not-allowed border-white/[0.05] bg-[#050505] opacity-55 grayscale'
+          : isRed
+            ? 'border-crimson/25 bg-crimson/[0.05] hover:border-crimson/50 hover:bg-crimson/[0.09]'
+            : 'border-electric/25 bg-electric/[0.05] hover:border-electric/50 hover:bg-electric/[0.09]'
+      } ${
+        closed
+          ? ''
+          : 'data-[selected=true]:border-lime-400/80 data-[selected=true]:bg-lime-400/[0.1] data-[selected=true]:shadow-[0_0_24px_-14px_rgb(212_255_63_/_0.95)]'
+      }`}
     >
       <span className='flex items-center justify-between gap-2'>
         <span
@@ -188,10 +213,12 @@ function HeroPick({ market, selection, corner, selected, quote, onToggle }: Hero
           <span className={`h-1.5 w-1.5 ${isRed ? 'bg-crimson' : 'bg-electric'}`} aria-hidden='true' />
           {isRed ? 'Roja' : 'Azul'} · Moneyline
         </span>
-        {selected ? (
-          <Check size={12} strokeWidth={3} className='text-money' aria-hidden='true' />
+        {isSelected ? (
+          <Check size={12} strokeWidth={3} className='text-lime-400' aria-hidden='true' />
         ) : (
-          <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>2 vías</span>
+          <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
+            {closed ? 'Cerrado' : '2 vías'}
+          </span>
         )}
       </span>
 
@@ -202,16 +229,16 @@ function HeroPick({ market, selection, corner, selected, quote, onToggle }: Hero
           </span>
           <span
             className={`mt-0.5 block font-mono text-[8px] uppercase tracking-wide ${
-              selected ? 'text-money' : 'text-metallic-slate'
+              isSelected ? 'text-lime-400' : 'text-metallic-slate'
             }`}
           >
-            {selected ? 'En boleto' : 'Toca para agregar'}
+            {isSelected ? 'En boleto' : closed ? 'Mercado cerrado' : 'Toca para agregar'}
           </span>
         </span>
         <span className='flex shrink-0 items-baseline gap-1.5'>
           <span
             key={quote?.sequence ?? 'snapshot'}
-            className={`odds-number text-lg ${selected ? 'text-money' : 'text-white'}`}
+            className={`odds-number text-lg ${isSelected ? 'text-lime-400' : 'text-white'}`}
           >
             {formatDecimalOdds(odds)}
           </span>
@@ -334,8 +361,19 @@ function MainEventHero({
   const blue = findSelectionByCode(moneyline, 'blue');
   const snapshot = formatSnapshotAt(source?.observedAt ?? null);
   const cardNumber = ufcCardNumber(event.competition ?? '');
+  const isFinished = event.isExpired || isTerminalEventStatus(event.status);
+  const isClosed = isFinished || !event.isBettingOpen;
+  const clockLabel = formatFightClock(event.clock);
+  const statusLabel = isClosed
+    ? isFinished
+      ? 'FINALIZADO'
+      : 'SUSPENDIDO'
+    : clockLabel ?? fightStatusLabel(event);
+  const resultLabel = fightResultLabel(event.result);
 
   const toggle = (market: UfcMarket, selection: UfcSelection) => {
+    if (isClosed) return;
+
     if (selectedIds.includes(selection.id)) {
       onRemoveSelection(selection.id);
       return;
@@ -349,6 +387,10 @@ function MainEventHero({
       marketLabel: market.name,
       selectionName: selection.name,
       odds: oddsMap[selection.id]?.odds ?? selection.decimalOdds,
+      eventStatus: event.status,
+      eventEndsAt: event.endsAt,
+      eventIsExpired: event.isExpired,
+      eventIsBettingOpen: event.isBettingOpen,
     });
   };
 
@@ -376,17 +418,40 @@ function MainEventHero({
             {source
               ? source.kind === 'model'
                 ? 'Línea de referencia'
-                : 'Snapshot verificado'
+                : event.status === 'live'
+                  ? 'Mercado en vivo'
+                  : 'Snapshot verificado'
               : 'Sin fuente'}
           </span>
         </div>
 
-        <div className='flex items-center gap-3 font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
+        <div className='flex flex-wrap items-center gap-3 font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
+          <span
+            className={`inline-flex items-center gap-1.5 border px-1.5 py-0.5 font-bold ${
+              isClosed
+                ? 'border-white/10 bg-white/[0.03] text-metallic-slate'
+                : event.status === 'live'
+                  ? 'border-lime-400/40 bg-lime-400/[0.09] text-lime-400'
+                  : 'border-white/[0.08] bg-white/[0.025] text-metallic-titanium'
+            }`}
+          >
+            {!isClosed && event.status === 'live' && (
+              <span className='h-1.5 w-1.5 animate-pulse rounded-full bg-lime-400' aria-hidden='true' />
+            )}
+            {statusLabel}
+          </span>
           <span>{formatCardDayBadge(event.startTime)}</span>
           <span className='h-3 w-px bg-white/10' aria-hidden='true' />
           <span>{cardNumber ? `UFC ${cardNumber}` : 'Fight Night'}</span>
         </div>
       </div>
+
+      {resultLabel && (
+        <div className='relative border-b border-white/[0.07] bg-[#050505]/70 px-4 py-2 font-mono text-[9px] font-bold uppercase tracking-wide text-metallic-titanium sm:px-6'>
+          <span className='mr-2 text-lime-400/85'>Resultado final</span>{' '}
+          {resultLabel}
+        </div>
+      )}
 
       <div className='relative overflow-hidden'>
         <div
@@ -400,7 +465,7 @@ function MainEventHero({
             <span className='font-mono text-[8px] font-bold uppercase tracking-ultra text-metallic-slate'>
               Main event
             </span>
-            <span className='grid h-11 w-11 place-items-center rounded-full border border-crimson/45 bg-[#0B0E15] font-odds text-sm font-bold tracking-wide text-crimson shadow-[0_0_30px_-12px_rgb(239_68_68_/_0.9)] sm:h-14 sm:w-14 sm:text-base'>
+            <span className='grid h-11 w-11 place-items-center rounded-full border border-crimson/45 bg-[#131313] font-odds text-sm font-bold tracking-wide text-crimson shadow-[0_0_30px_-12px_rgb(239_68_68_/_0.9)] sm:h-14 sm:w-14 sm:text-base'>
               VS
             </span>
             <span className='font-mono text-[9px] font-bold uppercase leading-tight tracking-wide text-metallic-titanium'>
@@ -430,6 +495,7 @@ function MainEventHero({
             selected={selectedIds.includes(red.id)}
             quote={oddsMap[red.id]}
             onToggle={toggle}
+            closed={isClosed}
           />
           <HeroPick
             market={moneyline}
@@ -438,6 +504,7 @@ function MainEventHero({
             selected={selectedIds.includes(blue.id)}
             quote={oddsMap[blue.id]}
             onToggle={toggle}
+            closed={isClosed}
           />
         </div>
       )}
@@ -486,7 +553,7 @@ function MainEventHero({
 }
 
 export default function MmaEventsPage() {
-  const { events, isLoading, error, reload } = useUfcEvents();
+  const { events: sourceEvents, isLoading, error, reload } = useUfcEvents();
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     selections,
@@ -494,6 +561,7 @@ export default function MmaEventsPage() {
     hubStatus,
     lastUpdateAt,
     setVisibleMarkets,
+    syncEventLifecycle,
     addSelection,
     removeSelection,
   } = useBetSlip();
@@ -501,15 +569,52 @@ export default function MmaEventsPage() {
   const [activeSection, setActiveSection] = useState<CardSectionKey>('all');
   const [comparisonEvent, setComparisonEvent] = useState<UfcEvent | null>(null);
 
+  const baseCards = useMemo(() => buildUfcCards(sourceEvents), [sourceEvents]);
+  const watchedEventIds = useMemo(
+    () => sourceEvents.map((event) => event.id),
+    [sourceEvents],
+  );
+  const watchedCardKeys = useMemo(() => baseCards.map((card) => card.key), [baseCards]);
+  const fightHub = useFightHub({
+    eventIds: watchedEventIds,
+    cardKeys: watchedCardKeys,
+  });
+
+  // SignalR no reproduce mensajes perdidos. Al reconectar, se refresca la
+  // cartelera por REST y se descartan los mapas de updates anteriores.
+  useEffect(() => {
+    if (fightHub.reconnectCount === 0) return;
+    reload();
+  }, [fightHub.reconnectCount, reload]);
+
+  const events = useMemo(() => {
+    const updated = applyFightUpdates(sourceEvents, fightHub.updates, fightHub.clocks);
+
+    // El agregado de cartelera es una red de seguridad: si un update de pelea
+    // se pierde, un `ReceiveCardUpdate` final igual cierra todos sus mercados.
+    return updated.map((event) => {
+      const cardUpdate = fightHub.cardUpdates[cardKeyForEvent(event)];
+      if (!cardUpdate || cardUpdate.status !== 'finished') return event;
+      if (event.isExpired && !event.isBettingOpen) return event;
+      return { ...event, isExpired: true, isBettingOpen: false };
+    });
+  }, [sourceEvents, fightHub.updates, fightHub.clocks, fightHub.cardUpdates]);
   const cards = useMemo(() => buildUfcCards(events), [events]);
   const activeCard = findUfcCard(cards, searchParams.get('card'));
   const activeKey = activeCard?.key ?? null;
-  const activeEvents = activeCard?.events ?? EMPTY_EVENTS;
+  const activeEvents = useMemo(
+    () => activeCard?.events ?? EMPTY_EVENTS,
+    [activeCard],
+  );
+  const [lastActiveKey, setLastActiveKey] = useState(activeKey);
 
-  useEffect(() => {
+  // Cambiar de cartelera reinicia la sección y cierra la ficha comparativa sin
+  // esperar a un efecto posterior al pintado.
+  if (lastActiveKey !== activeKey) {
+    setLastActiveKey(activeKey);
     setActiveSection('all');
     setComparisonEvent(null);
-  }, [activeKey]);
+  }
 
   const handleSelectCard = useCallback(
     (key: string) => {
@@ -535,6 +640,22 @@ export default function MmaEventsPage() {
     [selections],
   );
 
+  const eventLifecycle = useMemo(
+    () =>
+      events.map((event) => ({
+        eventId: event.id,
+        status: event.status,
+        endsAt: event.endsAt,
+        isExpired: event.isExpired,
+        isBettingOpen: event.isBettingOpen,
+      })),
+    [events],
+  );
+
+  useEffect(() => {
+    syncEventLifecycle(eventLifecycle);
+  }, [eventLifecycle, syncEventLifecycle]);
+
   const handleAddSelection = useCallback(
     (selection: SelectionInput) => {
       addSelection(selection);
@@ -547,6 +668,17 @@ export default function MmaEventsPage() {
   }, []);
 
   const mainEvent = activeCard?.mainEvent;
+  const liveComparisonEvent = comparisonEvent
+    ? (events.find((event) => event.id === comparisonEvent.id) ?? comparisonEvent)
+    : null;
+  const fightHubLabel =
+    fightHub.status === 'connected'
+      ? 'Combates en vivo'
+      : fightHub.status === 'connecting'
+        ? 'Conectando combates'
+        : fightHub.status === 'reconnecting'
+          ? 'Reconectando combates'
+          : 'Combates sin conexión';
 
   const groupedEvents = useMemo(
     () =>
@@ -677,6 +809,11 @@ export default function MmaEventsPage() {
               </div>
               <div className='flex flex-wrap items-center gap-2'>
                 <HubStatusBadge status={hubStatus} lastUpdateAt={lastUpdateAt} />
+                <HubStatusBadge
+                  status={fightHub.status}
+                  lastUpdateAt={fightHub.lastUpdateAt}
+                  label={fightHubLabel}
+                />
                 <span className='border border-white/[0.07] bg-white/[0.02] px-2 py-1.5 font-mono text-[8px] font-bold uppercase tracking-brutal text-metallic-slate'>
                   {isLoading ? 'Cargando' : `${activeEvents.length} combates`}
                 </span>
@@ -746,9 +883,10 @@ export default function MmaEventsPage() {
                   </div>
                   <p className='max-w-3xl text-[10px] leading-relaxed text-metallic-slate'>
                     Las cuatro familias (Moneyline, método de victoria, total de asaltos y decisión)
-                    provienen del mismo snapshot de {globalSource?.name ?? 'la fuente declarada'}.
-                    Son cuotas de referencia, no una cuota ejecutable ni un feed en vivo. Verifica
-                    la casa antes de apostar.
+                    se actualizan por mercado en tiempo real desde {globalSource?.name ?? 'la fuente declarada'}.
+                    El estado del combate y el reloj llegan por el canal de combates; si el canal se
+                    interrumpe, se conserva el último precio recibido. Verifica la cuota antes de
+                    confirmar tu apuesta.
                   </p>
                   {mainEvent && (
                     <p className='max-w-3xl text-[10px] leading-relaxed text-metallic-slate'>
@@ -787,9 +925,9 @@ export default function MmaEventsPage() {
         </div>
       </div>
 
-      {comparisonEvent && (
+      {liveComparisonEvent && (
         <FighterComparisonModal
-          event={comparisonEvent}
+          event={liveComparisonEvent}
           selectedIds={selectedIds}
           oddsMap={quotes}
           onAddSelection={handleAddSelection}

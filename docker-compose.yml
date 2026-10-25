@@ -58,6 +58,7 @@ services:
         VITE_API_URL: ${VITE_API_URL:-/api/v1}
         VITE_AUTH_URL: ${VITE_AUTH_URL:-/api}
         VITE_HUB_URL: ${VITE_HUB_URL:-/odds-hub}
+        VITE_FIGHT_HUB_URL: ${VITE_FIGHT_HUB_URL:-/fight-hub}
     restart: unless-stopped
     ports:
       - "80:80"

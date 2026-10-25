@@ -17,6 +17,25 @@ const INITIAL_STATE: UfcEventsState = {
   loadedAt: null,
 };
 
+const EMPTY_EVENTS: UfcEventsPage['items'] = [];
+
+/**
+ * Ventana de carga: ayer para no perder una cartelera que terminó tarde y una
+ * semana hacia adelante para que el selector tenga contexto. No se filtra por
+ * estado para conservar los combates en vivo y finalizados del día.
+ */
+function loadWindow(): { from: string; to: string } {
+  const now = new Date();
+  const from = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1),
+  );
+  const to = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 8),
+  );
+
+  return { from: from.toISOString(), to: to.toISOString() };
+}
+
 /**
  * Carga la cartelera pública. La petición se cancela al desmontar y el botón
  * de reintento crea una petición nueva sin recargar la página.
@@ -27,8 +46,9 @@ export function useUfcEvents() {
 
   useEffect(() => {
     const controller = new AbortController();
+    const { from, to } = loadWindow();
 
-    void listUfcEvents({ signal: controller.signal })
+    void listUfcEvents({ signal: controller.signal, from, to, pageSize: 100 })
       .then((data) => {
         if (controller.signal.aborted) return;
 
@@ -63,7 +83,7 @@ export function useUfcEvents() {
 
   return {
     data: state.data,
-    events: state.data?.items ?? [],
+    events: state.data?.items ?? EMPTY_EVENTS,
     isLoading: state.isLoading,
     error: state.error,
     loadedAt: state.loadedAt,

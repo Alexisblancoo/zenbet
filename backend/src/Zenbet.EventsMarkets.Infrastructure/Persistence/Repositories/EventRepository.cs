@@ -121,6 +121,25 @@ public sealed class EventRepository : IEventRepository
             .CountAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Event>> ListForLiveWindowAsync(
+        DateTimeOffset fromDate,
+        DateTimeOffset toDate,
+        int limit = 200,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Events
+            .AsNoTracking()
+            .Where(@event =>
+                (@event.Status == EventStatus.Scheduled ||
+                 @event.Status == EventStatus.Live ||
+                 @event.Status == EventStatus.Suspended) &&
+                @event.StartTime >= fromDate &&
+                @event.StartTime <= toDate)
+            .OrderBy(@event => @event.StartTime)
+            .Take(Math.Clamp(limit, 1, 500))
+            .ToListAsync(cancellationToken);
+    }
+
     private IQueryable<Event> BuildDetailsQuery(
         EventStatus? status,
         SportType? sportType,

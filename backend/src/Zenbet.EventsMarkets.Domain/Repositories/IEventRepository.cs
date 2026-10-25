@@ -29,6 +29,11 @@ public interface IEventRepository
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Event>> ListForLiveWindowAsync(
+        DateTimeOffset fromDate,
+        DateTimeOffset toDate,
+        int limit = 200,
+        CancellationToken cancellationToken = default);
     Task<int> CountAsync(
         EventStatus? status,
         SportType? sportType,

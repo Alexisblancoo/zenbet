@@ -16,6 +16,8 @@ export interface ListUfcEventsOptions {
   readonly pageSize?: number;
   readonly competition?: string;
   readonly status?: 'scheduled' | 'live' | 'finished';
+  readonly from?: string;
+  readonly to?: string;
 }
 
 /**
@@ -28,15 +30,19 @@ export async function listUfcEvents({
   page = 1,
   pageSize = UFC_DEFAULT_PAGE_SIZE,
   competition,
-  status = 'scheduled',
+  status,
+  from,
+  to,
 }: ListUfcEventsOptions = {}): Promise<UfcEventsPage> {
   const payload = await apiClient.get<unknown>(UFC_EVENTS_ENDPOINT, {
     // `apiClient` ya incluye /api/v1 en la base URL.
     params: {
       sport: 'mma',
-      status,
       page,
       pageSize,
+      ...(status ? { status } : {}),
+      ...(from ? { from } : {}),
+      ...(to ? { to } : {}),
       ...(competition ? { competition } : {}),
     },
     signal,

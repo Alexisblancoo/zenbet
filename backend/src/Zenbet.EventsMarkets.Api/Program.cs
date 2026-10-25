@@ -25,6 +25,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost:3000",    // React dev server
                 "http://localhost:5173",    // Vite dev server
+                "http://127.0.0.1:5173",    // Vite dev server (IPv4 loopback)
                 "http://localhost:4200",    // Angular dev server
                 "http://localhost:8080",    // Vue dev server
                 "https://localhost:3000",   // HTTPS variants
@@ -147,8 +148,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Map SignalR hub
+// Map SignalR hubs
 app.MapHub<OddsHub>("/odds-hub");
+app.MapHub<FightHub>("/fight-hub");
 
 // Los grupos de endpoints declaran su propio prefijo y sus políticas. No
 // envolverlos con otro MapGroup: eso duplicaba /api/v1/bets en la ruta real.

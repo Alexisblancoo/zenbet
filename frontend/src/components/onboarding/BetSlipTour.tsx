@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 
 interface BetSlipTourProps {
-  readonly open: boolean;
   readonly onClose: () => void;
 }
 
@@ -122,7 +121,7 @@ function rectFromElement(element: HTMLElement): HighlightRect {
  * para que cada paso apunte al control que explica, incluso si el usuario
  * cambió de pestaña o abrió el recibo.
  */
-export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
+export default function BetSlipTour({ onClose }: BetSlipTourProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [highlight, setHighlight] = useState<HighlightRect | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -133,14 +132,6 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
   const StepIcon = step.icon;
 
   useEffect(() => {
-    if (!open) return;
-
-    setStepIndex(0);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return undefined;
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
     };
@@ -152,14 +143,9 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
       window.clearTimeout(focusTimer);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [open, onClose]);
+  }, [onClose]);
 
   useLayoutEffect(() => {
-    if (!open) {
-      setHighlight(null);
-      return undefined;
-    }
-
     let frame = 0;
 
     const measure = (shouldScroll: boolean) => {
@@ -193,9 +179,7 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
       window.removeEventListener('resize', handleViewportChange);
       window.removeEventListener('scroll', handleViewportChange, true);
     };
-  }, [open, step]);
-
-  if (!open) return null;
+  }, [step]);
 
   const cardAtTop = highlight
     ? highlight.top + highlight.height / 2 > window.innerHeight * 0.56
@@ -231,21 +215,21 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
       {!highlight ? (
         <div
           aria-hidden='true'
-          className='pointer-events-none absolute inset-0 bg-[#03050A]/80 backdrop-blur-[2px]'
+          className='pointer-events-none absolute inset-0 bg-[#050505]/80 backdrop-blur-[2px]'
         />
       ) : null}
 
       {highlight ? (
         <div
           aria-hidden='true'
-          className='pointer-events-none absolute border-2 border-[#FFD700] transition-[top,left,width,height] duration-200 ease-out'
+          className='pointer-events-none absolute border-2 border-lime-400 transition-[top,left,width,height] duration-200 ease-out'
           style={{
             top: highlight.top,
             left: highlight.left,
             width: highlight.width,
             height: highlight.height,
             boxShadow:
-              '0 0 0 9999px rgba(3, 5, 10, 0.82), 0 0 32px rgba(212, 175, 55, 0.35)',
+              '0 0 0 9999px rgba(3, 5, 10, 0.82), 0 0 32px rgba(212,255,63, 0.35)',
           }}
         />
       ) : null}
@@ -254,20 +238,20 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
         ref={cardRef}
         tabIndex={-1}
         style={cardStyle}
-        className='shibuya-tour-card absolute inset-x-3 mx-auto max-w-[22rem] overflow-hidden border border-[#D4AF37]/45 bg-[#07090E] text-left shadow-[0_28px_90px_-24px_rgba(0,0,0,0.98)] outline-none'
+        className='shibuya-tour-card absolute inset-x-3 mx-auto max-w-[22rem] overflow-hidden border border-lime-400/45 bg-[#0D0D0D] text-left shadow-[0_28px_90px_-24px_rgba(0,0,0,0.98)] outline-none'
       >
         <div
           aria-hidden='true'
-          className='pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#FFD700] to-transparent'
+          className='pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-lime-400 to-transparent'
         />
 
         <div className='flex items-start justify-between gap-3 border-b border-white/[0.07] px-4 pb-3 pt-3.5'>
           <div className='flex min-w-0 items-center gap-2.5'>
-            <span className='grid h-9 w-9 shrink-0 place-items-center border border-[#D4AF37]/40 bg-[#D4AF37]/10 text-[#FFD700]'>
+            <span className='grid h-9 w-9 shrink-0 place-items-center border border-lime-400/40 bg-lime-400/10 text-lime-400'>
               <StepIcon size={16} aria-hidden='true' />
             </span>
             <div className='min-w-0'>
-              <p className='font-mono text-[8px] font-bold uppercase tracking-[0.28em] text-[#D4AF37]'>
+              <p className='font-mono text-[8px] font-bold uppercase tracking-[0.28em] text-lime-400'>
                 Guía del boleto
               </p>
               <p className='mt-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-metallic-slate'>
@@ -280,7 +264,7 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
             type='button'
             onClick={onClose}
             aria-label='Ignorar guía'
-            className='border border-transparent p-1 text-metallic-slate transition-colors duration-150 hover:border-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FFD700]'
+            className='border border-transparent p-1 text-metallic-slate transition-colors duration-150 hover:border-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400'
           >
             <X size={14} aria-hidden='true' />
           </button>
@@ -302,7 +286,7 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
               <span
                 key={index}
                 className={`h-1 flex-1 transition-colors duration-200 ${
-                  index <= stepIndex ? 'bg-[#FFD700]' : 'bg-white/10'
+                  index <= stepIndex ? 'bg-lime-400' : 'bg-white/10'
                 }`}
               />
             ))}
@@ -312,7 +296,7 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
             <button
               type='button'
               onClick={onClose}
-              className='font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-metallic-slate transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FFD700]'
+              className='font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-metallic-slate transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400'
             >
               Ignorar
             </button>
@@ -322,7 +306,7 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
                 <button
                   type='button'
                   onClick={() => setStepIndex((current) => Math.max(0, current - 1))}
-                  className='inline-flex min-h-10 items-center gap-1 border border-white/10 px-3 font-display text-[10px] font-bold uppercase tracking-[0.12em] text-metallic-platinum transition-colors duration-150 hover:border-white/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FFD700]'
+                  className='inline-flex min-h-10 items-center gap-1 border border-white/10 px-3 font-display text-[10px] font-bold uppercase tracking-[0.12em] text-metallic-platinum transition-colors duration-150 hover:border-white/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400'
                 >
                   <ChevronLeft size={13} aria-hidden='true' />
                   Anterior
@@ -332,7 +316,7 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
               <button
                 type='button'
                 onClick={next}
-                className='inline-flex min-h-10 items-center gap-1.5 bg-[#D4AF37] px-4 font-display text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#07090E] transition-all duration-150 hover:bg-[#FFD700] active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]/70'
+                className='inline-flex min-h-10 items-center gap-1.5 bg-lime-400 px-4 font-display text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#0D0D0D] transition-all duration-150 hover:bg-lime-400 active:translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400/70'
               >
                 {isLastStep ? 'Entendido' : 'Siguiente'}
                 {!isLastStep ? <ChevronRight size={13} aria-hidden='true' /> : null}

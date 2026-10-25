@@ -7,7 +7,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Zenbet.EventsMarkets.Application.Interfaces;
+using Zenbet.EventsMarkets.Application.Queries.GetEvents;
 using Zenbet.EventsMarkets.Domain.Events;
+using Zenbet.EventsMarkets.Domain.Enums;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 using Zenbet.EventsMarkets.Infrastructure.Persistence;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Outbox;
@@ -71,7 +73,7 @@ public sealed class OutboxProcessor : BackgroundService
             try
             {
                 // Process specific domain events for real-time notifications
-                await ProcessDomainEventForNotifications(message, notificationService, cancellationToken);
+                await ProcessDomainEventForNotifications(message, dbContext, notificationService, cancellationToken);
 
                 message.ProcessedAt = DateTimeOffset.UtcNow;
                 _logger.LogDebug("Published outbox message {MessageId} of type {Type}", message.Id, message.Type);
@@ -87,7 +89,11 @@ public sealed class OutboxProcessor : BackgroundService
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task ProcessDomainEventForNotifications(OutboxMessage message, INotificationService notificationService, CancellationToken cancellationToken)
+    private async Task ProcessDomainEventForNotifications(
+        OutboxMessage message,
+        EventsMarketsDbContext dbContext,
+        INotificationService notificationService,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -125,16 +131,75 @@ public sealed class OutboxProcessor : BackgroundService
                         await notificationService.NotifyMarketSettledAsync(settlementEvent.MarketId, settlementData, cancellationToken);
                     }
                     break;
+
+                case nameof(EventStatusChangedDomainEvent):
+                    var statusEvent = JsonSerializer.Deserialize<EventStatusChangedDomainEvent>(message.Payload, JsonOptions);
+                    if (statusEvent != null)
+                    {
+                        await NotifyFightEventAsync(
+                            statusEvent.EventId,
+                            dbContext,
+                            notificationService,
+                            cancellationToken);
+                    }
+                    break;
+
+                case nameof(MmaResultRecordedDomainEvent):
+                    var resultEvent = JsonSerializer.Deserialize<MmaResultRecordedDomainEvent>(message.Payload, JsonOptions);
+                    if (resultEvent != null)
+                    {
+                        await NotifyFightEventAsync(
+                            resultEvent.EventId,
+                            dbContext,
+                            notificationService,
+                            cancellationToken);
+                    }
+                    break;
             }
         }
         catch (JsonException ex)
         {
+            // Un payload corrupto no se arregla reintentando; se marca como
+            // procesado para no bloquear el resto de la cola.
             _logger.LogWarning(ex, "Failed to deserialize outbox message {MessageId} of type {Type}", message.Id, message.Type);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing domain event for notifications: {MessageId}", message.Id);
-        }
+    }
+
+    private async Task NotifyFightEventAsync(
+        Zenbet.EventsMarkets.Domain.ValueObjects.EventId eventId,
+        EventsMarketsDbContext dbContext,
+        INotificationService notificationService,
+        CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var @event = await dbContext.Events
+            .AsNoTracking()
+            .FirstOrDefaultAsync(item => item.Id == eventId, cancellationToken);
+
+        if (@event is null)
+            return;
+
+        await notificationService.NotifyFightUpdateAsync(
+            eventId.Value,
+            FightRealtimeMapper.ToUpdate(@event, now),
+            cancellationToken);
+
+        var cardKey = FightRealtimeMapper.CardKey(@event);
+        var cardStart = new DateTimeOffset(@event.StartTime.UtcDateTime.Date, TimeSpan.Zero);
+        var cardEnd = cardStart.AddDays(1);
+
+        var cardEvents = await dbContext.Events
+            .AsNoTracking()
+            .Where(item =>
+                item.SportType == SportType.MixedMartialArts &&
+                item.StartTime >= cardStart &&
+                item.StartTime < cardEnd)
+            .ToListAsync(cancellationToken);
+
+        await notificationService.NotifyCardUpdateAsync(
+            cardKey,
+            FightRealtimeMapper.ToCardUpdate(cardKey, cardEvents, now),
+            cancellationToken);
     }
 }
 

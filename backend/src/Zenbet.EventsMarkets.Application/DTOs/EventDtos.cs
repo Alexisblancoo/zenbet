@@ -16,7 +16,19 @@ public sealed record EventDto(
     string? Competition,
     MmaBoutDto? Bout,
     IReadOnlyList<MarketDto> Markets,
-    DateTimeOffset? OddsUpdatedAt);
+    DateTimeOffset? OddsUpdatedAt,
+    DateTimeOffset EndsAt,
+    bool IsExpired,
+    bool IsBettingOpen,
+    MmaResultDto? Result);
+
+public sealed record MmaResultDto(
+    string WinnerCorner,
+    string WinnerName,
+    string Method,
+    string MethodLabel,
+    int Round,
+    DateTimeOffset RecordedAt);
 
 public sealed record MmaBoutDto(
     string WeightDivision,
@@ -75,7 +87,11 @@ public sealed record FighterComparisonDto(
     FighterDto Red,
     FighterDto Blue,
     IReadOnlyList<MarketDto> Markets,
-    DateTimeOffset? OddsUpdatedAt);
+    DateTimeOffset? OddsUpdatedAt,
+    DateTimeOffset EndsAt,
+    bool IsExpired,
+    bool IsBettingOpen,
+    MmaResultDto? Result);
 
 public sealed record MarketDto(
     Guid Id,

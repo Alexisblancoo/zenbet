@@ -13,11 +13,15 @@ import {
 import type { SelectionInput } from '@/domain/bets';
 import type { OddsQuote } from '@/domain/odds';
 import {
+  fightResultLabel,
+  fightStatusLabel,
   findEventSource,
+  formatFightClock,
   formatFighterStance,
   formatFightDate,
   formatRank,
   formatWeightDivision,
+  isTerminalEventStatus,
   type UfcEvent,
   type UfcFighter,
   type UfcFighterComparison,
@@ -136,13 +140,13 @@ function MetricRow({
       <div className='grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-baseline gap-2 sm:gap-3'>
         <span
           className={`min-w-0 break-words text-right font-odds text-base font-bold tabular-nums sm:text-lg ${
-            leader === 'red' ? 'text-[#FFD700]' : 'text-white/90'
+            leader === 'red' ? 'text-lime-400' : 'text-white/90'
           }`}
         >
           {redDisplay}
         </span>
         <span className='max-w-[11ch] text-center'>
-          <span className='block font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#D4AF37]'>
+          <span className='block font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-lime-400'>
             {label}
           </span>
           <span className='mt-0.5 hidden font-mono text-[7px] uppercase tracking-wide text-metallic-slate sm:block'>
@@ -151,7 +155,7 @@ function MetricRow({
         </span>
         <span
           className={`min-w-0 break-words text-left font-odds text-base font-bold tabular-nums sm:text-lg ${
-            leader === 'blue' ? 'text-[#FFD700]' : 'text-white/90'
+            leader === 'blue' ? 'text-lime-400' : 'text-white/90'
           }`}
         >
           {blueDisplay}
@@ -190,7 +194,7 @@ function FighterColumn({ fighter, corner }: FighterColumnProps) {
       <span
         className={`relative mt-2 border px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide ${
           fighter.rank === 'C'
-            ? 'border-[#FFD700]/45 bg-[#D4AF37]/[0.09] text-[#FFD700]'
+            ? 'border-lime-400/45 bg-lime-400/[0.09] text-lime-400'
             : 'border-white/[0.1] bg-white/[0.025] text-metallic-titanium'
         }`}
       >
@@ -199,7 +203,7 @@ function FighterColumn({ fighter, corner }: FighterColumnProps) {
       <h3 className='mt-1.5 max-w-full break-words font-display text-[14px] font-bold uppercase leading-tight tracking-tight text-white sm:text-xl'>
         {fighter.name}
       </h3>
-      <p className='mt-1 font-odds text-sm font-bold tabular-nums text-[#D4AF37] sm:text-base'>
+      <p className='mt-1 font-odds text-sm font-bold tabular-nums text-lime-400 sm:text-base'>
         {fighter.record}
       </p>
       <p className='mt-0.5 max-w-full truncate font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
@@ -209,7 +213,7 @@ function FighterColumn({ fighter, corner }: FighterColumnProps) {
         <span className='border border-white/[0.08] bg-white/[0.025] px-1.5 py-0.5 text-metallic-titanium'>
           {formatFighterStance(fighter.stance)}
         </span>
-        <span className='border border-[#D4AF37]/20 bg-[#D4AF37]/[0.045] px-1.5 py-0.5 text-[#D4AF37]'>
+        <span className='border border-lime-400/20 bg-lime-400/[0.045] px-1.5 py-0.5 text-lime-400'>
           {formatPercent(fighter.winRate)} victorias
         </span>
       </div>
@@ -224,7 +228,7 @@ function StanceRow({ red, blue }: { readonly red: UfcFighter; readonly blue: Ufc
         {formatFighterStance(red.stance)}
       </span>
       <span className='max-w-[11ch] text-center'>
-        <span className='block font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-[#D4AF37]'>
+        <span className='block font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-lime-400'>
           Guardia
         </span>
         <span className='mt-0.5 hidden font-mono text-[7px] uppercase tracking-wide text-metallic-slate sm:block'>
@@ -329,8 +333,19 @@ export default function FighterComparisonModal({
     (count, market) => count + market.selections.length,
     0,
   );
+  const isFinished = event.isExpired || isTerminalEventStatus(event.status);
+  const isClosed = isFinished || !event.isBettingOpen;
+  const clockLabel = formatFightClock(event.clock);
+  const statusLabel = isClosed
+    ? isFinished
+      ? 'FINALIZADO'
+      : 'SUSPENDIDO'
+    : clockLabel ?? fightStatusLabel(event);
+  const resultLabel = fightResultLabel(event.result);
 
   const handleToggle = (market: UfcMarket, selection: UfcSelection) => {
+    if (isClosed) return;
+
     if (selectedIds.includes(selection.id)) {
       onRemoveSelection(selection.id);
       return;
@@ -345,6 +360,10 @@ export default function FighterComparisonModal({
         market.line !== null ? `${market.name} ${market.line.toFixed(1)}` : market.name,
       selectionName: selection.name,
       odds: oddsMap[selection.id]?.odds ?? selection.decimalOdds,
+      eventStatus: event.status,
+      eventEndsAt: event.endsAt,
+      eventIsExpired: event.isExpired,
+      eventIsBettingOpen: event.isBettingOpen,
     });
   };
 
@@ -357,7 +376,7 @@ export default function FighterComparisonModal({
 
   return createPortal(
     <div
-      className='fixed inset-0 z-modal overflow-y-auto bg-[#04060A]/90 p-0 backdrop-blur-md sm:p-4'
+      className='fixed inset-0 z-modal overflow-y-auto bg-[#050505]/90 p-0 backdrop-blur-md sm:p-4'
       role='presentation'
       onMouseDown={(mouseEvent) => {
         if (mouseEvent.target === mouseEvent.currentTarget) onClose();
@@ -370,18 +389,32 @@ export default function FighterComparisonModal({
         aria-labelledby={titleId}
         className='h2h-panel relative mx-auto flex h-dvh w-full max-w-[1120px] flex-col overflow-hidden sm:h-auto sm:max-h-[calc(100dvh_-_2rem)] sm:rounded-2xl'
       >
-        <span className='h2h-gold-rule absolute inset-x-0 top-0 z-30 h-px' aria-hidden='true' />
+        <span className='h2h-accent-rule absolute inset-x-0 top-0 z-30 h-px' aria-hidden='true' />
 
-        <header className='relative z-20 border-b border-[#D4AF37]/15 bg-[#07090E]/95 px-4 py-3 backdrop-blur sm:px-6 sm:py-4'>
+        <header className='relative z-20 border-b border-lime-400/15 bg-[#0A0A0A]/95 px-4 py-3 backdrop-blur sm:px-6 sm:py-4'>
           <div className='flex items-start justify-between gap-4'>
             <div className='min-w-0'>
               <div className='flex flex-wrap items-center gap-2'>
-                <span className='h-1.5 w-1.5 bg-[#FFD700]' aria-hidden='true' />
-                <p className='font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-[#D4AF37]'>
+                <span className='h-1.5 w-1.5 bg-lime-400' aria-hidden='true' />
+                <p className='font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-lime-400'>
                   Zenbet // Ficha técnica
                 </p>
-                <span className='border border-[#D4AF37]/25 bg-[#D4AF37]/[0.06] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-[#FFD700]'>
+                <span className='border border-lime-400/25 bg-lime-400/[0.06] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-lime-400'>
                   Head to Head
+                </span>
+                <span
+                  className={`inline-flex items-center gap-1 border px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide ${
+                    isClosed
+                      ? 'border-white/10 bg-white/[0.03] text-metallic-slate'
+                      : event.status === 'live'
+                        ? 'border-lime-400/35 bg-lime-400/[0.08] text-lime-400'
+                        : 'border-white/[0.08] bg-white/[0.025] text-metallic-titanium'
+                  }`}
+                >
+                  {!isClosed && event.status === 'live' && (
+                    <span className='h-1.5 w-1.5 animate-pulse rounded-full bg-lime-400' aria-hidden='true' />
+                  )}
+                  {statusLabel}
                 </span>
               </div>
               <h2
@@ -401,7 +434,7 @@ export default function FighterComparisonModal({
                 className={`hidden border px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide sm:inline ${
                   syncState === 'error'
                     ? 'border-white/[0.1] bg-white/[0.025] text-metallic-slate'
-                    : 'border-[#D4AF37]/25 bg-[#D4AF37]/[0.055] text-[#D4AF37]'
+                    : 'border-lime-400/25 bg-lime-400/[0.055] text-lime-400'
                 }`}
               >
                 {syncLabel}
@@ -411,7 +444,7 @@ export default function FighterComparisonModal({
                 type='button'
                 onClick={onClose}
                 aria-label='Cerrar ficha Head-to-Head'
-                className='grid h-9 w-9 place-items-center border border-white/[0.1] bg-white/[0.02] text-metallic-slate transition-colors duration-150 hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/[0.07] hover:text-[#FFD700] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D4AF37]'
+                className='grid h-9 w-9 place-items-center border border-white/[0.1] bg-white/[0.02] text-metallic-slate transition-colors duration-150 hover:border-lime-400/40 hover:bg-lime-400/[0.07] hover:text-lime-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400'
               >
                 <X size={16} aria-hidden='true' />
               </button>
@@ -419,8 +452,15 @@ export default function FighterComparisonModal({
           </div>
         </header>
 
+        {resultLabel && (
+          <div className='border-b border-lime-400/12 bg-[#050505] px-4 py-2 font-mono text-[8px] font-bold uppercase tracking-wide text-metallic-titanium sm:px-6'>
+            <span className='mr-2 text-lime-400/85'>Resultado final</span>{' '}
+            {resultLabel}
+          </div>
+        )}
+
         <div className='min-h-0 flex-1 overflow-y-auto overscroll-contain'>
-          <section className='relative overflow-hidden border-b border-[#D4AF37]/12 px-4 py-5 sm:px-6 sm:py-6'>
+          <section className='relative overflow-hidden border-b border-lime-400/12 px-4 py-5 sm:px-6 sm:py-6'>
             <div className='shibuya-scan' aria-hidden='true' />
             <div
               aria-hidden='true'
@@ -428,7 +468,7 @@ export default function FighterComparisonModal({
             />
             <span
               aria-hidden='true'
-              className='pointer-events-none absolute right-2 top-1 select-none font-display text-[64px] font-black leading-none text-[#D4AF37]/[0.035] sm:text-[92px]'
+              className='pointer-events-none absolute right-2 top-1 select-none font-display text-[64px] font-black leading-none text-lime-400/[0.035] sm:text-[92px]'
             >
               渋谷
             </span>
@@ -437,10 +477,10 @@ export default function FighterComparisonModal({
               <FighterColumn fighter={red} corner='red' />
 
               <div className='flex h-full flex-col items-center justify-center gap-2 pt-7 sm:pt-10'>
-                <span className='font-mono text-[8px] font-bold uppercase tracking-ultra text-[#D4AF37]'>
+                <span className='font-mono text-[8px] font-bold uppercase tracking-ultra text-lime-400'>
                   Main event
                 </span>
-                <span className='grid h-11 w-11 place-items-center rounded-full border border-[#D4AF37]/45 bg-[#07090E] font-odds text-sm font-bold tracking-wide text-[#FFD700] shadow-[0_0_30px_-12px_rgba(255,215,0,0.75)] sm:h-14 sm:w-14 sm:text-base'>
+                <span className='grid h-11 w-11 place-items-center rounded-full border border-lime-400/45 bg-[#0A0A0A] font-odds text-sm font-bold tracking-wide text-lime-400 shadow-[0_0_30px_-12px_rgba(212,255,63,0.75)] sm:h-14 sm:w-14 sm:text-base'>
                   VS
                 </span>
                 <span className='font-mono text-[8px] font-bold uppercase leading-tight tracking-wide text-metallic-titanium'>
@@ -450,7 +490,7 @@ export default function FighterComparisonModal({
                   {event.bout.scheduledRounds} asaltos
                 </span>
                 <span
-                  className='h-12 w-px bg-linear-to-b from-[#D4AF37]/55 via-[#D4AF37]/20 to-transparent sm:h-16'
+                  className='h-12 w-px bg-linear-to-b from-lime-400/55 via-lime-400/20 to-transparent sm:h-16'
                   aria-hidden='true'
                 />
               </div>
@@ -460,7 +500,7 @@ export default function FighterComparisonModal({
 
             <div className='relative mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 border-t border-white/[0.06] pt-3 font-mono text-[8px] uppercase tracking-wide text-metallic-titanium sm:text-[9px]'>
               <span className='inline-flex items-center gap-1.5'>
-                <Swords size={10} className='text-[#D4AF37]' aria-hidden='true' />
+                <Swords size={10} className='text-lime-400' aria-hidden='true' />
                 {formatWeightDivision(event.bout)}
               </span>
               <span className='inline-flex items-center gap-1.5'>
@@ -474,7 +514,7 @@ export default function FighterComparisonModal({
                 </span>
               </span>
               {event.bout.isTitleFight && (
-                <span className='inline-flex items-center gap-1 border border-[#D4AF37]/35 bg-[#D4AF37]/[0.08] px-1.5 py-0.5 text-[#FFD700]'>
+                <span className='inline-flex items-center gap-1 border border-lime-400/35 bg-lime-400/[0.08] px-1.5 py-0.5 text-lime-400'>
                   <ShieldCheck size={9} aria-hidden='true' />
                   Título
                 </span>
@@ -482,10 +522,10 @@ export default function FighterComparisonModal({
             </div>
           </section>
 
-          <section className='border-b border-[#D4AF37]/12 px-4 py-4 sm:px-6 sm:py-5'>
+          <section className='border-b border-lime-400/12 px-4 py-4 sm:px-6 sm:py-5'>
             <div className='flex flex-wrap items-center justify-between gap-2'>
               <div className='flex items-center gap-2'>
-                <Activity size={12} className='text-[#D4AF37]' aria-hidden='true' />
+                <Activity size={12} className='text-lime-400' aria-hidden='true' />
                 <h3 className='font-display text-[11px] font-bold uppercase tracking-wide text-white sm:text-xs'>
                   Comparativa técnica
                 </h3>
@@ -549,10 +589,10 @@ export default function FighterComparisonModal({
             </p>
           </section>
 
-          <section className='border-b border-[#D4AF37]/12 px-4 py-4 sm:px-6 sm:py-5'>
+          <section className='border-b border-lime-400/12 px-4 py-4 sm:px-6 sm:py-5'>
             <div className='flex flex-wrap items-center justify-between gap-2'>
               <div className='flex items-center gap-2'>
-                <Target size={12} className='text-[#D4AF37]' aria-hidden='true' />
+                <Target size={12} className='text-lime-400' aria-hidden='true' />
                 <h3 className='font-display text-[11px] font-bold uppercase tracking-wide text-white sm:text-xs'>
                   Cuotas del combate
                 </h3>
@@ -574,7 +614,11 @@ export default function FighterComparisonModal({
             <div className='mt-3 flex flex-wrap items-center justify-between gap-2'>
               <SourceBadge source={source} />
               <p className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
-                Toca una cuota para añadirla al boleto · La ficha sigue abierta
+                {isClosed
+                  ? isFinished
+                    ? 'Combate finalizado · mercados cerrados'
+                    : 'Combate suspendido · mercados cerrados'
+                  : 'Toca una cuota para añadirla al boleto · La ficha sigue abierta'}
               </p>
             </div>
           </section>
@@ -586,7 +630,7 @@ export default function FighterComparisonModal({
             <button
               type='button'
               onClick={onClose}
-              className='border border-[#D4AF37]/30 bg-[#D4AF37]/[0.06] px-3 py-1.5 font-mono text-[8px] font-bold uppercase tracking-wide text-[#FFD700] transition-colors duration-150 hover:bg-[#D4AF37]/[0.12] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D4AF37]'
+              className='border border-lime-400/30 bg-lime-400/[0.06] px-3 py-1.5 font-mono text-[8px] font-bold uppercase tracking-wide text-lime-400 transition-colors duration-150 hover:bg-lime-400/[0.12] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400'
             >
               Volver a la cartelera
             </button>

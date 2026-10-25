@@ -92,6 +92,10 @@ public static class DependencyInjection
         services.AddHostedService<InboxProcessor>();
         services.AddHostedService<PayoutWorker>();
 
+        // Ciclo de vida de combates + reloj en vivo (SignalR FightHub).
+        services.Configure<FightLiveUpdateOptions>(configuration.GetSection("FightLiveUpdates"));
+        services.AddHostedService<FightLiveUpdateWorker>();
+
         // Idempotent UFC card seed, configurable per environment.
         services.Configure<UfcSeedOptions>(configuration.GetSection("Seeding:Ufc"));
         services.AddHostedService<UfcCardSeeder>();

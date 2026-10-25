@@ -40,11 +40,12 @@ public sealed class GetEventsQueryHandler : IRequestHandler<GetEventsQuery, Even
             pageSize,
             cancellationToken);
 
+        var now = DateTimeOffset.UtcNow;
         var items = events
             .OrderByDescending(@event => @event.StartTime)
             .ThenBy(@event => @event.Bout?.BillingOrder ?? int.MaxValue)
             .ThenBy(@event => @event.Name, StringComparer.Ordinal)
-            .Select(EventReadMapper.ToDto)
+            .Select(@event => EventReadMapper.ToDto(@event, now))
             .ToList();
 
         return new EventPageDto(items, total, page, pageSize);

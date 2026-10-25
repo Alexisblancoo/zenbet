@@ -146,7 +146,7 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
             if (market is null ||
                 market.Status != MarketStatus.Open ||
                 @event is null ||
-                @event.Status is EventStatus.Finished or EventStatus.Cancelled or EventStatus.Void ||
+                !@event.IsBettingOpen(DateTimeOffset.UtcNow) ||
                 selection.SettlementResult is not null)
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);

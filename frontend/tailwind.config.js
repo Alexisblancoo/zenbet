@@ -108,6 +108,16 @@ export default {
           DEFAULT: token('--zb-electric-500'),
           soft: token('--zb-electric-400'),
         },
+        /* Verde lima de acción (#D4FF3F). */
+        lime: {
+          DEFAULT: token('--zb-lime-400'),
+          100: token('--zb-lime-100'),
+          200: token('--zb-lime-200'),
+          400: token('--zb-lime-400'),
+          500: token('--zb-lime-500'),
+          600: token('--zb-lime-600'),
+          glow: 'rgb(var(--zb-lime-400) / 0.45)',
+        },
         state: {
           success: token('--zb-positive'),
           danger: token('--zb-negative'),
@@ -204,6 +214,8 @@ export default {
         'odds-up': 'var(--zb-shadow-up)',
         'odds-down': 'var(--zb-shadow-down)',
         live: 'var(--zb-shadow-live)',
+        'glow-lime': 'var(--zb-glow-lime)',
+        'glow-lime-sm': 'var(--zb-glow-lime-sm)',
         /* Compatibilidad con los nombres existentes del producto. */
         'brutal-crimson': '4px 4px 0px 0px rgb(var(--zb-crimson-500))',
         'brutal-crimson-lg': '6px 6px 0px 0px rgb(var(--zb-crimson-500))',

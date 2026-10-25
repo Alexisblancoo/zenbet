@@ -43,7 +43,7 @@ export default function CardSelector({ cards, activeKey, onSelect }: CardSelecto
     >
       <div className='flex flex-wrap items-center justify-between gap-2'>
         <div className='flex min-w-0 items-center gap-2.5'>
-          <span className='shibuya-kicker text-crimson'>/ Próximas carteleras</span>
+          <span className='shibuya-kicker text-crimson'>/ Carteleras</span>
           <span className='h-px w-8 bg-linear-to-r from-crimson/45 to-transparent' aria-hidden='true' />
           <h2
             id='upcoming-cards-title'
@@ -64,6 +64,13 @@ export default function CardSelector({ cards, activeKey, onSelect }: CardSelecto
         {cards.map((card) => {
           const active = card.key === activeKey;
           const number = ufcCardNumber(card.competition);
+          const statusLabel = card.isFinished
+            ? 'Finalizado'
+            : card.status === 'live'
+              ? `En vivo · ${card.liveCount}`
+              : card.status === 'suspended'
+                ? 'Suspendido'
+                : null;
 
           return (
             <button
@@ -107,6 +114,22 @@ export default function CardSelector({ cards, activeKey, onSelect }: CardSelecto
               <span className='mt-1.5 line-clamp-1 font-display text-[12px] font-bold uppercase tracking-tight text-white'>
                 {card.competition}
               </span>
+              {statusLabel && (
+                <span
+                  className={`mt-1 inline-flex w-fit items-center gap-1 border px-1 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide ${
+                    card.isFinished
+                      ? 'border-white/10 bg-white/[0.03] text-metallic-slate'
+                      : card.status === 'live'
+                        ? 'border-lime-400/35 bg-lime-400/[0.08] text-lime-400'
+                        : 'border-white/[0.08] bg-white/[0.025] text-metallic-titanium'
+                  }`}
+                >
+                  {card.status === 'live' && !card.isFinished && (
+                    <span className='h-1.5 w-1.5 animate-pulse rounded-full bg-lime-400' aria-hidden='true' />
+                  )}
+                  {statusLabel}
+                </span>
+              )}
               <span className='mt-0.5 line-clamp-1 font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
                 {shortFighterName(card.mainEvent.bout.red.name)} vs.{' '}
                 {shortFighterName(card.mainEvent.bout.blue.name)}

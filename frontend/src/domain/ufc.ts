@@ -85,11 +85,63 @@ export interface UfcEvent {
   readonly sportKey: string;
   readonly status: string;
   readonly startTime: string;
+  /** Cierre estimado por el backend; no es la hora oficial del resultado. */
+  readonly endsAt: string;
+  readonly isExpired: boolean;
+  readonly isBettingOpen: boolean;
+  readonly result: UfcFightResult | null;
+  readonly clock: UfcFightClock | null;
   readonly competition: string | null;
   readonly bout: UfcBout;
   readonly markets: readonly UfcMarket[];
   readonly oddsUpdatedAt: string | null;
 }
+
+/** Resultado oficial publicado por la API. */
+export interface UfcFightResult {
+  readonly winnerCorner: 'red' | 'blue' | string;
+  readonly winnerName: string;
+  readonly method: string;
+  readonly methodLabel: string;
+  readonly round: number;
+  readonly recordedAt: string;
+}
+
+/** Latido del reloj calculado en servidor. */
+export interface UfcFightClock {
+  readonly eventId: string;
+  readonly status: string;
+  readonly round: number | null;
+  readonly clock: string | null;
+  readonly elapsedSeconds: number;
+  readonly startTime: string;
+  readonly endsAt: string;
+  readonly serverTime: string;
+}
+
+/** Evento `ReceiveFightUpdate` del FightHub. */
+export interface UfcFightUpdate {
+  readonly eventId: string;
+  readonly status: string;
+  readonly isExpired: boolean;
+  readonly isBettingOpen: boolean;
+  readonly startTime: string;
+  readonly endsAt: string;
+  readonly result: UfcFightResult | null;
+  readonly updatedAt: string;
+}
+
+/** Evento `ReceiveCardUpdate` del FightHub. */
+export interface UfcCardUpdate {
+  readonly cardKey: string;
+  readonly status: string;
+  readonly totalCount: number;
+  readonly liveCount: number;
+  readonly finishedCount: number;
+  readonly isBettingOpen: boolean;
+  readonly updatedAt: string;
+}
+
 
 export interface UfcEventsPage {
   readonly items: readonly UfcEvent[];
@@ -138,6 +190,11 @@ export interface UfcCard {
   readonly location: string;
   readonly marketCount: number;
   readonly selectionCount: number;
+  readonly status: 'scheduled' | 'live' | 'finished' | string;
+  readonly isFinished: boolean;
+  readonly isBettingOpen: boolean;
+  readonly liveCount: number;
+  readonly finishedCount: number;
 }
 
 export type UfcMarketTypeKey =
@@ -225,6 +282,205 @@ function readNumber(value: unknown): number | null {
 
 function readBoolean(value: unknown): boolean {
   return value === true;
+}
+
+function readOptionalBoolean(value: unknown): boolean | null {
+  return typeof value === 'boolean' ? value : null;
+}
+
+const TERMINAL_EVENT_STATUSES = new Set(['finished', 'cancelled', 'void']);
+const LIVE_EVENT_STATUSES = new Set(['live', 'suspended']);
+
+/** Estados en los que el combate ya no puede aceptar picks. */
+export function isTerminalEventStatus(status: string): boolean {
+  return TERMINAL_EVENT_STATUSES.has(status.toLowerCase());
+}
+
+/**
+ * Ventana de seguridad espejo de la API. Solo se usa cuando el payload no
+ * incluye `endsAt` (por ejemplo, una API antigua o un fixture incompleto).
+ */
+export function estimateFightEnd(startTime: string, scheduledRounds: number): string {
+  const start = new Date(startTime);
+  if (Number.isNaN(start.getTime())) return startTime;
+
+  const minutes = scheduledRounds >= 5 ? 75 : 60;
+  return new Date(start.getTime() + minutes * 60_000).toISOString();
+}
+
+function hasReached(value: string, nowMs = Date.now()): boolean {
+  const timestamp = new Date(value).getTime();
+  return !Number.isNaN(timestamp) && timestamp <= nowMs;
+}
+
+function normalizeFightResult(value: unknown): UfcFightResult | null {
+  const raw = asRecord(value);
+  if (!raw) return null;
+
+  const winnerCorner = readString(raw.winnerCorner);
+  const winnerName = readString(raw.winnerName);
+  const method = readString(raw.method);
+  const methodLabel = readString(raw.methodLabel);
+  const round = readNumber(raw.round);
+  const recordedAt = readString(raw.recordedAt);
+
+  if (!winnerCorner || !winnerName || !method || !methodLabel || round === null || !recordedAt) {
+    return null;
+  }
+
+  return {
+    winnerCorner,
+    winnerName,
+    method,
+    methodLabel,
+    round,
+    recordedAt,
+  };
+}
+
+export function normalizeFightClock(payload: unknown): UfcFightClock | null {
+  const raw = asRecord(payload);
+  if (!raw) return null;
+
+  const eventId = readString(raw.eventId);
+  const status = readString(raw.status);
+  const startTime = readString(raw.startTime);
+  const endsAt = readString(raw.endsAt);
+  const serverTime = readString(raw.serverTime);
+  if (!eventId || !status || !startTime || !endsAt || !serverTime) return null;
+
+  return {
+    eventId,
+    status,
+    round: readNumber(raw.round),
+    clock: readString(raw.clock),
+    elapsedSeconds: readNumber(raw.elapsedSeconds) ?? 0,
+    startTime,
+    endsAt,
+    serverTime,
+  };
+}
+
+export function normalizeFightUpdate(payload: unknown): UfcFightUpdate | null {
+  const raw = asRecord(payload);
+  if (!raw) return null;
+
+  const eventId = readString(raw.eventId);
+  const status = readString(raw.status);
+  const startTime = readString(raw.startTime);
+  const endsAt = readString(raw.endsAt);
+  const updatedAt = readString(raw.updatedAt);
+  if (!eventId || !status || !startTime || !endsAt || !updatedAt) return null;
+
+  const isExpired =
+    isTerminalEventStatus(status) ||
+    (readOptionalBoolean(raw.isExpired) ?? hasReached(endsAt));
+  const isBettingOpen =
+    !isExpired &&
+    status.toLowerCase() !== 'suspended' &&
+    (readOptionalBoolean(raw.isBettingOpen) ??
+      (status === 'scheduled' || status === 'live'));
+
+  return {
+    eventId,
+    status,
+    isExpired,
+    isBettingOpen,
+    startTime,
+    endsAt,
+    result: normalizeFightResult(raw.result),
+    updatedAt,
+  };
+}
+
+export function normalizeCardUpdate(payload: unknown): UfcCardUpdate | null {
+  const raw = asRecord(payload);
+  if (!raw) return null;
+
+  const cardKey = readString(raw.cardKey);
+  const status = readString(raw.status);
+  const updatedAt = readString(raw.updatedAt);
+  if (!cardKey || !status || !updatedAt) return null;
+
+  return {
+    cardKey,
+    status,
+    totalCount: readNumber(raw.totalCount) ?? 0,
+    liveCount: readNumber(raw.liveCount) ?? 0,
+    finishedCount: readNumber(raw.finishedCount) ?? 0,
+    isBettingOpen: readBoolean(raw.isBettingOpen),
+    updatedAt,
+  };
+}
+
+/** Aplica un `ReceiveFightUpdate` y/o un `ReceiveFightClock` a un evento. */
+export function applyFightUpdate(
+  event: UfcEvent,
+  update: UfcFightUpdate | null | undefined,
+  clock: UfcFightClock | null | undefined,
+): UfcEvent {
+  if (!update && !clock) return event;
+
+  const nextStatus = update?.status ?? clock?.status ?? event.status;
+  const nextEndsAt = update?.endsAt ?? clock?.endsAt ?? event.endsAt;
+  const nextExpired =
+    isTerminalEventStatus(nextStatus) ||
+    (update?.isExpired ?? (event.isExpired || hasReached(nextEndsAt)));
+  const nextOpen =
+    !nextExpired &&
+    nextStatus !== 'suspended' &&
+    (update?.isBettingOpen ?? event.isBettingOpen);
+
+  return {
+    ...event,
+    status: nextStatus,
+    startTime: update?.startTime ?? event.startTime,
+    endsAt: nextEndsAt,
+    isExpired: nextExpired,
+    isBettingOpen: nextOpen,
+    result: update?.result ?? event.result,
+    clock: clock ?? event.clock,
+  };
+}
+
+/**
+ * Cruza la cartelera con los mapas del FightHub. No crea eventos nuevos: solo
+ * enriquece los que ya conoce la API.
+ */
+export function applyFightUpdates(
+  events: readonly UfcEvent[],
+  updates: Readonly<Record<string, UfcFightUpdate>>,
+  clocks: Readonly<Record<string, UfcFightClock>>,
+): readonly UfcEvent[] {
+  let changed = false;
+  const next = events.map((event) => {
+    const update = updates[event.id];
+    const clock = clocks[event.id];
+    if (!update && !clock) return event;
+
+    changed = true;
+    return applyFightUpdate(event, update, clock);
+  });
+
+  return changed ? next : events;
+}
+
+export function formatFightClock(clock: UfcFightClock | null): string | null {
+  if (!clock || clock.status !== 'live') return null;
+  if (clock.round !== null && clock.clock) return `R${clock.round} · ${clock.clock}`;
+  return 'En vivo';
+}
+
+export function fightStatusLabel(event: Pick<UfcEvent, 'status' | 'isExpired'>): string {
+  if (event.isExpired || isTerminalEventStatus(event.status)) return 'Finalizado';
+  if (event.status === 'suspended') return 'Suspendido';
+  if (LIVE_EVENT_STATUSES.has(event.status.toLowerCase())) return 'En vivo';
+  return 'Programado';
+}
+
+export function fightResultLabel(result: UfcFightResult | null): string | null {
+  if (!result) return null;
+  return `Ganó ${result.winnerName} · ${result.methodLabel} · R${result.round}`;
 }
 
 export interface FighterRecordBreakdown {
@@ -425,13 +681,29 @@ function normalizeEvent(value: unknown): UfcEvent | null {
         .sort((a, b) => a.displayOrder - b.displayOrder)
     : [];
 
+  const status = readString(raw.status) ?? 'scheduled';
+  const endsAt = readString(raw.endsAt) ?? estimateFightEnd(startTime, bout.scheduledRounds);
+  const isExpired =
+    isTerminalEventStatus(status) ||
+    (readOptionalBoolean(raw.isExpired) ?? hasReached(endsAt));
+  const isBettingOpen =
+    !isExpired &&
+    status.toLowerCase() !== 'suspended' &&
+    (readOptionalBoolean(raw.isBettingOpen) ??
+      (status === 'scheduled' || status === 'live'));
+
   return {
     id,
     name,
     sport: readString(raw.sport) ?? 'MMA',
     sportKey: readString(raw.sportKey) ?? 'mma',
-    status: readString(raw.status) ?? 'scheduled',
+    status,
     startTime,
+    endsAt,
+    isExpired,
+    isBettingOpen,
+    result: normalizeFightResult(raw.result),
+    clock: null,
     competition: readString(raw.competition),
     bout,
     markets,
@@ -547,6 +819,24 @@ export function buildUfcCards(events: readonly UfcEvent[]): readonly UfcCard[] {
           (event) => event.bout.billing === 'main' && event.bout.billingOrder === 1,
         ) ?? sorted[0];
 
+      const finishedCount = sorted.filter(
+        (event) => event.isExpired || isTerminalEventStatus(event.status),
+      ).length;
+      const liveCount = sorted.filter(
+        (event) => event.status === 'live' && !event.isExpired,
+      ).length;
+      const isFinished = sorted.length > 0 && finishedCount === sorted.length;
+      const isBettingOpen = sorted.some(
+        (event) => event.isBettingOpen && !event.isExpired,
+      );
+      const status = isFinished
+        ? 'finished'
+        : liveCount > 0
+          ? 'live'
+          : sorted.some((event) => event.status === 'suspended')
+            ? 'suspended'
+            : 'scheduled';
+
       return {
         key,
         competition: mainEvent.competition ?? mainEvent.name,
@@ -561,17 +851,48 @@ export function buildUfcCards(events: readonly UfcEvent[]): readonly UfcCard[] {
             count + event.markets.reduce((sum, market) => sum + market.selections.length, 0),
           0,
         ),
+        status,
+        isFinished,
+        isBettingOpen,
+        liveCount,
+        finishedCount,
       } satisfies UfcCard;
     })
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
+}
+
+function localDateKey(value: string | Date): string {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return typeof value === 'string' ? value.slice(0, 10) : '';
+  }
+
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
 }
 
 export function findUfcCard(
   cards: readonly UfcCard[],
   key: string | null,
 ): UfcCard | undefined {
-  if (!key) return cards[0];
-  return cards.find((card) => card.key === key) ?? cards[0];
+  if (key) return cards.find((card) => card.key === key) ?? cards[0];
+
+  // Sin selección explícita, prioriza la cartelera que está en vivo; después
+  // la de hoy en la zona local del usuario (aunque ya haya terminado) y, por
+  // último, la siguiente abierta o la más reciente si todas cerraron.
+  const live = cards.find((card) => card.status === 'live' && card.isBettingOpen);
+  if (live) return live;
+
+  const todayKey = localDateKey(new Date());
+  const today = cards.find((card) => localDateKey(card.startTime) === todayKey);
+  if (today) return today;
+
+  return (
+    cards.find((card) => card.isBettingOpen) ??
+    cards[cards.length - 1] ??
+    cards[0]
+  );
 }
 
 export function ufcCardNumber(competition: string): string | null {

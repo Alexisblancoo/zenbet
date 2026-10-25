@@ -24,6 +24,6 @@ public sealed class GetFighterComparisonQueryHandler
             EventId.From(request.EventId),
             cancellationToken);
 
-        return @event is null ? null : EventReadMapper.ToFighterComparisonDto(@event);
+        return @event is null ? null : EventReadMapper.ToFighterComparisonDto(@event, DateTimeOffset.UtcNow);
     }
 }

@@ -26,6 +26,7 @@ export type BetFailureCode =
   | 'EMPTY_SLIP'
   | 'COMBINED_NOT_SUPPORTED'
   | 'ODDS_CHANGED'
+  | 'EVENT_CLOSED'
   | 'INVALID_STAKE'
   | 'WALLET_NOT_LINKED'
   | 'INVALID_SELECTION'
@@ -38,7 +39,7 @@ export type BetFailureCode =
   | 'INVALID_RESPONSE'
   | 'UNKNOWN';
 
-/** Payload que entrega `EventCard` al agregar un pick. */
+/** Payload que entrega `FightCard` al agregar un pick. */
 export interface SelectionInput {
   readonly selectionId?: string;
   readonly id?: string;
@@ -50,6 +51,19 @@ export interface SelectionInput {
   readonly selectionName?: string;
   readonly selection?: string;
   readonly odds?: number | string;
+  readonly eventStatus?: string;
+  readonly eventEndsAt?: string;
+  readonly eventIsExpired?: boolean;
+  readonly eventIsBettingOpen?: boolean;
+}
+
+/** Estado de ciclo de vida que la cartelera sincroniza con el boleto. */
+export interface EventLifecycle {
+  readonly eventId: string;
+  readonly status: string;
+  readonly endsAt: string;
+  readonly isExpired: boolean;
+  readonly isBettingOpen: boolean;
 }
 
 /** Selección tal como la aceptó el usuario al agregarla al boleto. */
@@ -63,6 +77,11 @@ export interface BetSelection {
   /** Cuota aceptada explícitamente (la que el usuario vio al agregar o aceptar). */
   readonly odds: number;
   readonly addedAt: number;
+  /** Copia del ciclo de vida del evento al agregar; se actualiza con el FightHub. */
+  readonly eventStatus: string;
+  readonly eventEndsAt: string;
+  readonly eventIsExpired: boolean;
+  readonly eventIsBettingOpen: boolean;
 }
 
 /** Selección enriquecida con la cotización vigente del hub. */
@@ -145,8 +164,31 @@ export function isUuid(value: string | null | undefined): value is string {
   return typeof value === 'string' && UUID_PATTERN.test(value.trim());
 }
 
+const CLOSED_EVENT_STATUSES = new Set(['finished', 'cancelled', 'void', 'suspended']);
+
 /**
- * Normaliza el pick de `EventCard` al contrato del store.
+ * Un pick deja de ser apostable si el evento terminó, si el backend cerró la
+ * ventana o si la hora estimada de cierre ya pasó. La comprobación local es
+ * una red de seguridad: el backend vuelve a validar al confirmar.
+ */
+export function isSelectionEventClosed(
+  selection: Pick<
+    BetSelection,
+    'eventStatus' | 'eventEndsAt' | 'eventIsExpired' | 'eventIsBettingOpen'
+  >,
+  nowMs = Date.now(),
+): boolean {
+  if (selection.eventIsExpired) return true;
+  if (selection.eventIsBettingOpen === false) return true;
+  if (CLOSED_EVENT_STATUSES.has(selection.eventStatus.toLowerCase())) return true;
+
+  if (!selection.eventEndsAt) return false;
+  const endsAt = new Date(selection.eventEndsAt).getTime();
+  return !Number.isNaN(endsAt) && endsAt <= nowMs;
+}
+
+/**
+ * Normaliza el pick de `FightCard` al contrato del store.
  * Devuelve `null` si falta identidad, evento o una cuota decimal válida.
  */
 export function normalizeSelectionInput(input: SelectionInput): BetSelection | null {
@@ -167,6 +209,10 @@ export function normalizeSelectionInput(input: SelectionInput): BetSelection | n
     marketLabel: readText(input.marketLabel) ?? readText(input.market) ?? 'Moneyline',
     odds,
     addedAt: Date.now(),
+    eventStatus: readText(input.eventStatus) ?? 'scheduled',
+    eventEndsAt: readText(input.eventEndsAt) ?? '',
+    eventIsExpired: input.eventIsExpired === true,
+    eventIsBettingOpen: input.eventIsBettingOpen !== false,
   };
 }
 

@@ -9,6 +9,15 @@ using Zenbet.EventsMarkets.Domain.Common;
 
 public sealed class Event : AggregateRoot<EventId>
 {
+    /// <summary>
+    /// Ventana de seguridad para cerrar un combate sin resultado oficial. La
+    /// UFC publica la hora de inicio de la cartelera, no la duración real de
+    /// cada pelea; estos márgenes cubren walkouts, asaltos y decisiones sin
+    /// dejar mercados abiertos indefinidamente.
+    /// </summary>
+    private static readonly TimeSpan FiveRoundWindow = TimeSpan.FromMinutes(75);
+    private static readonly TimeSpan ThreeRoundWindow = TimeSpan.FromMinutes(60);
+
     private readonly List<Market> _markets = new();
 
     private Event() { } // EF Core
@@ -48,6 +57,42 @@ public sealed class Event : AggregateRoot<EventId>
     public EventStatus Status { get; private set; }
     public uint Version { get; private set; } // Optimistic concurrency token
     public IReadOnlyCollection<Market> Markets => _markets.AsReadOnly();
+
+    /// <summary>
+    /// Cierre estimado del combate. Es una ventana de seguridad, no la hora
+    /// oficial de finalización: el resultado registrado por operaciones tiene
+    /// prioridad y cierra el evento de inmediato.
+    /// </summary>
+    public DateTimeOffset ScheduledEndTime =>
+        StartTime + (Bout is { ScheduledRounds: >= 5 } ? FiveRoundWindow : ThreeRoundWindow);
+
+    /// <summary>
+    /// Estado efectivo según el reloj. La persistencia sigue siendo la fuente
+    /// de verdad; este cálculo evita que una API o una UI sin worker muestren
+    /// mercados abiertos después de la ventana de seguridad.
+    /// </summary>
+    public EventStatus EffectiveStatus(DateTimeOffset now)
+    {
+        if (Status is EventStatus.Finished or EventStatus.Cancelled or EventStatus.Void)
+            return Status;
+
+        if (now >= ScheduledEndTime)
+            return EventStatus.Finished;
+
+        if (Status == EventStatus.Suspended)
+            return EventStatus.Suspended;
+
+        return now >= StartTime ? EventStatus.Live : EventStatus.Scheduled;
+    }
+
+    /// <summary>Un evento cerrado o fuera de su ventana ya no acepta apuestas.</summary>
+    public bool IsExpired(DateTimeOffset now) =>
+        Status is EventStatus.Finished or EventStatus.Cancelled or EventStatus.Void ||
+        now >= ScheduledEndTime;
+
+    /// <summary>Los mercados solo aceptan picks mientras el evento está abierto.</summary>
+    public bool IsBettingOpen(DateTimeOffset now) =>
+        (Status is EventStatus.Scheduled or EventStatus.Live) && !IsExpired(now);
 
     public Market AddMarket(string name, MarketType type, IReadOnlyList<Selection> selections)
         => AddMarket(MarketId.New(), name, type, selections);
@@ -117,13 +162,22 @@ public sealed class Event : AggregateRoot<EventId>
 
         if (Result is not null)
         {
-            if (Result.Matches(result.WinnerCorner, result.Method, result.Round)) return;
+            if (!Result.Matches(result.WinnerCorner, result.Method, result.Round))
+            {
+                throw new InvalidOperationException(
+                    "El evento ya tiene un resultado oficial distinto. No se puede reescribir.");
+            }
 
-            throw new InvalidOperationException(
-                "El evento ya tiene un resultado oficial distinto. No se puede reescribir.");
+            // Reintento idempotente: si el resultado ya estaba guardado pero el
+            // estado no llegó a cerrarse, completa la transición.
+            if (Status is not EventStatus.Finished and not EventStatus.Cancelled and not EventStatus.Void)
+                UpdateStatus(EventStatus.Finished);
+
+            return;
         }
 
         Result = result;
+        AddDomainEvent(new MmaResultRecordedDomainEvent(Id, result.RecordedAt));
 
         if (Status is not EventStatus.Finished and not EventStatus.Cancelled and not EventStatus.Void)
             UpdateStatus(EventStatus.Finished);
@@ -141,6 +195,19 @@ public sealed class Event : AggregateRoot<EventId>
     {
         if (Status != EventStatus.Live)
             throw new InvalidOperationException($"Cannot finish event in status {Status}");
+
+        UpdateStatus(EventStatus.Finished);
+    }
+
+    /// <summary>
+    /// Cierra por vencimiento de la ventana de seguridad. Es idempotente para
+    /// que el worker pueda reintentar tras un reinicio o una carrera con la
+    /// ingesta del resultado oficial.
+    /// </summary>
+    public void Expire()
+    {
+        if (Status is EventStatus.Finished or EventStatus.Cancelled or EventStatus.Void)
+            return;
 
         UpdateStatus(EventStatus.Finished);
     }

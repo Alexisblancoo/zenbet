@@ -6,12 +6,14 @@ import {
   areOddsEqual,
   calculatePromoBonus,
   countPendingOdds,
+  isSelectionEventClosed,
   normalizeSelectionInput,
   resolvePromoCode,
   roundMoney,
   type BetFailure,
   type BetReceipt,
   type BetSelection,
+  type EventLifecycle,
   type LiveBetSelection,
   type PlaceBetOutcome,
   type SelectionInput,
@@ -106,6 +108,40 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
   /* Acciones del boleto                                                     */
   /* ---------------------------------------------------------------------- */
 
+  const syncEventLifecycle = useCallback((events: readonly EventLifecycle[]) => {
+    if (events.length === 0) return;
+
+    const lifecycleByEvent = new Map(events.map((event) => [event.eventId, event]));
+
+    setSelections((previous) => {
+      let changed = false;
+      const next = previous.map((selection) => {
+        const lifecycle = lifecycleByEvent.get(selection.eventId);
+        if (!lifecycle) return selection;
+
+        if (
+          selection.eventStatus === lifecycle.status &&
+          selection.eventEndsAt === lifecycle.endsAt &&
+          selection.eventIsExpired === lifecycle.isExpired &&
+          selection.eventIsBettingOpen === lifecycle.isBettingOpen
+        ) {
+          return selection;
+        }
+
+        changed = true;
+        return {
+          ...selection,
+          eventStatus: lifecycle.status,
+          eventEndsAt: lifecycle.endsAt,
+          eventIsExpired: lifecycle.isExpired,
+          eventIsBettingOpen: lifecycle.isBettingOpen,
+        };
+      });
+
+      return changed ? next : previous;
+    });
+  }, []);
+
   const addSelection = useCallback((input: SelectionInput) => {
     const selection = normalizeSelectionInput(input);
     if (!selection) return;
@@ -186,6 +222,22 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
       if (!isAuthenticated || !user) return reject(createBetFailure('SESSION_REQUIRED'));
       if (liveSelections.length === 0) return reject(createBetFailure('EMPTY_SLIP'));
       if (liveSelections.length > 1) return reject(createBetFailure('COMBINED_NOT_SUPPORTED'));
+
+      const closedSelection = liveSelections.find((selection) =>
+        isSelectionEventClosed(selection),
+      );
+      if (closedSelection) {
+        return reject(
+          createBetFailure('EVENT_CLOSED', {
+            title:
+              closedSelection.eventStatus === 'suspended'
+                ? 'Combate suspendido'
+                : 'Combate finalizado',
+            message: `${closedSelection.eventName} ya no acepta apuestas. Elimina la selección para continuar.`,
+          }),
+        );
+      }
+
       if (countPendingOdds(liveSelections) > 0) return reject(createBetFailure('ODDS_CHANGED'));
 
       const selection = liveSelections[0];
@@ -297,6 +349,7 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
       receipt,
       receipts,
       setVisibleMarkets,
+      syncEventLifecycle,
       addSelection,
       removeSelection,
       keepOnlySelection,
@@ -316,6 +369,7 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
       receipt,
       receipts,
       setVisibleMarkets,
+      syncEventLifecycle,
       addSelection,
       removeSelection,
       keepOnlySelection,

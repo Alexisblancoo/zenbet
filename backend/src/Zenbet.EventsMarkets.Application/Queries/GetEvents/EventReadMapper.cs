@@ -7,30 +7,37 @@ using Zenbet.EventsMarkets.Domain.ValueObjects;
 
 internal static class EventReadMapper
 {
-    public static EventDto ToDto(Event @event)
+    public static EventDto ToDto(Event @event, DateTimeOffset? now = null)
     {
+        var instant = now ?? DateTimeOffset.UtcNow;
+
         return new EventDto(
             @event.Id.Value,
             @event.Name,
             SportLabel(@event.SportType),
             SportKey(@event.SportType),
-            @event.Status.ToString().ToLowerInvariant(),
+            FightRealtimeMapper.StatusKey(@event.EffectiveStatus(instant)),
             @event.StartTime,
             @event.Competition,
             @event.Bout is null ? null : ToDto(@event.Bout),
             MapMarkets(@event),
-            LastOddsUpdate(@event));
+            LastOddsUpdate(@event),
+            @event.ScheduledEndTime,
+            @event.IsExpired(instant),
+            @event.IsBettingOpen(instant),
+            FightRealtimeMapper.ToResult(@event));
     }
 
     /// <summary>
     /// Proyección Head-to-Head. Devuelve null para eventos sin metadatos de
     /// combate; la capa HTTP lo traduce a 404.
     /// </summary>
-    public static FighterComparisonDto? ToFighterComparisonDto(Event @event)
+    public static FighterComparisonDto? ToFighterComparisonDto(Event @event, DateTimeOffset? now = null)
     {
         if (@event.Bout is null)
             return null;
 
+        var instant = now ?? DateTimeOffset.UtcNow;
         var bout = @event.Bout;
         var division = WeightDivisionCatalog.Get(bout.Division);
 
@@ -38,7 +45,7 @@ internal static class EventReadMapper
             @event.Id.Value,
             @event.Name,
             @event.Competition,
-            @event.Status.ToString().ToLowerInvariant(),
+            FightRealtimeMapper.StatusKey(@event.EffectiveStatus(instant)),
             @event.StartTime,
             division.Slug,
             division.Label,
@@ -52,7 +59,11 @@ internal static class EventReadMapper
             ToDto(bout.Red),
             ToDto(bout.Blue),
             MapMarkets(@event),
-            LastOddsUpdate(@event));
+            LastOddsUpdate(@event),
+            @event.ScheduledEndTime,
+            @event.IsExpired(instant),
+            @event.IsBettingOpen(instant),
+            FightRealtimeMapper.ToResult(@event));
     }
 
     private static IReadOnlyList<MarketDto> MapMarkets(Event @event) =>

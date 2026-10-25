@@ -37,6 +37,7 @@ import {
   DEFAULT_MAX_STAKE,
   DEFAULT_MIN_STAKE,
   getStakeIssue,
+  isSelectionEventClosed,
   parseStakeInput,
   resolvePromoCode,
   roundMoney,
@@ -119,11 +120,11 @@ export default function BetSlip({
   const [tourOpen, setTourOpen] = useState(false);
   const closeTour = useCallback(() => setTourOpen(false), []);
 
-  useEffect(() => {
-    // Si el usuario vacía el boleto mientras está contraído, el panel debe
-    // volver al estado vacío expandido y no quedar atrapado en "contraído".
-    if (selections.length === 0) setIsCollapsed(false);
-  }, [selections.length]);
+  // Si el usuario vacía el boleto mientras está contraído, el panel vuelve al
+  // estado vacío expandido en el mismo render, sin un efecto intermedio.
+  if (selections.length === 0 && isCollapsed) {
+    setIsCollapsed(false);
+  }
 
   useEffect(() => {
     if (!tourEnabled) return undefined;
@@ -218,6 +219,14 @@ export default function BetSlip({
 
   const pendingCount = countPendingOdds(selections);
   const hasPendingOdds = pendingCount > 0;
+  const closedSelections = selections.filter((selection) =>
+    isSelectionEventClosed(selection),
+  );
+  const closedSelectionCount = closedSelections.length;
+  const hasClosedSelections = closedSelectionCount > 0;
+  const allClosedSuspended =
+    hasClosedSelections &&
+    closedSelections.every((selection) => selection.eventStatus === 'suspended');
 
   const totalOdds = calculateTotalOdds(selections);
   const basePotentialPayout = calculatePotentialPayout(stake, selections);
@@ -234,6 +243,7 @@ export default function BetSlip({
     isAuthenticated &&
       isSingle &&
       activeTab === 'single' &&
+      !hasClosedSelections &&
       !hasPendingOdds &&
       !isPlacingBet &&
       !receipt &&
@@ -243,7 +253,9 @@ export default function BetSlip({
       termsAccepted,
   );
 
-  const primaryDisabled = isAuthenticated ? !canSubmit : false;
+  // Un evento cerrado bloquea el CTA incluso sin sesión: no debe abrir el
+  // registro como si la selección todavía fuera apostable.
+  const primaryDisabled = hasClosedSelections || (isAuthenticated ? !canSubmit : false);
 
   let stakeError: string | null = null;
   if (stakeIssue === 'invalid') stakeError = 'Ingresa un monto válido.';
@@ -276,6 +288,12 @@ export default function BetSlip({
   };
 
   const handleMax = () => applyStake(maxQuickStake);
+
+  const handleRemoveClosed = () => {
+    for (const selection of selections) {
+      if (isSelectionEventClosed(selection)) removeSelection(selection.selectionId);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!canSubmit || stake === null) return;
@@ -383,7 +401,7 @@ export default function BetSlip({
               <Tag size={12} aria-hidden='true' />
               Código promocional
             </span>
-            <span className='inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-brutal text-[#D4AF37]'>
+            <span className='inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-brutal text-lime-400'>
               <Sparkles size={11} aria-hidden='true' />
               {promoOpen ? 'Cerrar' : 'Agregar'}
             </span>
@@ -410,13 +428,13 @@ export default function BetSlip({
                 disabled={isPlacingBet}
                 aria-label='Código promocional'
                 aria-invalid={Boolean(promoError)}
-                className='min-w-0 flex-1 border border-obsidian-border bg-obsidian-void px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wide text-white placeholder:normal-case placeholder:tracking-normal placeholder:text-metallic-slate focus:border-[#D4AF37] focus:outline-none focus:ring-1 focus:ring-[#D4AF37]/60 disabled:cursor-not-allowed disabled:opacity-60'
+                className='min-w-0 flex-1 border border-obsidian-border bg-obsidian-void px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wide text-white placeholder:normal-case placeholder:tracking-normal placeholder:text-metallic-slate focus:border-lime-400 focus:outline-none focus:ring-1 focus:ring-lime-400/60 disabled:cursor-not-allowed disabled:opacity-60'
               />
               <button
                 type='button'
                 onClick={handleApplyPromo}
                 disabled={isPlacingBet || !promoInput.trim()}
-                className='shrink-0 border border-[#D4AF37]/50 bg-[#D4AF37]/10 px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-[#FFD700] transition-colors duration-150 hover:bg-[#D4AF37]/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FFD700] disabled:cursor-not-allowed disabled:opacity-40'
+                className='shrink-0 border border-lime-400/50 bg-lime-400/10 px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-lime-400 transition-colors duration-150 hover:bg-lime-400/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400 disabled:cursor-not-allowed disabled:opacity-40'
               >
                 Aplicar
               </button>
@@ -498,7 +516,7 @@ export default function BetSlip({
               type='button'
               onClick={() => setTourOpen(true)}
               aria-label='Abrir guía del boleto'
-              className='border border-transparent p-1.5 text-metallic-slate transition-colors duration-150 hover:border-[#D4AF37]/40 hover:text-[#FFD700] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FFD700]'
+              className='border border-transparent p-1.5 text-metallic-slate transition-colors duration-150 hover:border-lime-400/40 hover:text-lime-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400'
             >
               <HelpCircle size={13} aria-hidden='true' />
             </button>
@@ -512,7 +530,7 @@ export default function BetSlip({
               aria-expanded={!isCollapsed}
               aria-controls={panelId}
               aria-label={isCollapsed ? 'Expandir boleto' : 'Contraer boleto'}
-              className='border border-transparent p-1.5 text-metallic-slate transition-colors duration-150 hover:border-[#D4AF37]/40 hover:text-[#FFD700] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FFD700]'
+              className='border border-transparent p-1.5 text-metallic-slate transition-colors duration-150 hover:border-lime-400/40 hover:text-lime-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400'
             >
               {isCollapsed ? (
                 <ChevronDown size={14} aria-hidden='true' />
@@ -613,7 +631,7 @@ export default function BetSlip({
                 <dt className='text-[10px] uppercase tracking-brutal text-metallic-slate'>
                   Código promo
                 </dt>
-                <dd className='inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wide text-[#FFD700]'>
+                <dd className='inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wide text-lime-400'>
                   <Tag size={11} aria-hidden='true' />
                   {receipt.promoCode}
                 </dd>
@@ -624,7 +642,7 @@ export default function BetSlip({
                 <dt className='text-[10px] uppercase tracking-brutal text-metallic-slate'>
                   Bono promocional
                 </dt>
-                <dd className='font-mono text-sm font-bold tabular-nums text-[#FFD700]'>
+                <dd className='font-mono text-sm font-bold tabular-nums text-lime-400'>
                   +{formatMoney(receipt.promoBonus)}
                 </dd>
               </div>
@@ -677,7 +695,7 @@ export default function BetSlip({
       ) : isCollapsed ? (
         <div className='flex min-h-0 flex-1 flex-col'>
           <div className='flex flex-1 flex-col items-center justify-center gap-3 px-6 py-8 text-center'>
-            <span className='grid h-11 w-11 place-items-center border border-[#D4AF37]/35 bg-[#D4AF37]/10 text-[#FFD700]'>
+            <span className='grid h-11 w-11 place-items-center border border-lime-400/35 bg-lime-400/10 text-lime-400'>
               <Ticket size={19} aria-hidden='true' />
             </span>
             <p className='font-display text-xs font-bold uppercase tracking-wide text-white'>
@@ -691,7 +709,7 @@ export default function BetSlip({
               type='button'
               data-tour='slip-expand'
               onClick={() => setIsCollapsed(false)}
-              className='mt-1 inline-flex min-h-10 items-center gap-1.5 border border-[#D4AF37]/45 bg-[#D4AF37]/10 px-3.5 font-display text-[10px] font-bold uppercase tracking-wide text-[#FFD700] transition-colors duration-150 hover:bg-[#D4AF37]/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#FFD700]'
+              className='mt-1 inline-flex min-h-10 items-center gap-1.5 border border-lime-400/45 bg-lime-400/10 px-3.5 font-display text-[10px] font-bold uppercase tracking-wide text-lime-400 transition-colors duration-150 hover:bg-lime-400/20 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400'
             >
               <ChevronDown size={13} aria-hidden='true' />
               Expandir boleto
@@ -720,7 +738,7 @@ export default function BetSlip({
               </span>
             </div>
             {appliedPromo && promoBonus > 0 ? (
-              <p className='mt-1.5 text-right font-mono text-[9px] uppercase tracking-wide text-[#FFD700]'>
+              <p className='mt-1.5 text-right font-mono text-[9px] uppercase tracking-wide text-lime-400'>
                 Incluye +{formatMoney(promoBonus)} de {appliedPromo.code}
               </p>
             ) : null}
@@ -745,7 +763,7 @@ export default function BetSlip({
                   onClick={() => handleTabChange('single')}
                   className={`flex min-h-8 items-center justify-center gap-1.5 rounded-full px-2 font-display text-[10px] font-bold uppercase tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson ${
                     activeTab === 'single'
-                      ? 'bg-white text-[#07090E] shadow-[0_8px_20px_-12px_rgba(255,255,255,0.55)]'
+                      ? 'bg-white text-[#0D0D0D] shadow-[0_8px_20px_-12px_rgba(255,255,255,0.55)]'
                       : 'text-metallic-slate hover:bg-white/[0.04] hover:text-white'
                   }`}
                 >
@@ -769,7 +787,7 @@ export default function BetSlip({
                   onClick={() => handleTabChange('combined')}
                   className={`flex min-h-8 items-center justify-center gap-1.5 rounded-full px-2 font-display text-[10px] font-bold uppercase tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson disabled:cursor-not-allowed disabled:opacity-35 ${
                     activeTab === 'combined'
-                      ? 'bg-white text-[#07090E] shadow-[0_8px_20px_-12px_rgba(255,255,255,0.55)]'
+                      ? 'bg-white text-[#0D0D0D] shadow-[0_8px_20px_-12px_rgba(255,255,255,0.55)]'
                       : 'text-metallic-slate hover:bg-white/[0.04] hover:text-white'
                   }`}
                 >
@@ -821,11 +839,14 @@ export default function BetSlip({
                   {selections.map((selection) => {
                     const changed = !areOddsEqual(selection.odds, selection.liveOdds);
                     const direction = selection.liveOdds > selection.odds ? 'up' : 'down';
+                    const closed = isSelectionEventClosed(selection);
 
                     return (
                       <li
                         key={selection.selectionId}
-                        className='flex items-start gap-3 px-4 py-3'
+                        className={`flex items-start gap-3 px-4 py-3 ${
+                          closed ? 'bg-[#050505] opacity-65 grayscale' : ''
+                        }`}
                       >
                         <div className='min-w-0 flex-1'>
                           <p className='truncate font-mono text-[9px] uppercase tracking-brutal text-metallic-slate'>
@@ -837,6 +858,13 @@ export default function BetSlip({
                           <p className='mt-0.5 text-[10px] uppercase tracking-wide text-metallic-titanium'>
                             {selection.marketLabel}
                           </p>
+                          {closed && (
+                            <span className='mt-1 inline-flex border border-white/10 bg-white/[0.03] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-metallic-slate'>
+                              {selection.eventStatus === 'suspended'
+                                ? 'Suspendido · sin apuestas'
+                                : 'Finalizado · sin apuestas'}
+                            </span>
+                          )}
                           {activeTab === 'single' && selections.length > 1 && (
                             <button
                               type='button'
@@ -906,6 +934,46 @@ export default function BetSlip({
                     );
                   })}
                 </ul>
+
+                {/* Alerta de combate finalizado */}
+                {hasClosedSelections && (
+                  <div
+                    role='status'
+                    className='shrink-0 border-y border-white/[0.08] bg-[#050505] px-4 py-3'
+                  >
+                    <div className='flex items-start gap-2'>
+                      <LockKeyhole
+                        size={13}
+                        className='mt-0.5 shrink-0 text-metallic-slate'
+                        aria-hidden='true'
+                      />
+                      <div className='min-w-0 flex-1'>
+                        <p className='font-mono text-[10px] font-bold uppercase tracking-brutal text-metallic-titanium'>
+                          {allClosedSuspended
+                            ? closedSelectionCount === 1
+                              ? 'El combate se suspendió'
+                              : `${closedSelectionCount} combates suspendidos`
+                            : closedSelectionCount === 1
+                              ? 'El combate finalizó'
+                              : `${closedSelectionCount} combates finalizaron`}
+                        </p>
+                        <p className='mt-1 text-[10px] leading-relaxed text-metallic-slate'>
+                          Los mercados cerrados ya no aceptan apuestas. Quita las selecciones
+                          cerradas para continuar.
+                        </p>
+                        <button
+                          type='button'
+                          onClick={handleRemoveClosed}
+                          disabled={isPlacingBet}
+                          className='mt-2 inline-flex items-center gap-1.5 border border-white/[0.12] bg-white/[0.03] px-2.5 py-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-metallic-titanium transition-colors duration-150 hover:border-white/25 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/40 disabled:cursor-not-allowed disabled:opacity-40'
+                        >
+                          <Trash2 size={11} aria-hidden='true' />
+                          Quitar selecciones cerradas
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Alerta de cuota cambiada */}
                 {hasPendingOdds && (
@@ -979,7 +1047,7 @@ export default function BetSlip({
                         </span>
                       </div>
                       {appliedPromo && promoBonus > 0 ? (
-                        <p className='border-b border-obsidian-border/60 bg-[#D4AF37]/[0.04] px-4 py-1.5 text-right font-mono text-[9px] uppercase tracking-wide text-[#FFD700]'>
+                        <p className='border-b border-obsidian-border/60 bg-lime-400/[0.04] px-4 py-1.5 text-right font-mono text-[9px] uppercase tracking-wide text-lime-400'>
                           Incluye +{formatMoney(promoBonus)} de {appliedPromo.code}
                         </p>
                       ) : null}
@@ -1199,18 +1267,23 @@ export default function BetSlip({
                           disabled={primaryDisabled}
                           aria-disabled={primaryDisabled}
                           aria-busy={isPlacingBet}
-                          className={`mt-3.5 flex min-h-12 w-full items-center justify-center gap-2 px-4 py-3.5 font-display text-xs font-bold uppercase tracking-wide transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70 ${
+                          className={`mt-3.5 flex min-h-12 w-full items-center justify-center gap-2 px-4 py-3.5 font-display text-xs font-bold uppercase tracking-wide transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400/70 ${
                             isPlacingBet
-                              ? 'cursor-wait bg-crimson text-white shadow-glow-crimson'
+                              ? 'cursor-wait bg-lime-500 text-[#0D0D0D] shadow-glow-lime'
                               : primaryDisabled
                                 ? 'cursor-not-allowed border border-obsidian-border bg-obsidian-elevated text-metallic-slate'
-                                : 'bg-crimson-pure text-white shadow-glow-crimson hover:brightness-110 active:translate-y-[1px]'
+                                : 'bg-lime-400 text-[#0D0D0D] shadow-glow-lime hover:bg-lime-500 active:translate-y-[1px]'
                           }`}
                         >
                           {isPlacingBet ? (
                             <>
                               <Loader2 size={15} className='animate-spin' aria-hidden='true' />
                               Confirmando…
+                            </>
+                          ) : hasClosedSelections ? (
+                            <>
+                              <LockKeyhole size={15} aria-hidden='true' />
+                              {allClosedSuspended ? 'Combate suspendido' : 'Combate finalizado'}
                             </>
                           ) : !isAuthenticated ? (
                             <>
@@ -1235,9 +1308,11 @@ export default function BetSlip({
                             !isAuthenticated ? 'text-electric/80' : 'text-metallic-slate'
                           }`}
                         >
-                          {!isAuthenticated
-                            ? 'Tu selección se conserva al iniciar sesión'
-                            : 'Las cuotas pueden variar hasta que confirmes tu apuesta'}
+                          {hasClosedSelections
+                            ? 'Quita las selecciones cerradas para apostar'
+                            : !isAuthenticated
+                              ? 'Tu selección se conserva al iniciar sesión'
+                              : 'Las cuotas pueden variar hasta que confirmes tu apuesta'}
                         </p>
                       </div>
                     )}
@@ -1249,9 +1324,7 @@ export default function BetSlip({
         </>
       )}
 
-      {tourEnabled ? (
-        <BetSlipTour open={tourOpen} onClose={closeTour} />
-      ) : null}
+      {tourEnabled && tourOpen && <BetSlipTour onClose={closeTour} />}
     </aside>
   );
 }

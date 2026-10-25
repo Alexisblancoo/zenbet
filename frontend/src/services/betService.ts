@@ -83,6 +83,10 @@ const FAILURE_COPY: Readonly<Record<BetFailureCode, { title: string; message: st
     title: 'Cuotas desactualizadas',
     message: 'Acepta las nuevas cuotas antes de confirmar la apuesta.',
   },
+  EVENT_CLOSED: {
+    title: 'Combate finalizado',
+    message: 'Este combate ya no acepta apuestas. Elimina la selección para continuar.',
+  },
   INVALID_STAKE: {
     title: 'Monto inválido',
     message: 'Ingresa un monto válido dentro de los límites permitidos.',

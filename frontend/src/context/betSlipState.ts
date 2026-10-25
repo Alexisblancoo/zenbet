@@ -3,6 +3,7 @@ import { createContext, useContext } from 'react';
 import type {
   BetFailure,
   BetReceipt,
+  EventLifecycle,
   LiveBetSelection,
   PlaceBetOutcome,
   SelectionInput,
@@ -28,6 +29,8 @@ export interface BetSlipContextValue {
 
   /** Declara los mercados visibles para que el hub solo emita esos grupos. */
   setVisibleMarkets(markets: readonly string[]): void;
+  /** Sincroniza el cierre/resultado del combate con los picks del boleto. */
+  syncEventLifecycle(events: readonly EventLifecycle[]): void;
   addSelection(input: SelectionInput): void;
   removeSelection(selectionId: string): void;
   keepOnlySelection(selectionId: string): void;

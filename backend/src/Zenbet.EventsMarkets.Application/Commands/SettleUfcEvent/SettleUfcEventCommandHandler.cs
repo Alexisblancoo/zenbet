@@ -23,17 +23,20 @@ public sealed class SettleUfcEventCommandHandler
     private readonly IEventRepository _eventRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMediator _mediator;
+    private readonly IOutboxWriter _outboxWriter;
     private readonly ILogger<SettleUfcEventCommandHandler> _logger;
 
     public SettleUfcEventCommandHandler(
         IEventRepository eventRepository,
         IUnitOfWork unitOfWork,
         IMediator mediator,
+        IOutboxWriter outboxWriter,
         ILogger<SettleUfcEventCommandHandler> logger)
     {
         _eventRepository = eventRepository;
         _unitOfWork = unitOfWork;
         _mediator = mediator;
+        _outboxWriter = outboxWriter;
         _logger = logger;
     }
 
@@ -78,7 +81,14 @@ public sealed class SettleUfcEventCommandHandler
             eventForUpdate.RecordResult(result);
 
             await _eventRepository.UpdateAsync(eventForUpdate, expectedVersion, cancellationToken);
+
+            foreach (var domainEvent in eventForUpdate.DomainEvents)
+            {
+                await _outboxWriter.WriteAsync(domainEvent, cancellationToken);
+            }
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            eventForUpdate.ClearDomainEvents();
 
             _logger.LogInformation(
                 "Resultado UFC registrado para {EventId}: {Corner} por {Method} en R{Round}.",

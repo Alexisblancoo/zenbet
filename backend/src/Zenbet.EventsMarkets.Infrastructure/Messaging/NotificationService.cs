@@ -14,4 +14,19 @@ public sealed class NoOpNotificationService : INotificationService
     {
         return Task.CompletedTask;
     }
+
+    public Task NotifyFightUpdateAsync(Guid eventId, object fightUpdate, CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task NotifyFightClockAsync(Guid eventId, object fightClock, CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task NotifyCardUpdateAsync(string cardKey, object cardUpdate, CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 }

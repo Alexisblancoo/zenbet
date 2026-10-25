@@ -1,9 +1,13 @@
 import { CalendarClock, MapPin, ShieldCheck } from 'lucide-react';
 
 import {
+  fightResultLabel,
+  fightStatusLabel,
+  formatFightClock,
   formatFightDay,
   formatRank,
   formatWeightDivision,
+  isTerminalEventStatus,
   type UfcEvent,
   type UfcFighter,
 } from '@/domain/ufc';
@@ -81,9 +85,22 @@ export default function FightHeader({
   selectionCount,
 }: FightHeaderProps) {
   const { bout } = event;
+  const isFinished = event.isExpired || isTerminalEventStatus(event.status);
+  const isClosed = isFinished || !event.isBettingOpen;
+  const statusLabel = fightStatusLabel(event);
+  const clockLabel = formatFightClock(event.clock);
+  const resultLabel = fightResultLabel(event.result);
+  const statusText = isClosed
+    ? isFinished
+      ? 'FINALIZADO'
+      : 'SUSPENDIDO'
+    : clockLabel ?? statusLabel;
 
   return (
-    <header className='relative overflow-hidden'>
+    <header
+      className={`relative overflow-hidden ${isClosed ? 'bg-[#050505]' : ''}`}
+      data-closed={isClosed}
+    >
       <div
         aria-hidden='true'
         className='pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(239,68,68,0.055),transparent_38%,transparent_62%,rgba(56,189,248,0.045))]'
@@ -103,6 +120,20 @@ export default function FightHeader({
               Título
             </span>
           )}
+          <span
+            className={`inline-flex items-center gap-1 border px-1 py-0.5 font-bold ${
+              isClosed
+                ? 'border-white/10 bg-white/[0.03] text-metallic-slate'
+                : event.status === 'live'
+                  ? 'border-lime-400/35 bg-lime-400/[0.09] text-lime-400'
+                  : 'border-white/[0.08] bg-white/[0.025] text-metallic-titanium'
+            }`}
+          >
+            {!isClosed && event.status === 'live' && (
+              <span className='h-1.5 w-1.5 animate-pulse rounded-full bg-lime-400' aria-hidden='true' />
+            )}
+            {statusText}
+          </span>
         </div>
 
         <div className='flex shrink-0 items-center gap-2 font-mono text-[8px] uppercase tracking-wide'>
@@ -141,6 +172,13 @@ export default function FightHeader({
 
         <ArenaCorner fighter={bout.blue} corner='blue' />
       </div>
+
+      {resultLabel && (
+        <div className='relative border-t border-white/[0.055] bg-white/[0.018] px-3 py-1.5 font-mono text-[8px] font-bold uppercase tracking-wide text-metallic-titanium sm:px-4'>
+          <span className='mr-2 text-lime-400/80'>Final</span>{' '}
+          {resultLabel}
+        </div>
+      )}
 
       <div className='relative flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-white/[0.055] px-3 py-1.5 font-mono text-[8px] uppercase tracking-wide text-metallic-slate sm:px-4'>
         <span className='inline-flex min-w-0 items-center gap-1.5'>

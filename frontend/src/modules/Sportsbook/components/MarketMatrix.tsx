@@ -75,6 +75,7 @@ interface MarketTileProps {
   readonly hint?: string;
   readonly corner?: 'red' | 'blue';
   readonly method?: boolean;
+  readonly closed?: boolean;
 }
 
 function MarketTile({
@@ -87,28 +88,35 @@ function MarketTile({
   hint,
   corner,
   method = false,
+  closed = false,
 }: MarketTileProps) {
   const liveOdds =
     quote && Number.isFinite(quote.odds) && quote.odds > 1
       ? quote.odds
       : selection.decimalOdds;
   const trend = quote?.trend ?? 'unchanged';
-  const disabled = selection.settled || market.status !== 'open';
+  const disabled = closed || selection.settled || market.status !== 'open';
   const trendTone =
     trend === 'up' ? 'text-odds-up' : trend === 'down' ? 'text-odds-down' : 'text-metallic-slate';
+  const selected = isSelected && !closed;
 
   return (
     <button
       type='button'
       onClick={() => onToggle(market, selection)}
       disabled={disabled}
-      aria-pressed={isSelected}
-      aria-label={`${selection.name}: ${formatDecimalOdds(liveOdds)} decimal, ${formatAmericanOdds(liveOdds)} americana${isSelected ? ', seleccionada' : ''}`}
+      aria-pressed={selected}
+      aria-label={`${selection.name}: ${formatDecimalOdds(liveOdds)} decimal, ${formatAmericanOdds(liveOdds)} americana${selected ? ', seleccionada' : ''}${closed ? ', mercado cerrado' : ''}`}
       title={`${selection.name} · ${formatDecimalOdds(liveOdds)} (${formatAmericanOdds(liveOdds)})`}
-      data-selected={isSelected}
+      data-selected={selected}
       data-trend={trend}
+      data-closed={closed}
       className={`market-tile group min-w-0 ${method ? 'market-tile--method' : ''} ${
-        disabled ? 'cursor-not-allowed opacity-40' : ''
+        closed
+          ? 'cursor-not-allowed border-white/[0.045] bg-[#050505] opacity-55 grayscale'
+          : disabled
+            ? 'cursor-not-allowed opacity-40'
+            : ''
       }`}
     >
       {method ? (
@@ -118,7 +126,7 @@ function MarketTile({
               {label}
             </span>
             {isSelected && (
-              <Check size={10} strokeWidth={3} className='shrink-0 text-money' aria-hidden='true' />
+              <Check size={10} strokeWidth={3} className='shrink-0 text-lime-400' aria-hidden='true' />
             )}
           </span>
           <span
@@ -147,7 +155,7 @@ function MarketTile({
               </span>
             )}
             {isSelected && !corner && (
-              <Check size={11} strokeWidth={3} className='shrink-0 text-money' aria-hidden='true' />
+              <Check size={11} strokeWidth={3} className='shrink-0 text-lime-400' aria-hidden='true' />
             )}
             <span className='min-w-0'>
               <span className='block truncate font-display text-[10px] font-semibold uppercase tracking-normal text-white sm:text-[11px]'>
@@ -192,7 +200,7 @@ function MarketColumn({ family, index, market, children }: MarketColumnProps) {
     <section
       aria-label={family.caption}
       data-family={family.key}
-      className='market-panel flex min-w-0 flex-col bg-[#0A0E16]'
+      className='market-panel flex min-w-0 flex-col bg-[#0A0A0A]'
     >
       <header className='flex min-w-0 items-start justify-between gap-2 border-b border-white/[0.055] px-2.5 py-2'>
         <div className='flex min-w-0 items-center gap-2'>
@@ -264,6 +272,7 @@ export default function MarketMatrix({
   onToggle,
 }: MarketMatrixProps) {
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const closed = event.isExpired || !event.isBettingOpen;
   const markets = useMemo(
     () =>
       UFC_MARKET_FAMILIES.map((family) => ({
@@ -308,6 +317,7 @@ export default function MarketMatrix({
                 isSelected={selectedSet.has(redMoneyline.id)}
                 quote={oddsMap[redMoneyline.id]}
                 onToggle={onToggle}
+                closed={closed}
                 label={shortFighterName(bout.red.name)}
                 hint={`${bout.red.record} · ${bout.red.countryCode || '—'}`}
                 corner='red'
@@ -320,6 +330,7 @@ export default function MarketMatrix({
                 isSelected={selectedSet.has(blueMoneyline.id)}
                 quote={oddsMap[blueMoneyline.id]}
                 onToggle={onToggle}
+                closed={closed}
                 label={shortFighterName(bout.blue.name)}
                 hint={`${bout.blue.record} · ${bout.blue.countryCode || '—'}`}
                 corner='blue'
@@ -367,7 +378,8 @@ export default function MarketMatrix({
                           isSelected={selectedSet.has(selection.id)}
                           quote={oddsMap[selection.id]}
                           onToggle={onToggle}
-                          label={METHOD_LABEL[suffix] ?? selection.code ?? '—'}
+                          closed={closed}
+                          label={METHOD_LABEL[suffix] ?? selection.code ?? '-'}
                           method
                         />
                       );
@@ -401,6 +413,7 @@ export default function MarketMatrix({
                 isSelected={selectedSet.has(over.id)}
                 quote={oddsMap[over.id]}
                 onToggle={onToggle}
+                closed={closed}
                 label={`Más de ${roundsMarket.line ?? ''}`}
                 hint='Over'
               />
@@ -412,6 +425,7 @@ export default function MarketMatrix({
                 isSelected={selectedSet.has(under.id)}
                 quote={oddsMap[under.id]}
                 onToggle={onToggle}
+                closed={closed}
                 label={`Menos de ${roundsMarket.line ?? ''}`}
                 hint='Under'
               />
@@ -441,6 +455,7 @@ export default function MarketMatrix({
                 isSelected={selectedSet.has(yes.id)}
                 quote={oddsMap[yes.id]}
                 onToggle={onToggle}
+                closed={closed}
                 label='Sí'
                 hint='Llega a decisión'
               />
@@ -452,6 +467,7 @@ export default function MarketMatrix({
                 isSelected={selectedSet.has(no.id)}
                 quote={oddsMap[no.id]}
                 onToggle={onToggle}
+                closed={closed}
                 label='No'
                 hint='Termina antes'
               />

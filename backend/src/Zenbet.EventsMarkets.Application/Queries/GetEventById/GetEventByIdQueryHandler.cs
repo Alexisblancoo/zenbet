@@ -21,6 +21,6 @@ public sealed class GetEventByIdQueryHandler : IRequestHandler<GetEventByIdQuery
             EventId.From(request.EventId),
             cancellationToken);
 
-        return @event is null ? null : EventReadMapper.ToDto(@event);
+        return @event is null ? null : EventReadMapper.ToDto(@event, DateTimeOffset.UtcNow);
     }
 }

@@ -5,6 +5,7 @@ import type { SelectionInput } from '@/domain/bets';
 import type { OddsQuote } from '@/domain/odds';
 import {
   findEventSource,
+  isTerminalEventStatus,
   type UfcEvent,
   type UfcMarket,
   type UfcSelection,
@@ -55,8 +56,12 @@ export default function FightCard({
     (count, market) => count + market.selections.length,
     0,
   );
+  const isFinished = event.isExpired || isTerminalEventStatus(event.status);
+  const isClosed = isFinished || !event.isBettingOpen;
 
   const handleToggle = (market: UfcMarket, selection: UfcSelection) => {
+    if (isClosed) return;
+
     if (selectedIds.includes(selection.id)) {
       onRemoveSelection(selection.id);
       return;
@@ -71,6 +76,10 @@ export default function FightCard({
         market.line !== null ? `${market.name} ${market.line.toFixed(1)}` : market.name,
       selectionName: selection.name,
       odds: oddsMap[selection.id]?.odds ?? selection.decimalOdds,
+      eventStatus: event.status,
+      eventEndsAt: event.endsAt,
+      eventIsExpired: event.isExpired,
+      eventIsBettingOpen: event.isBettingOpen,
     });
   };
 
@@ -78,10 +87,13 @@ export default function FightCard({
     <article
       aria-labelledby={headingId}
       data-featured={featured}
+      data-closed={isClosed}
       className={`fight-card group relative min-w-0 overflow-hidden rounded-xl border transition-all duration-200 ${
-        featured
-          ? 'border-crimson/40 shadow-[0_0_0_1px_rgb(255_42_85_/_0.1),0_18px_60px_-38px_rgb(255_42_85_/_0.42)]'
-          : 'border-white/[0.08] hover:-translate-y-0.5 hover:border-crimson/30 hover:shadow-[0_18px_48px_-38px_rgb(0_0_0_/_0.9)]'
+        isClosed
+          ? 'border-white/[0.055] bg-[#050505]'
+          : featured
+            ? 'border-crimson/40 shadow-[0_0_0_1px_rgb(255_42_85_/_0.1),0_18px_60px_-38px_rgb(255_42_85_/_0.42)]'
+            : 'border-white/[0.08] hover:-translate-y-0.5 hover:border-crimson/30 hover:shadow-[0_18px_48px_-38px_rgb(0_0_0_/_0.9)]'
       }`}
     >
       <div
@@ -130,18 +142,24 @@ export default function FightCard({
 
       <footer className='flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.04] px-3 py-2 sm:px-4'>
         <p className='min-w-0 flex-1 font-mono text-[8px] uppercase leading-relaxed tracking-wide text-metallic-slate'>
-          {source?.kind === 'model'
-            ? 'Línea de referencia ZenBet · no ejecutable'
-            : source?.kind === 'aggregator'
-              ? 'Consenso snapshot · referencia, no cuota ejecutable'
-              : 'Precio informativo · verifica la fuente antes de apostar'}
+          {isClosed
+            ? isFinished
+              ? 'Combate finalizado · mercados cerrados'
+              : 'Combate suspendido · mercados cerrados'
+            : event.status === 'live'
+              ? 'Cuotas en vivo · el precio puede cambiar hasta confirmar'
+              : source?.kind === 'model'
+                ? 'Línea de referencia ZenBet · no ejecutable'
+                : source?.kind === 'aggregator'
+                  ? 'Consenso de casas · se actualiza en vivo'
+                  : 'Precio de referencia · verifica la fuente antes de apostar'}
         </p>
         <div className='flex shrink-0 items-center gap-2'>
           <button
             type='button'
             onClick={() => onOpenComparison(event)}
             aria-label={`Abrir ficha técnica de ${bout.red.name} vs ${bout.blue.name}`}
-            className='inline-flex items-center gap-1.5 border border-[#D4AF37]/30 bg-[#D4AF37]/[0.055] px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wide text-[#FFD700] transition-colors duration-150 hover:border-[#D4AF37]/55 hover:bg-[#D4AF37]/[0.11] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D4AF37]'
+            className='inline-flex items-center gap-1.5 border border-lime-400/30 bg-lime-400/[0.055] px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-wide text-lime-400 transition-colors duration-150 hover:border-lime-400/55 hover:bg-lime-400/[0.11] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400'
           >
             <BarChart3 size={10} aria-hidden='true' />
             Ficha H2H

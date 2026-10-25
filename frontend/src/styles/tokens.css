@@ -76,6 +76,13 @@
   --zb-electric-500: 59 130 246;
   --zb-electric-400: 96 165 250;
 
+  /* Verde lima de acción (#D4FF3F). */
+  --zb-lime-100: 240 255 186;
+  --zb-lime-200: 224 255 128;
+  --zb-lime-400: 212 255 63;
+  --zb-lime-500: 186 232 37;
+  --zb-lime-600: 141 187 16;
+
   --zb-odds-up: 16 185 129;
   --zb-odds-up-strong: 0 255 135;
   --zb-odds-down: 239 68 68;
@@ -208,6 +215,8 @@
   --zb-shadow-up: 0 0 28px -6px rgb(var(--zb-money-500) / 0.4);
   --zb-shadow-down: 0 0 28px -6px rgb(var(--zb-crimson-500) / 0.36);
   --zb-shadow-live: 0 0 32px -8px rgb(var(--zb-crimson-500) / 0.38);
+  --zb-glow-lime: 0 0 34px -8px rgb(var(--zb-lime-400) / 0.55);
+  --zb-glow-lime-sm: 0 0 20px -6px rgb(var(--zb-lime-400) / 0.45);
 
   --zb-glass-bg: rgb(10 14 22 / 0.88);
   --zb-glass-bg-strong: rgb(8 12 19 / 0.96);

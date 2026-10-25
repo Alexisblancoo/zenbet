@@ -23,6 +23,16 @@ public sealed record EventStatusChangedDomainEvent(
     DateTimeOffset ChangedAt)
     : DomainEvent(ChangedAt, EventId.Value);
 
+/// <summary>
+/// Resultado oficial registrado. Se emite incluso si el evento ya estaba
+/// cerrado por vencimiento, para que la UI reciba el ganador sin esperar una
+/// recarga manual de la cartelera.
+/// </summary>
+public sealed record MmaResultRecordedDomainEvent(
+    EventId EventId,
+    DateTimeOffset RecordedAt)
+    : DomainEvent(RecordedAt, EventId.Value);
+
 public sealed record EventCancelledDomainEvent(
     EventId EventId,
     string Reason,
