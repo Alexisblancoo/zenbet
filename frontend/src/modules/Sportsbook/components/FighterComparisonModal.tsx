@@ -168,11 +168,27 @@ interface FighterColumnProps {
 }
 
 function FighterColumn({ fighter, corner }: FighterColumnProps) {
+  const isRed = corner === 'red';
+
   return (
-    <div className='flex min-w-0 flex-col items-center text-center'>
-      <FighterAvatar fighter={fighter} corner={corner} size='lg' priority />
+    <div className='relative flex min-w-0 flex-col items-center text-center'>
       <span
-        className={`mt-2 border px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide ${
+        aria-hidden='true'
+        className={`pointer-events-none absolute -top-6 h-24 w-24 rounded-full blur-3xl ${
+          isRed ? 'bg-crimson/12' : 'bg-electric/10'
+        }`}
+      />
+      <span
+        className={`relative inline-flex items-center gap-1.5 font-mono text-[8px] font-bold uppercase tracking-ultra ${
+          isRed ? 'text-crimson' : 'text-electric-soft'
+        }`}
+      >
+        <span className={`h-1.5 w-1.5 ${isRed ? 'bg-crimson' : 'bg-electric'}`} aria-hidden='true' />
+        {isRed ? 'Esquina roja' : 'Esquina azul'}
+      </span>
+      <FighterAvatar fighter={fighter} corner={corner} size='lg' priority className='relative mt-2' />
+      <span
+        className={`relative mt-2 border px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide ${
           fighter.rank === 'C'
             ? 'border-[#FFD700]/45 bg-[#D4AF37]/[0.09] text-[#FFD700]'
             : 'border-white/[0.1] bg-white/[0.025] text-metallic-titanium'
@@ -180,7 +196,7 @@ function FighterColumn({ fighter, corner }: FighterColumnProps) {
       >
         {formatRank(fighter)}
       </span>
-      <h3 className='mt-1.5 max-w-full break-words font-display text-[13px] font-bold uppercase leading-tight tracking-tight text-white sm:text-lg'>
+      <h3 className='mt-1.5 max-w-full break-words font-display text-[14px] font-bold uppercase leading-tight tracking-tight text-white sm:text-xl'>
         {fighter.name}
       </h3>
       <p className='mt-1 font-odds text-sm font-bold tabular-nums text-[#D4AF37] sm:text-base'>
@@ -352,7 +368,7 @@ export default function FighterComparisonModal({
         role='dialog'
         aria-modal='true'
         aria-labelledby={titleId}
-        className='h2h-panel relative mx-auto flex h-dvh w-full max-w-[1120px] flex-col sm:h-auto sm:max-h-[calc(100dvh-2rem)]'
+        className='h2h-panel relative mx-auto flex h-dvh w-full max-w-[1120px] flex-col overflow-hidden sm:h-auto sm:max-h-[calc(100dvh_-_2rem)] sm:rounded-2xl'
       >
         <span className='h2h-gold-rule absolute inset-x-0 top-0 z-30 h-px' aria-hidden='true' />
 
@@ -403,9 +419,13 @@ export default function FighterComparisonModal({
           </div>
         </header>
 
-        <div className='min-h-0 flex-1 overflow-y-auto'>
+        <div className='min-h-0 flex-1 overflow-y-auto overscroll-contain'>
           <section className='relative overflow-hidden border-b border-[#D4AF37]/12 px-4 py-5 sm:px-6 sm:py-6'>
             <div className='shibuya-scan' aria-hidden='true' />
+            <div
+              aria-hidden='true'
+              className='pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(239,68,68,0.075),transparent_38%,transparent_62%,rgba(56,189,248,0.06))]'
+            />
             <span
               aria-hidden='true'
               className='pointer-events-none absolute right-2 top-1 select-none font-display text-[64px] font-black leading-none text-[#D4AF37]/[0.035] sm:text-[92px]'
@@ -416,12 +436,21 @@ export default function FighterComparisonModal({
             <div className='relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-2 sm:gap-5'>
               <FighterColumn fighter={red} corner='red' />
 
-              <div className='flex h-full flex-col items-center justify-center gap-2 pt-6 sm:pt-9'>
-                <span className='font-mono text-[10px] font-bold tracking-ultra text-[#D4AF37]'>
+              <div className='flex h-full flex-col items-center justify-center gap-2 pt-7 sm:pt-10'>
+                <span className='font-mono text-[8px] font-bold uppercase tracking-ultra text-[#D4AF37]'>
+                  Main event
+                </span>
+                <span className='grid h-11 w-11 place-items-center rounded-full border border-[#D4AF37]/45 bg-[#07090E] font-odds text-sm font-bold tracking-wide text-[#FFD700] shadow-[0_0_30px_-12px_rgba(255,215,0,0.75)] sm:h-14 sm:w-14 sm:text-base'>
                   VS
                 </span>
+                <span className='font-mono text-[8px] font-bold uppercase leading-tight tracking-wide text-metallic-titanium'>
+                  {formatWeightDivision(event.bout)}
+                </span>
+                <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
+                  {event.bout.scheduledRounds} asaltos
+                </span>
                 <span
-                  className='h-16 w-px bg-gradient-to-b from-[#D4AF37]/60 via-[#D4AF37]/25 to-transparent sm:h-20'
+                  className='h-12 w-px bg-linear-to-b from-[#D4AF37]/55 via-[#D4AF37]/20 to-transparent sm:h-16'
                   aria-hidden='true'
                 />
               </div>

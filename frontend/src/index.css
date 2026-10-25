@@ -1,12 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;0,900;1,500;1,600;1,700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
 @import './styles/tokens.css';
 @import './styles/design-system.css';
 @import './styles/zenbet-brutalist.css';
 @import './styles/shibuya.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind v4 conserva la configuración de tokens existente. */
+@config '../tailwind.config.js';
 
 /* ==========================================================================
    ZENBET - BRUTALIST INTERACTIVE DESIGN ENGINE
@@ -14,6 +14,18 @@
    ========================================================================== */
 
 @layer base {
+  /*
+   * Tailwind v4 usa currentColor como color de borde por defecto. ZenBet
+   * mantiene el hairline obsidiana de v3 para que los bordes sin color
+   * explícito sigan siendo parte de la retícula y no hereden el texto.
+   */
+  *,
+  ::before,
+  ::after,
+  ::backdrop {
+    border-color: rgb(var(--zb-border) / 0.85);
+  }
+
   :root {
     /* Puente de compatibilidad para los estilos existentes. */
     --bg-obsidian-void: rgb(var(--zb-canvas));

@@ -39,12 +39,12 @@ export default function CardSelector({ cards, activeKey, onSelect }: CardSelecto
   return (
     <section
       aria-labelledby='upcoming-cards-title'
-      className='shibuya-glass min-w-0 overflow-hidden p-3 sm:p-4'
+      className='shibuya-glass min-w-0 overflow-hidden rounded-2xl p-3 sm:p-4'
     >
       <div className='flex flex-wrap items-center justify-between gap-2'>
         <div className='flex min-w-0 items-center gap-2.5'>
           <span className='shibuya-kicker text-crimson'>/ Próximas carteleras</span>
-          <span className='h-px w-8 bg-gradient-to-r from-crimson/45 to-transparent' aria-hidden='true' />
+          <span className='h-px w-8 bg-linear-to-r from-crimson/45 to-transparent' aria-hidden='true' />
           <h2
             id='upcoming-cards-title'
             className='font-display text-[11px] font-bold uppercase tracking-wide text-white'
@@ -83,8 +83,8 @@ export default function CardSelector({ cards, activeKey, onSelect }: CardSelecto
                 aria-hidden='true'
                 className={`absolute inset-x-0 top-0 h-px ${
                   active
-                    ? 'bg-gradient-to-r from-transparent via-crimson to-transparent'
-                    : 'bg-gradient-to-r from-transparent via-white/15 to-transparent'
+                    ? 'bg-linear-to-r from-transparent via-crimson to-transparent'
+                    : 'bg-linear-to-r from-transparent via-white/15 to-transparent'
                 }`}
               />
 

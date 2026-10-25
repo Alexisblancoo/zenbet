@@ -4,10 +4,19 @@ import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
 import MobileDock from './components/MobileDock';
 import ConsentNotice from '@/components/common/ConsentNotice';
+import { useBetSlip } from '@/context/betSlipState';
 
 export default function MainLayout() {
+  const { selections } = useBetSlip();
+  const hasSelections = selections.length > 0;
+  const bottomPadding = hasSelections
+    ? 'pb-[calc(136px+env(safe-area-inset-bottom))]'
+    : 'pb-[calc(64px+env(safe-area-inset-bottom))]';
+
   return (
-    <div className='min-h-screen bg-obsidian-void text-slate-100 flex flex-col font-sans selection:bg-crimson selection:text-white pb-[calc(64px+env(safe-area-inset-bottom))] min-[1400px]:pb-0'>
+    <div
+      className={`min-h-screen bg-obsidian-void text-slate-100 flex flex-col font-sans selection:bg-crimson selection:text-white ${bottomPadding} min-[1400px]:pb-0`}
+    >
       {/* Header Fijo */}
       <Header />
 

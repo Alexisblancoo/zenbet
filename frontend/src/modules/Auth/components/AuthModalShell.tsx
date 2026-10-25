@@ -110,7 +110,7 @@ export default function AuthModalShell({
       }`}
     >
       <span
-        className='pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-crimson to-transparent'
+        className='pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-crimson to-transparent'
         aria-hidden='true'
       />
 

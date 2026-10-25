@@ -118,10 +118,15 @@
      Tipografía
      Display para titulares; sans para lectura; mono para cuotas y cifras.
      ------------------------------------------------------------------------ */
-  --zb-font-display: 'Space Grotesk', 'Inter', 'Segoe UI', sans-serif;
-  --zb-font-sans: 'Inter', 'Space Grotesk', 'Segoe UI', sans-serif;
+  --zb-font-display: 'Playfair Display', 'Playfair', Georgia, 'Times New Roman', serif;
+  --zb-font-sans: 'Arimo', 'Helvetica Neue', Arial, 'Segoe UI', sans-serif;
   --zb-font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', monospace;
-  --zb-font-odds: 'Space Grotesk', 'Inter', sans-serif;
+  --zb-font-odds: 'Space Grotesk', 'Arimo', sans-serif;
+
+  /* Nombres canónicos Tailwind v4. La config los consume vía var() y el
+     producto puede usarlos directamente en estilos propios. */
+  --font-display: 'Playfair Display', 'Playfair', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Arimo', 'Helvetica Neue', Arial, 'Segoe UI', sans-serif;
 
   --zb-text-2xs: 0.625rem;
   --zb-text-xs: 0.6875rem;

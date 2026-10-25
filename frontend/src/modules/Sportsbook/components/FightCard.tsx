@@ -78,20 +78,20 @@ export default function FightCard({
     <article
       aria-labelledby={headingId}
       data-featured={featured}
-      className={`fight-card group relative min-w-0 overflow-hidden border transition-colors duration-200 ${
+      className={`fight-card group relative min-w-0 overflow-hidden rounded-xl border transition-all duration-200 ${
         featured
           ? 'border-crimson/40 shadow-[0_0_0_1px_rgb(255_42_85_/_0.1),0_18px_60px_-38px_rgb(255_42_85_/_0.42)]'
-          : 'border-white/[0.08] hover:border-crimson/30'
+          : 'border-white/[0.08] hover:-translate-y-0.5 hover:border-crimson/30 hover:shadow-[0_18px_48px_-38px_rgb(0_0_0_/_0.9)]'
       }`}
     >
       <div
         aria-hidden='true'
         className={`h-[2px] w-full ${
           featured
-            ? 'bg-gradient-to-r from-crimson/20 via-crimson to-crimson/20'
+            ? 'bg-linear-to-r from-crimson/20 via-crimson to-crimson/20'
             : bout.isTitleFight
-              ? 'bg-gradient-to-r from-crimson/10 via-crimson to-crimson/10'
-              : 'bg-gradient-to-r from-transparent via-white/15 to-transparent'
+              ? 'bg-linear-to-r from-crimson/10 via-crimson to-crimson/10'
+              : 'bg-linear-to-r from-transparent via-white/15 to-transparent'
         }`}
       />
       <span
@@ -109,7 +109,13 @@ export default function FightCard({
       />
 
       <div className='relative flex items-center justify-between gap-3 border-t border-white/[0.055] px-3 py-1.5 sm:px-4'>
-        <SourceBadge source={source} />
+        <div className='flex min-w-0 items-center gap-2'>
+          <span className='shrink-0 font-mono text-[8px] font-bold uppercase tracking-ultra text-metallic-slate'>
+            Mercados
+          </span>
+          <span className='h-3 w-px bg-white/10' aria-hidden='true' />
+          <SourceBadge source={source} />
+        </div>
         <span className='hidden shrink-0 font-mono text-[8px] uppercase tracking-wide text-metallic-slate sm:inline'>
           4 familias · cuotas 2 dec
         </span>
@@ -122,7 +128,7 @@ export default function FightCard({
         onToggle={handleToggle}
       />
 
-      <footer className='flex flex-wrap items-center justify-between gap-2 px-3 py-2 sm:px-4'>
+      <footer className='flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.04] px-3 py-2 sm:px-4'>
         <p className='min-w-0 flex-1 font-mono text-[8px] uppercase leading-relaxed tracking-wide text-metallic-slate'>
           {source?.kind === 'model'
             ? 'Línea de referencia ZenBet · no ejecutable'

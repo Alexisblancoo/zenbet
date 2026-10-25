@@ -331,3 +331,326 @@
     opacity: 0.35;
   }
 }
+
+/* ==========================================================================
+   ZENBET / SHIBUYA — FASE 9
+   Tipografía editorial (Playfair Display + Arimo), microinteracciones de
+   cuotas en vivo (verde sube / rojo baja), neumorfismo oscuro en el hover,
+   neón monetario en la selección y recibo digital para el boleto.
+   ========================================================================== */
+
+@layer utilities {
+  /* ------------------------------------------------------------------------
+     Tipografía editorial
+     Playfair Display aporta la voz de cartelera; Arimo sostiene la lectura.
+     ------------------------------------------------------------------------ */
+  .shibuya-serif {
+    font-family: var(--font-display);
+    font-variant-ligatures: common-ligatures;
+    font-variant-numeric: lining-nums;
+    text-wrap: balance;
+  }
+
+  .shibuya-serif-italic {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 600;
+  }
+
+  /* ------------------------------------------------------------------------
+     Cuotas en vivo: VERDE sube / ROJO baja
+     El número sube desde abajo cuando la cuota sube y cae desde arriba cuando
+     baja; el tile destella un halo en la dirección del movimiento. El nodo del
+     número se remonta por `key={quote.sequence}` para reiniciar el destello en
+     cada mensaje del hub, aunque el valor se repita.
+     ------------------------------------------------------------------------ */
+  .market-tile[data-trend='up']:not([data-selected='true']):not(:disabled) {
+    border-color: rgb(var(--zb-odds-up) / 0.34);
+    animation: shibuya-tile-flash-up 900ms var(--zb-ease-out);
+  }
+
+  .market-tile[data-trend='down']:not([data-selected='true']):not(:disabled) {
+    border-color: rgb(var(--zb-odds-down) / 0.34);
+    animation: shibuya-tile-flash-down 900ms var(--zb-ease-out);
+  }
+
+  .market-tile[data-trend='up']:not([data-selected='true']) .odds-number {
+    color: rgb(var(--zb-odds-up-strong));
+    text-shadow: 0 0 16px rgb(var(--zb-odds-up) / 0.4);
+    animation: shibuya-odds-tick-up 480ms var(--zb-ease-snap) both;
+  }
+
+  .market-tile[data-trend='down']:not([data-selected='true']) .odds-number {
+    color: rgb(var(--zb-odds-down-strong));
+    text-shadow: 0 0 16px rgb(var(--zb-odds-down) / 0.4);
+    animation: shibuya-odds-tick-down 480ms var(--zb-ease-snap) both;
+  }
+
+  /* Destello tile: parte del verde/rojo sobre el fondo propio y decae al valor
+     exacto del shorthand para no enganchar al volver al estado base. */
+  @keyframes shibuya-tile-flash-up {
+    0% {
+      background-color: rgb(var(--zb-odds-up) / 0.24);
+      box-shadow:
+        inset 2px 0 0 rgb(var(--zb-odds-up-strong) / 0.85),
+        inset 0 1px 0 rgb(255 255 255 / 0.03),
+        0 0 30px -12px rgb(var(--zb-odds-up) / 0.75);
+    }
+
+    60% {
+      background-color: rgb(var(--zb-odds-up) / 0.07);
+    }
+
+    100% {
+      background-color: rgb(var(--zb-surface-raised) / 0.82);
+      box-shadow:
+        inset 2px 0 0 rgb(var(--zb-odds-up) / 0.4),
+        inset 0 1px 0 rgb(255 255 255 / 0.025);
+    }
+  }
+
+  @keyframes shibuya-tile-flash-down {
+    0% {
+      background-color: rgb(var(--zb-odds-down) / 0.24);
+      box-shadow:
+        inset 2px 0 0 rgb(var(--zb-odds-down-strong) / 0.85),
+        inset 0 1px 0 rgb(255 255 255 / 0.03),
+        0 0 30px -12px rgb(var(--zb-odds-down) / 0.75);
+    }
+
+    60% {
+      background-color: rgb(var(--zb-odds-down) / 0.07);
+    }
+
+    100% {
+      background-color: rgb(var(--zb-surface-raised) / 0.82);
+      box-shadow:
+        inset 2px 0 0 rgb(var(--zb-odds-down) / 0.4),
+        inset 0 1px 0 rgb(255 255 255 / 0.025);
+    }
+  }
+
+  @keyframes shibuya-odds-tick-up {
+    0% {
+      opacity: 0.32;
+      transform: translateY(3px);
+      text-shadow: 0 0 26px rgb(var(--zb-odds-up) / 0.85);
+    }
+
+    60% {
+      opacity: 1;
+      text-shadow: 0 0 16px rgb(var(--zb-odds-up) / 0.4);
+    }
+
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes shibuya-odds-tick-down {
+    0% {
+      opacity: 0.32;
+      transform: translateY(-3px);
+      text-shadow: 0 0 26px rgb(var(--zb-odds-down) / 0.85);
+    }
+
+    60% {
+      opacity: 1;
+      text-shadow: 0 0 16px rgb(var(--zb-odds-down) / 0.4);
+    }
+
+    100% {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* El pick heroístico comparte el mismo idioma de tendencia. */
+  .hero-pick[data-trend='up']:not([data-selected='true']):not(:disabled) {
+    border-color: rgb(var(--zb-odds-up) / 0.36);
+  }
+
+  .hero-pick[data-trend='down']:not([data-selected='true']):not(:disabled) {
+    border-color: rgb(var(--zb-odds-down) / 0.36);
+  }
+
+  .hero-pick[data-trend='up']:not([data-selected='true']) .odds-number {
+    color: rgb(var(--zb-odds-up-strong));
+    text-shadow: 0 0 16px rgb(var(--zb-odds-up) / 0.4);
+    animation: shibuya-odds-tick-up 480ms var(--zb-ease-snap) both;
+  }
+
+  .hero-pick[data-trend='down']:not([data-selected='true']) .odds-number {
+    color: rgb(var(--zb-odds-down-strong));
+    text-shadow: 0 0 16px rgb(var(--zb-odds-down) / 0.4);
+    animation: shibuya-odds-tick-down 480ms var(--zb-ease-snap) both;
+  }
+
+  /* Parpadeo del valor vivo dentro del boleto (fila de selección). */
+  .zb-slip-tick-up {
+    animation: shibuya-odds-tick-up 480ms var(--zb-ease-snap) both;
+  }
+
+  .zb-slip-tick-down {
+    animation: shibuya-odds-tick-down 480ms var(--zb-ease-snap) both;
+  }
+
+  /* ------------------------------------------------------------------------
+     Neumorfismo oscuro: luz desde arriba-izquierda, sombra abajo-derecha.
+     La superficie nunca cambia de plano: solo se hinca hacia el usuario.
+     ------------------------------------------------------------------------ */
+  .market-tile:hover:not(:disabled):not([data-selected='true']),
+  .hero-pick:hover:not(:disabled):not([data-selected='true']) {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.075),
+      inset 0 -2px 5px rgb(0 0 0 / 0.5),
+      -3px -3px 10px rgb(255 255 255 / 0.038),
+      3px 4px 12px rgb(0 0 0 / 0.68);
+  }
+
+  .market-tile.active-press,
+  .market-tile:active:not(:disabled):not([data-selected='true']),
+  .hero-pick:active:not(:disabled):not([data-selected='true']) {
+    box-shadow:
+      inset 3px 3px 7px rgb(0 0 0 / 0.6),
+      inset -2px -2px 6px rgb(255 255 255 / 0.05);
+  }
+
+  /* Selección: resplandor neón monetario que respira. */
+  .market-tile[data-selected='true']:not(:disabled),
+  .hero-pick[data-selected='true']:not(:disabled) {
+    animation: shibuya-selected-breathe 3s var(--zb-ease-in-out) infinite;
+  }
+
+  @keyframes shibuya-selected-breathe {
+    0%,
+    100% {
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.1),
+        0 0 0 1px rgb(var(--zb-money-500) / 0.25),
+        0 0 20px -9px rgb(var(--zb-money-500) / 0.7);
+    }
+
+    50% {
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.12),
+        0 0 0 1px rgb(var(--zb-money-500) / 0.42),
+        0 0 34px -8px rgb(var(--zb-money-bright) / 0.95);
+    }
+  }
+
+  /* ------------------------------------------------------------------------
+     Recibo digital — papel térmico de obsidiana
+     Cuerpo sólido (para que la trama y el desgarro no transparenten), grano
+     térmico horizontal, perforación con alvéolos punzonados, código de barras
+     pseudoaleatorio (dos periodos incommensurables) y borde inferior serrado.
+     ------------------------------------------------------------------------ */
+  .zb-receipt {
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        rgb(255 255 255 / 0.012) 0 1px,
+        transparent 1px 4px
+      ),
+      linear-gradient(180deg, #0b0f17 0%, #090d15 62%, #0a0e16 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.055),
+      inset 0 0 0 1px rgb(255 255 255 / 0.03);
+  }
+
+  /* Membrete: ZENBET · BOLETO DIGITAL */
+  .zb-receipt-brand {
+    color: rgb(var(--zb-ink-muted));
+    font-family: var(--zb-font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+  }
+
+  /* Línea de perforación con alvéolos en ambos extremos, como ticket emitido. */
+  .zb-receipt-perforation {
+    position: relative;
+    height: 0;
+    border-top: 2px dashed rgb(255 255 255 / 0.13);
+  }
+
+  .zb-receipt-perforation::before,
+  .zb-receipt-perforation::after {
+    position: absolute;
+    top: -6px;
+    width: 10px;
+    height: 10px;
+    border-radius: var(--zb-radius-full);
+    background: #07090e; /* el punzón corta hasta el lienzo de la página */
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    content: '';
+  }
+
+  .zb-receipt-perforation::before {
+    left: -5px;
+  }
+
+  .zb-receipt-perforation::after {
+    right: -5px;
+  }
+
+  /* Código de barras: barras blancas a dos periodos (3px y 9px) que sumados
+     producen un ritmo 9px pseudoladrillo sin arte adicional. */
+  .zb-receipt-barcode {
+    height: 30px;
+    background-image:
+      repeating-linear-gradient(90deg, rgb(255 255 255 / 0.88) 0 2px, transparent 2px 3px),
+      repeating-linear-gradient(90deg, rgb(255 255 255 / 0.88) 0 4px, transparent 4px 9px);
+  }
+
+  /* Número de ticket bajo el código, con el aire de impresora térmica. */
+  .zb-receipt-code {
+    color: rgb(var(--zb-ink-muted));
+    font-family: var(--zb-font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.38em;
+    text-transform: uppercase;
+  }
+
+  /* Hora de emisión impresa al pie del recibo. */
+  .zb-receipt-stamp {
+    color: rgb(var(--zb-ink-faint));
+    font-family: var(--zb-font-mono);
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  /* Borde inferior serrado del papel (triángulos exactos por SVG para no
+     depender del redondeo de degradados diagonales). */
+  .zb-receipt-saw {
+    height: 6px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' viewBox='0 0 12 6'%3E%3Cpath d='M0 0h12L6 6z' fill='%230a0e16'/%3E%3C/svg%3E")
+      repeat-x left top / 12px 6px;
+  }
+}
+
+/* Respeto al movimiento reducido: el estado queda, la coreografía no. */
+@media (prefers-reduced-motion: reduce) {
+  .market-tile[data-trend='up'],
+  .market-tile[data-trend='down'],
+  .market-tile[data-selected='true'],
+  .hero-pick[data-trend='up'],
+  .hero-pick[data-trend='down'],
+  .hero-pick[data-selected='true'] {
+    animation: none;
+  }
+
+  .market-tile[data-trend='up'] .odds-number,
+  .market-tile[data-trend='down'] .odds-number,
+  .hero-pick[data-trend='up'] .odds-number,
+  .hero-pick[data-trend='down'] .odds-number,
+  .zb-slip-tick-up,
+  .zb-slip-tick-down {
+    animation: none;
+    text-shadow: none;
+  }
+}

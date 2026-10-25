@@ -121,7 +121,12 @@ function MarketTile({
               <Check size={10} strokeWidth={3} className='shrink-0 text-money' aria-hidden='true' />
             )}
           </span>
-          <span className='odds-number text-[12px] text-white'>{formatDecimalOdds(liveOdds)}</span>
+          <span
+            key={quote?.sequence ?? 'snapshot'}
+            className='odds-number text-[12px] text-white'
+          >
+            {formatDecimalOdds(liveOdds)}
+          </span>
           <span className={`truncate font-mono text-[8px] font-semibold ${trendTone}`}>
             {formatAmericanOdds(liveOdds)}
           </span>
@@ -158,7 +163,9 @@ function MarketTile({
           <span className='flex shrink-0 flex-col items-end gap-0.5'>
             <span className='flex items-baseline gap-1'>
               <span className={trendTone}>{trendIcon(trend)}</span>
-              <span className='odds-number text-[14px] text-white'>{formatDecimalOdds(liveOdds)}</span>
+              <span key={quote?.sequence ?? 'snapshot'} className='odds-number text-[14px] text-white'>
+                {formatDecimalOdds(liveOdds)}
+              </span>
             </span>
             <span className='hidden font-mono text-[8px] font-semibold text-metallic-slate sm:block'>
               {formatAmericanOdds(liveOdds)}
@@ -184,6 +191,7 @@ function MarketColumn({ family, index, market, children }: MarketColumnProps) {
   return (
     <section
       aria-label={family.caption}
+      data-family={family.key}
       className='market-panel flex min-w-0 flex-col bg-[#0A0E16]'
     >
       <header className='flex min-w-0 items-start justify-between gap-2 border-b border-white/[0.055] px-2.5 py-2'>
@@ -285,7 +293,11 @@ export default function MarketMatrix({
   const { bout } = event;
 
   return (
-    <div className='market-matrix grid grid-cols-2 gap-px overflow-hidden border-y border-white/[0.07] bg-white/[0.06] md:grid-cols-4'>
+    <div
+      role='group'
+      aria-label={`Mercados de ${bout.red.name} vs ${bout.blue.name}`}
+      className='market-matrix grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/[0.07] bg-white/[0.06] md:grid-cols-4'
+    >
       <MarketColumn family={markets[0].family} index={0} market={moneyline}>
         {redMoneyline || blueMoneyline ? (
           <div className='flex flex-1 flex-col gap-1.5'>

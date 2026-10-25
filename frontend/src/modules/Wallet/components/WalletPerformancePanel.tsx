@@ -72,9 +72,9 @@ export function WalletPerformancePanel({
             magnitude === 0 ? 2 : Math.max(6, Math.round((magnitude / maxMagnitude) * 100));
           const barTone =
             point.net > 0
-              ? 'bg-gradient-to-t from-odds-up/30 to-odds-up'
+              ? 'bg-linear-to-t from-odds-up/30 to-odds-up'
               : point.net < 0
-                ? 'bg-gradient-to-t from-odds-down/25 to-odds-down'
+                ? 'bg-linear-to-t from-odds-down/25 to-odds-down'
                 : 'bg-metallic-slate/40';
 
           return (
@@ -107,7 +107,7 @@ export function WalletPerformancePanel({
         </div>
         <div className='mt-2 h-1 overflow-hidden rounded-full bg-obsidian-elevated'>
           <div
-            className='h-full rounded-full bg-gradient-to-r from-money/60 to-money'
+            className='h-full rounded-full bg-linear-to-r from-money/60 to-money'
             style={{ width: `${Math.round(winRate * 100)}%` }}
           />
         </div>

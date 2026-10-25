@@ -181,7 +181,7 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      <div className='mx-3 my-3 h-px bg-gradient-to-r from-transparent via-white/[0.09] to-transparent' />
+      <div className='mx-3 my-3 h-px bg-linear-to-r from-transparent via-white/[0.09] to-transparent' />
 
       <div className='px-3'>
         <div className='mb-2 flex items-center justify-between'>
@@ -248,7 +248,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div className='mx-3 my-3 h-px bg-gradient-to-r from-transparent via-white/[0.09] to-transparent' />
+      <div className='mx-3 my-3 h-px bg-linear-to-r from-transparent via-white/[0.09] to-transparent' />
 
       <div className='px-3'>
         <p className='shibuya-kicker mb-2 text-metallic-slate'>Herramientas</p>
@@ -283,7 +283,7 @@ export default function Sidebar() {
       </div>
 
       <div className='mt-auto p-3'>
-        <div className='relative overflow-hidden border border-crimson/25 bg-gradient-to-br from-crimson/[0.12] via-transparent to-electric/[0.05] p-3'>
+        <div className='relative overflow-hidden border border-crimson/25 bg-linear-to-br from-crimson/[0.12] via-transparent to-electric/[0.05] p-3'>
           <span
             aria-hidden='true'
             className='pointer-events-none absolute -right-3 -top-4 font-display text-[64px] font-black leading-none text-white/[0.025]'

@@ -13,7 +13,7 @@
 const token = (name) => `rgb(var(${name}) / <alpha-value>)`;
 
 export default {
-  darkMode: ['class'],
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
@@ -117,11 +117,13 @@ export default {
       },
 
       fontFamily: {
-        display: ['Space Grotesk', 'Inter', 'Segoe UI', 'sans-serif'],
-        sans: ['Inter', 'Space Grotesk', 'Segoe UI', 'sans-serif'],
-        mono: ['JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', 'monospace'],
-        odds: ['Space Grotesk', 'Inter', 'sans-serif'],
-        technical: ['JetBrains Mono', 'IBM Plex Mono', 'monospace'],
+        /* El nombre canónico vive en tokens.css (--font-display / --font-sans);
+           Playfair Display para titulares editoriales, Arimo para lectura. */
+        display: ['"Playfair Display"', 'Playfair', 'Georgia', 'Times New Roman', 'serif'],
+        sans: ['Arimo', '"Helvetica Neue"', 'Arial', '"Segoe UI"', 'sans-serif'],
+        mono: ['JetBrains Mono', '"IBM Plex Mono"', '"SFMono-Regular"', 'monospace'],
+        odds: ['"Space Grotesk"', 'Arimo', 'sans-serif'],
+        technical: ['JetBrains Mono', '"IBM Plex Mono"', 'monospace'],
       },
 
       fontSize: {

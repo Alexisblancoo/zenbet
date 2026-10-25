@@ -64,6 +64,11 @@ interface BetSlipProps {
   readonly onClose?: () => void;
   /** Activa la guía de primera apertura en el drawer móvil. */
   readonly tourEnabled?: boolean;
+  /**
+   * `floating` es el panel de escritorio con elevación y resumen persistente;
+   * `sheet` es el drawer móvil; `panel` conserva el contenedor base.
+   */
+  readonly variant?: 'panel' | 'floating' | 'sheet';
 }
 
 const QUICK_INCREMENTS = [10, 50] as const;
@@ -77,6 +82,7 @@ export default function BetSlip({
   locale = 'es-MX',
   onClose,
   tourEnabled = false,
+  variant = 'panel',
 }: BetSlipProps) {
   const { isAuthenticated, user } = useAuth();
   const { openAuth } = useAuthModal();
@@ -180,6 +186,21 @@ export default function BetSlip({
 
   const formatCompact = (value: number): string =>
     formatters.compact ? formatters.compact.format(value) : `${Math.round(value)} ${currency}`;
+
+  /** Sello de emisión del recibo: fecha corta local, al pie del papel. */
+  const formatReceiptStamp = (epochMs: number, stampLocale: string): string => {
+    try {
+      return new Intl.DateTimeFormat(stampLocale, {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).format(epochMs);
+    } catch {
+      return new Date(epochMs).toISOString().slice(0, 16).replace('T', ' · ');
+    }
+  };
 
   /* ---------------------------------------------------------------------- */
   /* Derivados                                                              */
@@ -420,15 +441,23 @@ export default function BetSlip({
   /* Render                                                                 */
   /* ---------------------------------------------------------------------- */
 
+  const variantShell =
+    variant === 'floating'
+      ? 'glass-float rounded-2xl shadow-float'
+      : variant === 'sheet'
+        ? 'glass-panel rounded-t-2xl rounded-b-none border-x-0 border-b-0'
+        : 'glass-panel';
+
   return (
     <aside
       aria-label='Boleto de apuestas'
       aria-busy={isPlacingBet}
-      className={`glass-panel relative flex w-full flex-col overflow-hidden ${className}`}
+      data-variant={variant}
+      className={`relative flex w-full flex-col overflow-hidden ${variantShell} ${className}`}
     >
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-crimson/70 to-transparent'
+        className='pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-crimson/70 to-transparent'
       />
 
       {/* Cabecera */}
@@ -518,11 +547,33 @@ export default function BetSlip({
         </div>
       </header>
 
+      {variant === 'floating' && hasSelections && !receipt && !isCollapsed ? (
+        <div className='flex shrink-0 items-center justify-between gap-3 border-y border-obsidian-border/60 bg-white/[0.018] px-4 py-2'>
+          <span className='font-mono text-[8px] font-bold uppercase tracking-brutal text-metallic-slate'>
+            Cuota total
+          </span>
+          <span className='font-odds text-lg font-bold tabular-nums text-money'>
+            ×{formatDecimalOdds(totalOdds)}
+          </span>
+          <span className='min-w-0 truncate text-right font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
+            {hasPayout ? formatMoney(potentialPayout) : 'Define tu monto'}
+          </span>
+        </div>
+      ) : null}
+
       {receipt ? (
         /* ---------------------------------------------------------------- */
         /* Recibo de confirmación                                            */
         /* ---------------------------------------------------------------- */
-        <div className='slip-confirm-in flex flex-col overflow-y-auto px-5 py-7' role='status' aria-live='polite'>
+        <div
+          className='zb-receipt slip-confirm-in flex flex-col overflow-y-auto px-5 pb-8 pt-7'
+          role='status'
+          aria-live='polite'
+        >
+          <p aria-hidden='true' className='zb-receipt-brand mb-4 text-center'>
+            Zenbet · Boleto digital
+          </p>
+
           <span className='mx-auto grid h-12 w-12 place-items-center rounded-full border border-odds-up/40 bg-odds-up/10 text-odds-up'>
             <Check size={22} strokeWidth={2.5} aria-hidden='true' />
           </span>
@@ -590,16 +641,17 @@ export default function BetSlip({
             )}
           </dl>
 
+          <div aria-hidden='true' className='zb-receipt-perforation mt-6' />
+
           {receipt.betId && (
-            <p
-              data-tour='slip-receipt'
-              className='mt-3 text-center font-mono text-[9px] uppercase tracking-brutal text-metallic-slate'
-            >
-              Ticket {receipt.betId.slice(0, 8)}
-            </p>
+            <div data-tour='slip-receipt' className='mt-5 flex flex-col items-center gap-2.5'>
+              <div aria-hidden='true' className='zb-receipt-barcode w-52' />
+              <p className='zb-receipt-code'>{receipt.betId.slice(0, 12)}</p>
+              <p className='zb-receipt-stamp'>Emitido {formatReceiptStamp(receipt.placedAt, locale)}</p>
+            </div>
           )}
 
-          <div className='mt-5 grid grid-cols-2 gap-2'>
+          <div className='mt-6 grid grid-cols-2 gap-2'>
             <button
               type='button'
               onClick={() => {
@@ -619,6 +671,8 @@ export default function BetSlip({
               Billetera
             </Link>
           </div>
+
+          <div aria-hidden='true' className='zb-receipt-saw -mx-5 mt-7 shrink-0' />
         </div>
       ) : isCollapsed ? (
         <div className='flex min-h-0 flex-1 flex-col'>
@@ -679,46 +733,56 @@ export default function BetSlip({
             <div
               role='tablist'
               aria-label='Tipo de apuesta'
-              className='grid shrink-0 grid-cols-2 border-y border-obsidian-border/70'
+              className='shrink-0 border-b border-obsidian-border/70 px-3 py-2.5'
             >
-              <button
-                type='button'
-                role='tab'
-                id={singleTabId}
-                aria-controls={panelId}
-                aria-selected={activeTab === 'single'}
-                onClick={() => handleTabChange('single')}
-                className={`flex items-center justify-center gap-2 border-b-2 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson ${
-                  activeTab === 'single'
-                    ? 'border-crimson bg-white/[0.02] text-white'
-                    : 'border-transparent text-metallic-slate hover:text-metallic-chrome'
-                }`}
-              >
-                Simple
-                <span className='font-mono text-[9px] font-bold tabular-nums text-metallic-slate'>
-                  {isSingle ? '1' : hasSelections ? '—' : '0'}
-                </span>
-              </button>
+              <div className='grid grid-cols-2 gap-1 rounded-full border border-white/[0.07] bg-white/[0.025] p-1'>
+                <button
+                  type='button'
+                  role='tab'
+                  id={singleTabId}
+                  aria-controls={panelId}
+                  aria-selected={activeTab === 'single'}
+                  onClick={() => handleTabChange('single')}
+                  className={`flex min-h-8 items-center justify-center gap-1.5 rounded-full px-2 font-display text-[10px] font-bold uppercase tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson ${
+                    activeTab === 'single'
+                      ? 'bg-white text-[#07090E] shadow-[0_8px_20px_-12px_rgba(255,255,255,0.55)]'
+                      : 'text-metallic-slate hover:bg-white/[0.04] hover:text-white'
+                  }`}
+                >
+                  Simple
+                  <span
+                    className={`font-mono text-[9px] font-bold tabular-nums ${
+                      activeTab === 'single' ? 'text-black/55' : 'text-metallic-slate'
+                    }`}
+                  >
+                    {isSingle ? '1' : hasSelections ? '—' : '0'}
+                  </span>
+                </button>
 
-              <button
-                type='button'
-                role='tab'
-                id={combinedTabId}
-                aria-controls={panelId}
-                aria-selected={activeTab === 'combined'}
-                disabled={selections.length < 2}
-                onClick={() => handleTabChange('combined')}
-                className={`flex items-center justify-center gap-2 border-b-2 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson disabled:cursor-not-allowed disabled:opacity-40 ${
-                  activeTab === 'combined'
-                    ? 'border-crimson bg-white/[0.02] text-white'
-                    : 'border-transparent text-metallic-slate hover:text-metallic-chrome'
-                }`}
-              >
-                Combinada
-                <span className='font-mono text-[9px] font-bold tabular-nums text-metallic-slate'>
-                  {selections.length > 1 ? selections.length : '—'}
-                </span>
-              </button>
+                <button
+                  type='button'
+                  role='tab'
+                  id={combinedTabId}
+                  aria-controls={panelId}
+                  aria-selected={activeTab === 'combined'}
+                  disabled={selections.length < 2}
+                  onClick={() => handleTabChange('combined')}
+                  className={`flex min-h-8 items-center justify-center gap-1.5 rounded-full px-2 font-display text-[10px] font-bold uppercase tracking-wide transition-all duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson disabled:cursor-not-allowed disabled:opacity-35 ${
+                    activeTab === 'combined'
+                      ? 'bg-white text-[#07090E] shadow-[0_8px_20px_-12px_rgba(255,255,255,0.55)]'
+                      : 'text-metallic-slate hover:bg-white/[0.04] hover:text-white'
+                  }`}
+                >
+                  Combinada
+                  <span
+                    className={`font-mono text-[9px] font-bold tabular-nums ${
+                      activeTab === 'combined' ? 'text-black/55' : 'text-metallic-slate'
+                    }`}
+                  >
+                    {selections.length > 1 ? selections.length : '—'}
+                  </span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -798,11 +862,12 @@ export default function BetSlip({
                                 </s>
                                 <ArrowRight size={9} className='text-odds-live' aria-hidden='true' />
                                 <span
-                                  className={
-                                    direction === 'up'
-                                      ? 'text-odds-up'
-                                      : 'text-odds-down'
-                                  }
+                                  key={`${selection.selectionId}:${selection.liveOdds}`}
+                                  className={`${
+                                    direction === 'up' ? 'text-odds-up' : 'text-odds-down'
+                                  } ${
+                                    direction === 'up' ? 'zb-slip-tick-up' : 'zb-slip-tick-down'
+                                  }`}
                                 >
                                   {formatDecimalOdds(selection.liveOdds)}
                                 </span>
@@ -904,7 +969,7 @@ export default function BetSlip({
                         </span>
                       </div>
 
-                      <div className='flex items-center justify-between border-y border-obsidian-border/60 bg-gradient-to-r from-money/10 via-transparent to-transparent px-4 py-3'>
+                      <div className='flex items-center justify-between border-y border-obsidian-border/60 bg-linear-to-r from-money/10 via-transparent to-transparent px-4 py-3'>
                         <span className='inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-brutal text-money'>
                           <Coins size={12} aria-hidden='true' />
                           Ganancia potencial

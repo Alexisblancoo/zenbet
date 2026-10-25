@@ -22,8 +22,8 @@ const SIZE_CLASSES: Record<AvatarSize, string> = {
 };
 
 const FRAME_CLASSES: Record<FighterCorner, string> = {
-  red: 'bg-gradient-to-br from-crimson/90 via-white/20 to-crimson/35 shadow-[0_0_30px_-10px_rgb(239_68_68_/_0.85)]',
-  blue: 'bg-gradient-to-br from-electric/90 via-white/20 to-electric/35 shadow-[0_0_30px_-10px_rgb(56_189_248_/_0.8)]',
+  red: 'bg-linear-to-br from-crimson/90 via-white/20 to-crimson/35 shadow-[0_0_30px_-10px_rgb(239_68_68_/_0.85)]',
+  blue: 'bg-linear-to-br from-electric/90 via-white/20 to-electric/35 shadow-[0_0_30px_-10px_rgb(56_189_248_/_0.8)]',
 };
 
 function initialsFor(name: string): string {
@@ -100,7 +100,7 @@ export default function FighterAvatar({
         />
         <span
           aria-hidden='true'
-          className='pointer-events-none absolute inset-x-2 bottom-0 h-6 rounded-full bg-gradient-to-t from-black/45 to-transparent'
+          className='pointer-events-none absolute inset-x-2 bottom-0 h-6 rounded-full bg-linear-to-t from-black/45 to-transparent'
         />
       </span>
     </span>

@@ -59,14 +59,14 @@ export default function CardNav({
             onClick={() => onSectionChange('all')}
             className={`relative flex shrink-0 items-center gap-1 px-2 py-2.5 font-display text-[9px] font-bold uppercase tracking-wide transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric sm:gap-1.5 sm:px-3 sm:text-[10px] sm:tracking-wide ${
               activeSection === 'all'
-                ? 'bg-gradient-to-b from-crimson/[0.08] to-transparent text-white'
+                ? 'bg-linear-to-b from-crimson/[0.08] to-transparent text-white'
                 : 'text-metallic-slate hover:bg-white/[0.025] hover:text-metallic-chrome'
             }`}
           >
             {activeSection === 'all' && (
               <span
                 aria-hidden='true'
-                className='absolute inset-x-2 bottom-0 h-px bg-gradient-to-r from-transparent via-crimson to-transparent sm:inset-x-3'
+                className='absolute inset-x-2 bottom-0 h-px bg-linear-to-r from-transparent via-crimson to-transparent sm:inset-x-3'
               />
             )}
             <span className='h-1 w-1 bg-crimson' aria-hidden='true' />
@@ -85,14 +85,14 @@ export default function CardNav({
                 onClick={() => onSectionChange(section.key)}
                 className={`relative flex shrink-0 items-center gap-1 px-2 py-2.5 font-display text-[9px] font-bold uppercase tracking-wide transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric sm:gap-1.5 sm:px-3 sm:text-[10px] sm:tracking-wide ${
                   active
-                    ? 'bg-gradient-to-b from-crimson/[0.08] to-transparent text-white'
+                    ? 'bg-linear-to-b from-crimson/[0.08] to-transparent text-white'
                     : 'text-metallic-slate hover:bg-white/[0.025] hover:text-metallic-chrome'
                 }`}
               >
                 {active && (
                   <span
                     aria-hidden='true'
-                    className='absolute inset-x-2 bottom-0 h-px bg-gradient-to-r from-transparent via-crimson to-transparent sm:inset-x-3'
+                    className='absolute inset-x-2 bottom-0 h-px bg-linear-to-r from-transparent via-crimson to-transparent sm:inset-x-3'
                   />
                 )}
                 <span>{section.shortLabel}</span>

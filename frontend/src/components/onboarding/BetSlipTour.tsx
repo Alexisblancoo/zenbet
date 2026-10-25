@@ -258,7 +258,7 @@ export default function BetSlipTour({ open, onClose }: BetSlipTourProps) {
       >
         <div
           aria-hidden='true'
-          className='pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FFD700] to-transparent'
+          className='pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#FFD700] to-transparent'
         />
 
         <div className='flex items-start justify-between gap-3 border-b border-white/[0.07] px-4 pb-3 pt-3.5'>
