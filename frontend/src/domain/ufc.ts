@@ -343,7 +343,7 @@ export function normalizeFightClock(payload: unknown): UfcFightClock | null {
   if (!raw) return null;
 
   const eventId = readString(raw.eventId);
-  const status = readString(raw.status);
+  const status = readString(raw.effectiveStatus) ?? readString(raw.status);
   const startTime = readString(raw.startTime);
   const endsAt = readString(raw.endsAt);
   const serverTime = readString(raw.serverTime);
@@ -366,7 +366,9 @@ export function normalizeFightUpdate(payload: unknown): UfcFightUpdate | null {
   if (!raw) return null;
 
   const eventId = readString(raw.eventId);
-  const status = readString(raw.status);
+  // El backend calcula el estado efectivo y lo publica como `status`; el alias
+  // `effectiveStatus` queda aceptado para futuras versiones del contrato.
+  const status = readString(raw.effectiveStatus) ?? readString(raw.status);
   const startTime = readString(raw.startTime);
   const endsAt = readString(raw.endsAt);
   const updatedAt = readString(raw.updatedAt);
@@ -418,17 +420,23 @@ export function applyFightUpdate(
   event: UfcEvent,
   update: UfcFightUpdate | null | undefined,
   clock: UfcFightClock | null | undefined,
+  nowMs = Date.now(),
 ): UfcEvent {
-  if (!update && !clock) return event;
+  // Sin mensaje de SignalR todavía puede existir un cierre local por `endsAt`.
+  if (!update && !clock && !hasReached(event.endsAt, nowMs)) return event;
 
   const nextStatus = update?.status ?? clock?.status ?? event.status;
   const nextEndsAt = update?.endsAt ?? clock?.endsAt ?? event.endsAt;
+  // Un evento finalizado no vuelve a abrirse por un mensaje atrasado. El reloj
+  // local solo actúa como red de seguridad cuando el backend ya fijó `endsAt`.
   const nextExpired =
+    event.isExpired ||
     isTerminalEventStatus(nextStatus) ||
-    (update?.isExpired ?? (event.isExpired || hasReached(nextEndsAt)));
+    (update?.isExpired ?? false) ||
+    hasReached(nextEndsAt, nowMs);
   const nextOpen =
     !nextExpired &&
-    nextStatus !== 'suspended' &&
+    nextStatus.toLowerCase() !== 'suspended' &&
     (update?.isBettingOpen ?? event.isBettingOpen);
 
   return {
@@ -445,21 +453,24 @@ export function applyFightUpdate(
 
 /**
  * Cruza la cartelera con los mapas del FightHub. No crea eventos nuevos: solo
- * enriquece los que ya conoce la API.
+ * enriquece los que ya conoce la API. `nowMs` permite cerrar un combate cuyo
+ * `endsAt` ya pasó aunque el mensaje de SignalR se haya perdido.
  */
 export function applyFightUpdates(
   events: readonly UfcEvent[],
   updates: Readonly<Record<string, UfcFightUpdate>>,
   clocks: Readonly<Record<string, UfcFightClock>>,
+  nowMs = Date.now(),
 ): readonly UfcEvent[] {
   let changed = false;
   const next = events.map((event) => {
     const update = updates[event.id];
     const clock = clocks[event.id];
-    if (!update && !clock) return event;
+    const reachedEnd = !event.isExpired && hasReached(event.endsAt, nowMs);
+    if (!update && !clock && !reachedEnd) return event;
 
     changed = true;
-    return applyFightUpdate(event, update, clock);
+    return applyFightUpdate(event, update, clock, nowMs);
   });
 
   return changed ? next : events;
@@ -681,7 +692,7 @@ function normalizeEvent(value: unknown): UfcEvent | null {
         .sort((a, b) => a.displayOrder - b.displayOrder)
     : [];
 
-  const status = readString(raw.status) ?? 'scheduled';
+  const status = readString(raw.effectiveStatus) ?? readString(raw.status) ?? 'scheduled';
   const endsAt = readString(raw.endsAt) ?? estimateFightEnd(startTime, bout.scheduledRounds);
   const isExpired =
     isTerminalEventStatus(status) ||

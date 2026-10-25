@@ -100,6 +100,8 @@ export default function FightHeader({
     <header
       className={`relative overflow-hidden ${isClosed ? 'bg-[#050505]' : ''}`}
       data-closed={isClosed}
+      data-expired={event.isExpired}
+      data-effective-status={event.status}
     >
       <div
         aria-hidden='true'

@@ -88,6 +88,8 @@ export default function FightCard({
       aria-labelledby={headingId}
       data-featured={featured}
       data-closed={isClosed}
+      data-expired={event.isExpired}
+      data-effective-status={event.status}
       className={`fight-card group relative min-w-0 overflow-hidden rounded-xl border transition-all duration-200 ${
         isClosed
           ? 'border-white/[0.055] bg-[#050505]'
@@ -99,11 +101,13 @@ export default function FightCard({
       <div
         aria-hidden='true'
         className={`h-[2px] w-full ${
-          featured
-            ? 'bg-linear-to-r from-crimson/20 via-crimson to-crimson/20'
-            : bout.isTitleFight
-              ? 'bg-linear-to-r from-crimson/10 via-crimson to-crimson/10'
-              : 'bg-linear-to-r from-transparent via-white/15 to-transparent'
+          isClosed
+            ? 'bg-linear-to-r from-transparent via-white/12 to-transparent'
+            : featured
+              ? 'bg-linear-to-r from-crimson/20 via-crimson to-crimson/20'
+              : bout.isTitleFight
+                ? 'bg-linear-to-r from-crimson/10 via-crimson to-crimson/10'
+                : 'bg-linear-to-r from-transparent via-white/15 to-transparent'
         }`}
       />
       <span

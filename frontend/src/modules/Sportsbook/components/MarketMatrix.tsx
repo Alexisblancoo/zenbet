@@ -6,6 +6,7 @@ import {
   findMarket,
   findSelectionByCode,
   formatAmericanOdds,
+  isTerminalEventStatus,
   shortFighterName,
   UFC_MARKET_FAMILIES,
   type UfcEvent,
@@ -272,7 +273,8 @@ export default function MarketMatrix({
   onToggle,
 }: MarketMatrixProps) {
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
-  const closed = event.isExpired || !event.isBettingOpen;
+  const closed =
+    event.isExpired || isTerminalEventStatus(event.status) || !event.isBettingOpen;
   const markets = useMemo(
     () =>
       UFC_MARKET_FAMILIES.map((family) => ({
@@ -305,6 +307,7 @@ export default function MarketMatrix({
     <div
       role='group'
       aria-label={`Mercados de ${bout.red.name} vs ${bout.blue.name}`}
+      data-closed={closed}
       className='market-matrix grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/[0.07] bg-white/[0.06] md:grid-cols-4'
     >
       <MarketColumn family={markets[0].family} index={0} market={moneyline}>

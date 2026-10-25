@@ -16,6 +16,11 @@ import { useBetSlip } from '@/context/betSlipState';
 import type { SelectionInput } from '@/domain/bets';
 import { formatDecimalOdds, type OddsQuote } from '@/domain/odds';
 import {
+  parseSportsbookSport,
+  SPORTSBOOK_SPORT_BY_ID,
+  type SportsbookSportId,
+} from '@/domain/sportsbook';
+import {
   applyFightUpdates,
   buildUfcCards,
   cardCity,
@@ -54,6 +59,8 @@ import FighterAvatar from '../components/FighterAvatar';
 import FighterComparisonModal from '../components/FighterComparisonModal';
 import HubStatusBadge from '../components/HubStatusBadge';
 import SourceBadge from '../components/SourceBadge';
+import SportComingSoon from '../components/SportComingSoon';
+import TrendingSportsGrid from '../components/TrendingSportsGrid';
 
 const SECTION_DESCRIPTIONS: Readonly<Record<string, string>> = {
   main: 'La cartelera estelar abre con el combate de título. Cuatro familias por pelea, sin cambiar de pestaña.',
@@ -397,6 +404,9 @@ function MainEventHero({
   return (
     <section
       aria-label={`Evento principal ${event.competition ?? 'UFC'}`}
+      data-closed={isClosed}
+      data-expired={event.isExpired}
+      data-effective-status={event.status}
       className='shibuya-hero relative overflow-hidden rounded-2xl'
     >
       <div className='shibuya-scan' aria-hidden='true' />
@@ -568,6 +578,18 @@ export default function MmaEventsPage() {
 
   const [activeSection, setActiveSection] = useState<CardSectionKey>('all');
   const [comparisonEvent, setComparisonEvent] = useState<UfcEvent | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const activeSport = parseSportsbookSport(searchParams.get('sport'));
+  const activeSportDefinition =
+    SPORTSBOOK_SPORT_BY_ID.get(activeSport) ?? SPORTSBOOK_SPORT_BY_ID.get('mma')!;
+  const isMma = activeSport === 'mma';
+
+  // Red de seguridad para el cierre por horario: si SignalR no entrega el
+  // update final, la página reevalúa `endsAt` sin esperar a una recarga.
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const baseCards = useMemo(() => buildUfcCards(sourceEvents), [sourceEvents]);
   const watchedEventIds = useMemo(
@@ -588,7 +610,12 @@ export default function MmaEventsPage() {
   }, [fightHub.reconnectCount, reload]);
 
   const events = useMemo(() => {
-    const updated = applyFightUpdates(sourceEvents, fightHub.updates, fightHub.clocks);
+    const updated = applyFightUpdates(
+      sourceEvents,
+      fightHub.updates,
+      fightHub.clocks,
+      nowMs,
+    );
 
     // El agregado de cartelera es una red de seguridad: si un update de pelea
     // se pierde, un `ReceiveCardUpdate` final igual cierra todos sus mercados.
@@ -598,8 +625,20 @@ export default function MmaEventsPage() {
       if (event.isExpired && !event.isBettingOpen) return event;
       return { ...event, isExpired: true, isBettingOpen: false };
     });
-  }, [sourceEvents, fightHub.updates, fightHub.clocks, fightHub.cardUpdates]);
-  const cards = useMemo(() => buildUfcCards(events), [events]);
+  }, [sourceEvents, fightHub.updates, fightHub.clocks, fightHub.cardUpdates, nowMs]);
+
+  const mmaEvents = useMemo(
+    () => events.filter((event) => event.sportKey === 'mma'),
+    [events],
+  );
+  const sportEvents = useMemo(
+    () =>
+      events.filter((event) =>
+        activeSportDefinition.eventSportKeys.includes(event.sportKey),
+      ),
+    [activeSportDefinition.eventSportKeys, events],
+  );
+  const cards = useMemo(() => buildUfcCards(sportEvents), [sportEvents]);
   const activeCard = findUfcCard(cards, searchParams.get('card'));
   const activeKey = activeCard?.key ?? null;
   const activeEvents = useMemo(
@@ -621,6 +660,23 @@ export default function MmaEventsPage() {
       const next = new URLSearchParams(searchParams);
       next.set('card', key);
       setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
+
+  const handleSelectSport = useCallback(
+    (sport: SportsbookSportId) => {
+      const currentSport = parseSportsbookSport(searchParams.get('sport'));
+      if (sport === currentSport) return;
+
+      const next = new URLSearchParams(searchParams);
+      if (sport === 'mma') next.delete('sport');
+      else next.set('sport', sport);
+      next.delete('card');
+
+      setSearchParams(next, { replace: true });
+      setActiveSection('all');
+      setComparisonEvent(null);
     },
     [searchParams, setSearchParams],
   );
@@ -731,6 +787,65 @@ export default function MmaEventsPage() {
     };
   });
 
+  const mmaStats = useMemo(() => {
+    const mmaMarketCount = mmaEvents.reduce(
+      (count, event) => count + event.markets.length,
+      0,
+    );
+    const openMarketCount = mmaEvents.reduce((count, event) => {
+      if (event.isExpired || !event.isBettingOpen) return count;
+      return count + event.markets.filter((market) => market.status === 'open').length;
+    }, 0);
+    const liveCount = mmaEvents.filter(
+      (event) => event.status === 'live' && !event.isExpired,
+    ).length;
+
+    return {
+      eventCount: mmaEvents.length,
+      liveCount,
+      marketCount: mmaMarketCount,
+      openMarketCount,
+      isLoading,
+    };
+  }, [isLoading, mmaEvents]);
+
+  const betSlipPanel = (
+    <div
+      id='bet-slip'
+      className='hidden min-w-0 min-[1400px]:sticky min-[1400px]:top-32 min-[1400px]:block'
+    >
+      <BetSlip
+        minStake={50}
+        maxStake={5000}
+        variant='floating'
+        className='min-[1400px]:max-h-[calc(100vh_-_9rem)]'
+      />
+    </div>
+  );
+
+  if (!isMma) {
+    return (
+      <div className='shibuya-page min-h-full pb-6 min-[1400px]:pb-0'>
+        <div className='mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-4 sm:py-5 lg:px-6'>
+          <div className='grid grid-cols-1 items-start gap-4 min-[1400px]:grid-cols-[minmax(0,1fr)_360px] min-[1400px]:gap-5'>
+            <div className='flex min-w-0 flex-col gap-4'>
+              <TrendingSportsGrid
+                activeSport={activeSport}
+                onSelectSport={handleSelectSport}
+                mmaStats={mmaStats}
+              />
+              <SportComingSoon
+                sport={activeSportDefinition}
+                onBack={() => handleSelectSport('mma')}
+              />
+            </div>
+            {betSlipPanel}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className='shibuya-page min-h-full pb-6 min-[1400px]:pb-0'>
       <CardNav
@@ -747,6 +862,12 @@ export default function MmaEventsPage() {
       <div className='mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-4 sm:py-5 lg:px-6'>
         <div className='grid grid-cols-1 items-start gap-4 min-[1400px]:grid-cols-[minmax(0,1fr)_360px] min-[1400px]:gap-5'>
           <div className='flex min-w-0 flex-col gap-4'>
+            <TrendingSportsGrid
+              activeSport={activeSport}
+              onSelectSport={handleSelectSport}
+              mmaStats={mmaStats}
+            />
+
             <CardSelector cards={cards} activeKey={activeKey} onSelect={handleSelectCard} />
 
             {mainEvent && (
@@ -911,17 +1032,7 @@ export default function MmaEventsPage() {
             </footer>
           </div>
 
-          <div
-            id='bet-slip'
-            className='hidden min-w-0 min-[1400px]:sticky min-[1400px]:top-32 min-[1400px]:block'
-          >
-            <BetSlip
-              minStake={50}
-              maxStake={5000}
-              variant='floating'
-              className='min-[1400px]:max-h-[calc(100vh_-_9rem)]'
-            />
-          </div>
+          {betSlipPanel}
         </div>
       </div>
 
