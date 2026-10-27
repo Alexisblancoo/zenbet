@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 
 import {
@@ -198,25 +197,15 @@ export default function SportsBentoGrid({
               {/* 1. Puntillismo Hermes: semitono monocromo en Shibuya Lime (#D4FF3F) sobre negro */}
               <div
                 aria-hidden='true'
-                className={`zb-stipple ${active ? 'opacity-100' : sport.available ? 'opacity-80' : 'opacity-55'} transition-opacity duration-500 group-hover:opacity-100`}
-                style={
-                  art.stippleGain
-                    ? ({ '--zb-stipple-gain': art.stippleGain } as CSSProperties)
-                    : undefined
-                }
+                className={`zb-stipple ${sport.available || active ? '' : 'opacity-60'}`}
               >
-                <img src={art.image} alt='' loading='lazy' decoding='async' className='zb-stipple__base' />
-                <div className='zb-stipple__tone'>
-                  <img
-                    src={art.image}
-                    alt=''
-                    loading='lazy'
-                    decoding='async'
-                    className='zb-stipple__img'
-                  />
-                  <div className='zb-stipple__dots' />
-                </div>
-                <div className='zb-stipple__tint' />
+                <img
+                  src={art.image}
+                  alt=''
+                  loading='lazy'
+                  decoding='async'
+                  className='zb-stipple__img'
+                />
               </div>
 
               {/* 4. Capas de legibilidad (Gradientes de contraste superior e inferior) */}

@@ -30,8 +30,6 @@ export interface SportClassicalArt {
   readonly medium: string;
   readonly code: string;
   readonly image: string;
-  /** Intensidad del puntillismo: más bajo para obras claras, más alto para oscuras. */
-  readonly stippleGain?: number;
   readonly alt: string;
 }
 
@@ -52,7 +50,7 @@ export const SPORT_CLASSICAL_ART: Readonly<Record<SportsbookSportId, SportClassi
     epoch: 'Roma Imperial · S. I d.C.',
     medium: 'Óleo sobre lienzo',
     code: 'ROM-01',
-    image: `${BASE_URL}art/mma.jpg`,
+    image: `${BASE_URL}art/mma.png`,
     alt: 'Combate a muerte de gladiadores en la arena del Coliseo romano',
   },
   soccer: {
@@ -62,7 +60,7 @@ export const SPORT_CLASSICAL_ART: Readonly<Record<SportsbookSportId, SportClassi
     epoch: 'Circus Maximus · S. II a.C.',
     medium: 'Óleo sobre lienzo',
     code: 'GRE-02',
-    image: `${BASE_URL}art/soccer.jpg`,
+    image: `${BASE_URL}art/soccer.png`,
     alt: 'Carrera épica de cuadrigas y atletas en el circo máximo',
   },
   basketball: {
@@ -72,7 +70,7 @@ export const SPORT_CLASSICAL_ART: Readonly<Record<SportsbookSportId, SportClassi
     epoch: 'Grecia Arcaica · 776 a.C.',
     medium: 'Óleo sobre lienzo',
     code: 'OLY-03',
-    image: `${BASE_URL}art/basketball.jpg`,
+    image: `${BASE_URL}art/basketball.png`,
     alt: 'Atletas olímpicos saltando en la palestra monumental de Olimpia',
   },
   boxing: {
@@ -82,7 +80,7 @@ export const SPORT_CLASSICAL_ART: Readonly<Record<SportsbookSportId, SportClassi
     epoch: 'Grecia Clásica · S. IV a.C.',
     medium: 'Óleo sobre lienzo',
     code: 'CAE-04',
-    image: `${BASE_URL}art/boxing.jpg`,
+    image: `${BASE_URL}art/boxing.png`,
     alt: 'Púgiles clásicos con correas de cuero caestus en combate frontal',
   },
   esports: {
@@ -92,7 +90,7 @@ export const SPORT_CLASSICAL_ART: Readonly<Record<SportsbookSportId, SportClassi
     epoch: 'Atenas / Roma · S. V a.C.',
     medium: 'Óleo sobre lienzo',
     code: 'TAC-05',
-    image: `${BASE_URL}art/esports.jpg`,
+    image: `${BASE_URL}art/esports.png`,
     alt: 'Consejo de estrategas estudiando mapas y miniaturas tácticas',
   },
   tennis: {
@@ -102,8 +100,7 @@ export const SPORT_CLASSICAL_ART: Readonly<Record<SportsbookSportId, SportClassi
     epoch: 'Grecia Clásica · S. IV a.C.',
     medium: 'Óleo sobre lienzo',
     code: 'APO-06',
-    image: `${BASE_URL}art/tennis.jpg`,
-    stippleGain: 0.9,
+    image: `${BASE_URL}art/tennis.png`,
     alt: 'Atletas clásicos en el patio de esferisterio de Apolo',
   },
   baseball: {
@@ -113,7 +110,7 @@ export const SPORT_CLASSICAL_ART: Readonly<Record<SportsbookSportId, SportClassi
     epoch: 'Mitología Heroica',
     medium: 'Óleo sobre lienzo',
     code: 'HER-07',
-    image: `${BASE_URL}art/baseball.jpg`,
+    image: `${BASE_URL}art/baseball.png`,
     alt: 'Hércules empuñando la maza de madera en batalla mítica',
   },
 };
