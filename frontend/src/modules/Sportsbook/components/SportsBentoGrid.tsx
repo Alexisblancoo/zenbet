@@ -278,7 +278,7 @@ export default function SportsBentoGrid({
 
                   {/* Nombre del deporte: crema #F3E5AB; lima #D4FF3F en hover/activo */}
                   <span
-                    className={`mt-1.5 block break-words font-display [text-shadow:0_1px_6px_rgba(0,0,0,0.85)] text-lg uppercase leading-tight tracking-[0.03em] transition-colors duration-200 sm:text-xl ${
+                    className={`mt-1.5 block break-words font-serif [text-shadow:0_1px_6px_rgba(0,0,0,0.85)] text-[14px] font-bold uppercase leading-tight tracking-tight transition-colors duration-200 sm:text-[15px] ${
                       active ? 'text-[#D4FF3F]' : 'text-[#F3E5AB] group-hover:text-[#D4FF3F]'
                     }`}
                   >

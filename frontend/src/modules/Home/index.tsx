@@ -1,391 +1,356 @@
-import { Link } from 'react-router-dom';
-import {
-  Activity,
-  ArrowRight,
-  CalendarClock,
-  Database,
-  MapPin,
-  ShieldCheck,
-  Swords,
-} from 'lucide-react';
+import { useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, CalendarClock, ChevronDown, MapPin, RefreshCw } from 'lucide-react';
 
+import { formatDecimalOdds } from '@/domain/odds';
 import {
   buildUfcCards,
-  eventsForBilling,
   findEventSource,
   findMarket,
-  formatAmericanOdds,
   formatFightDate,
-  formatFightDay,
-  formatRank,
   formatUpdatedAt,
-  formatWeightDivision,
-  type UfcEvent,
-  type UfcFighter,
   type UfcSelection,
 } from '@/domain/ufc';
-import { formatDecimalOdds } from '@/domain/odds';
 import { useUfcEvents } from '@/hooks/useUfcEvents';
+import SportsBentoGrid from '@/modules/Sportsbook/components/SportsBentoGrid';
+import { SPORT_CLASSICAL_ART } from '@/modules/Sportsbook/components/sportVisuals';
 
-function selectionFor(
-  market: ReturnType<typeof findMarket>,
-  code: string,
-): UfcSelection | undefined {
-  return market?.selections.find((selection) => selection.code === code);
+const STEPS = [
+  {
+    code: '#1',
+    kind: 'Elige',
+    title: 'Disciplina y cartelera',
+    text: 'Entra por deporte y abre la cartelera con sus combates y mercados.',
+    art: SPORT_CLASSICAL_ART.tennis,
+  },
+  {
+    code: '#2',
+    kind: 'Revisa',
+    title: 'Cuota con procedencia',
+    text: 'Cada mercado indica su proveedor y la hora en que se observó la cuota.',
+    art: SPORT_CLASSICAL_ART.esports,
+  },
+  {
+    code: '#3',
+    kind: 'Confirma',
+    title: 'Boleto claro',
+    text: 'Ves monto, cuota total y ganancia antes de enviar. Sin duplicados.',
+    art: SPORT_CLASSICAL_ART.boxing,
+  },
+] as const;
+
+const FAQ = [
+  {
+    q: '¿Las cuotas son ejecutables?',
+    a: 'No. Son cuotas de referencia tomadas de un snapshot declarado. Cada mercado indica su proveedor y su timestamp de observación.',
+  },
+  {
+    q: '¿Qué deportes puedo ver hoy?',
+    a: 'Hoy solo UFC / MMA. Fútbol, baloncesto, boxeo, eSports, tenis y béisbol aparecen como "Pronto" y no muestran cuotas hasta que existan.',
+  },
+  {
+    q: '¿Cómo se protege mi apuesta?',
+    a: 'Validamos tu saldo antes de confirmar y protegemos cada apuesta contra envíos duplicados. Revisas monto, cuota total y ganancia antes de enviar.',
+  },
+] as const;
+
+function SectionLabel({ code, children }: { code: string; children: string }) {
+  return (
+    <p className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-sage'>
+      <span className='text-lime-400'>{code}</span> {children}
+    </p>
+  );
 }
 
-function FighterOddsCard({
-  fighter,
-  selection,
-  corner,
-}: {
-  fighter: UfcFighter;
-  selection?: UfcSelection;
-  corner: 'red' | 'blue';
-}) {
+function OddsPill({ name, selection }: { name: string; selection?: UfcSelection }) {
   return (
-    <div className='flex min-w-0 flex-col gap-3 border border-obsidian-border bg-obsidian-surface/80 p-4'>
-      <div className='flex items-center justify-between gap-2'>
-        <span
-          className={`font-mono text-[9px] font-bold uppercase tracking-wide ${
-            corner === 'red' ? 'text-crimson' : 'text-electric-soft'
-          }`}
-        >
-          {corner === 'red' ? 'Esquina roja' : 'Esquina azul'}
-        </span>
-        <span className='font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
-          {formatRank(fighter)}
-        </span>
-      </div>
-      <div className='min-w-0'>
-        <p className='break-words font-display text-base font-bold uppercase leading-tight text-white'>
-          {fighter.name}
-        </p>
-        <p className='mt-1 font-mono text-[10px] uppercase tracking-wide text-metallic-titanium'>
-          {fighter.record} · {fighter.country || '—'}
-        </p>
-      </div>
-      <div className='mt-auto flex min-h-[46px] items-center justify-between gap-2 border-t border-obsidian-border/80 pt-2.5'>
-        <span className='font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
-          Moneyline
-        </span>
-        {selection ? (
-          <span className='flex items-baseline gap-2'>
-            <span className='odds-number text-lg text-white'>{formatDecimalOdds(selection.decimalOdds)}</span>
-            <span className='font-mono text-[10px] font-semibold text-metallic-titanium'>
-              {selection.americanOdds || formatAmericanOdds(selection.decimalOdds)}
-            </span>
-          </span>
-        ) : (
-          <span className='font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
-            No disponible
-          </span>
-        )}
-      </div>
+    <div className='flex min-w-0 items-center justify-between gap-3 border border-white/10 bg-obsidian-surface px-3 py-2.5'>
+      <span className='truncate font-serif text-sm font-bold uppercase text-cream'>{name}</span>
+      <span className='odds-number text-base text-gold'>
+        {selection ? formatDecimalOdds(selection.decimalOdds) : '—'}
+      </span>
     </div>
   );
 }
 
-function FeaturedBout({ event, cardKey }: { event: UfcEvent; cardKey?: string }) {
-  const market = findMarket(event, 'moneyline');
-  const red = selectionFor(market, 'red');
-  const blue = selectionFor(market, 'blue');
-
-  return (
-    <Link
-      to={cardKey ? `/sportsbook?card=${cardKey}` : '/sportsbook'}
-      className='group flex min-w-0 flex-col gap-3 border border-obsidian-border bg-obsidian-card p-4 transition-colors duration-200 hover:border-lime-400/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60'
-    >
-      <div className='flex flex-wrap items-center justify-between gap-2'>
-        <span className='font-mono text-[9px] font-bold uppercase tracking-wide text-crimson'>
-          {event.competition ?? 'UFC'} · {event.bout.billingLabel}
-        </span>
-        <span className='font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
-          {event.bout.scheduledRounds} asaltos
-        </span>
-      </div>
-
-      <h3 className='break-words font-display text-sm font-bold uppercase leading-tight text-white group-hover:text-lime-400'>
-        {event.name}
-      </h3>
-
-      <div className='flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
-        <span>{formatWeightDivision(event.bout)}</span>
-        <span aria-hidden='true'>·</span>
-        <span>{formatFightDay(event.startTime)}</span>
-      </div>
-
-      <div className='mt-1 grid grid-cols-2 gap-2'>
-        <div className='min-w-0 border border-obsidian-border bg-obsidian-surface/70 p-2.5'>
-          <p className='truncate font-display text-[11px] font-bold uppercase text-metallic-chrome'>
-            {event.bout.red.name}
-          </p>
-          <p className='mt-1 font-mono text-[9px] text-metallic-slate'>
-            {event.bout.red.record}
-          </p>
-          <div className='mt-2 flex items-baseline justify-between gap-1'>
-            <span className='odds-number text-sm text-white'>{formatDecimalOdds(red?.decimalOdds ?? 0)}</span>
-            <span className='font-mono text-[9px] text-metallic-titanium'>
-              {red ? red.americanOdds || formatAmericanOdds(red.decimalOdds) : ''}
-            </span>
-          </div>
-        </div>
-        <div className='min-w-0 border border-obsidian-border bg-obsidian-surface/70 p-2.5'>
-          <p className='truncate font-display text-[11px] font-bold uppercase text-metallic-chrome'>
-            {event.bout.blue.name}
-          </p>
-          <p className='mt-1 font-mono text-[9px] text-metallic-slate'>
-            {event.bout.blue.record}
-          </p>
-          <div className='mt-2 flex items-baseline justify-between gap-1'>
-            <span className='odds-number text-sm text-white'>
-              {formatDecimalOdds(blue?.decimalOdds ?? 0)}
-            </span>
-            <span className='font-mono text-[9px] text-metallic-titanium'>
-              {blue ? blue.americanOdds || formatAmericanOdds(blue.decimalOdds) : ''}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <span className='mt-1 inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wide text-metallic-slate group-hover:text-crimson'>
-        Abrir mercados
-        <ArrowRight size={11} aria-hidden='true' />
-      </span>
-    </Link>
-  );
-}
-
 export default function Home() {
+  const navigate = useNavigate();
   const { events, isLoading, error, reload } = useUfcEvents();
 
-  // La API ordena de más reciente a más antiguo. En la home se destaca el
-  // sábado más próximo y su cartelera, no una mezcla de competencias.
   const cards = buildUfcCards(events);
   const activeCard = cards[0];
-  const cardEvents = activeCard?.events ?? [];
   const mainEvent = activeCard?.mainEvent;
   const mainMarket = mainEvent ? findMarket(mainEvent, 'moneyline') : undefined;
-  const redSelection = selectionFor(mainMarket, 'red');
-  const blueSelection = selectionFor(mainMarket, 'blue');
-  const mainCardEvents = eventsForBilling(cardEvents, 'main')
-    .filter((event) => event.id !== mainEvent?.id)
-    .slice(0, 4);
-  const marketCount = events.reduce((total, event) => total + event.markets.length, 0);
-  const activeMarketCount = cardEvents.reduce(
-    (total, event) => total + event.markets.length,
-    0,
-  );
-  const marketsPerBout =
-    cardEvents.length > 0 ? Math.max(1, Math.round(activeMarketCount / cardEvents.length)) : 0;
+  const red = mainMarket?.selections.find((selection) => selection.code === 'red');
+  const blue = mainMarket?.selections.find((selection) => selection.code === 'blue');
   const source = mainEvent ? findEventSource(mainEvent) : null;
-  const sportsbookHref = activeCard ? `/sportsbook?card=${activeCard.key}` : '/sportsbook';
   const updatedAt = formatUpdatedAt(mainEvent?.oddsUpdatedAt ?? null);
+  const sportsbookHref = activeCard ? `/sportsbook?card=${activeCard.key}` : '/sportsbook';
+  const marketCount = events.reduce((total, event) => total + event.markets.length, 0);
+  const hero = SPORT_CLASSICAL_ART.mma;
+
+  const mmaStats = useMemo(() => {
+    const openMarketCount = events.reduce((count, event) => {
+      if (event.isExpired || !event.isBettingOpen) return count;
+      return count + event.markets.filter((market) => market.status === 'open').length;
+    }, 0);
+    const liveCount = events.filter(
+      (event) => event.status === 'live' && !event.isExpired,
+    ).length;
+
+    return { eventCount: events.length, liveCount, marketCount, openMarketCount, isLoading };
+  }, [events, isLoading, marketCount]);
 
   return (
-    <div className='flex min-h-full w-full flex-col bg-canvas text-white'>
-      <div className='w-full border-b border-obsidian-border bg-obsidian-surface/70'>
-        <div className='mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2.5 font-mono text-[10px] uppercase tracking-wide text-metallic-slate sm:px-6 lg:px-8'>
-          <span className='flex items-center gap-2'>
-            <span className='h-1.5 w-1.5 bg-lime-400' aria-hidden='true' />
-            Carteleras UFC · próximos sábados · snapshot declarado
-          </span>
-          <span>
-            {isLoading
-              ? 'Consultando eventos…'
-              : error
-                ? 'Datos no disponibles'
-                : `${events.length} combates · ${marketCount} mercados · múltiples carteleras`}
-          </span>
-        </div>
-      </div>
+    <div className='flex min-h-full w-full flex-col bg-canvas text-cream'>
+      <div className='mx-auto flex w-full max-w-7xl flex-col gap-16 px-4 py-8 sm:px-6 sm:py-12 lg:gap-24 lg:px-8'>
+        {/* ------------------------------------------------------------ */}
+        {/* Hero: la marca y la acción, sin nombres de peleadores          */}
+        {/* ------------------------------------------------------------ */}
+        <section className='grid items-center gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14'>
+          <div className='flex min-w-0 flex-col gap-6'>
+            <p className='font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-sage'>
+              Zenbet · Shibuya <span className='text-lime-400'>/</span> Sportsbook
+            </p>
 
-      <div className='mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 py-8 sm:px-6 lg:px-8'>
-        <section className='relative overflow-hidden border border-white/[0.08] bg-gradient-obsidian-radial p-6 sm:p-10'>
-          <div className='pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-burgundy/30 blur-3xl' />
+            <h1 className='font-display text-[clamp(2.4rem,7vw,5rem)] uppercase leading-[0.98] tracking-[0.01em] text-cream'>
+              Elige el deporte.
+              <br />
+              <span className='text-lime-400'>Revisa cada cuota.</span>
+            </h1>
 
-          <div className='relative z-10 flex flex-col gap-6'>
-            <div className='flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-wide'>
-              <span className='inline-flex items-center gap-2 border border-crimson/40 bg-crimson/10 px-2.5 py-1 font-bold text-crimson'>
-                <Swords size={11} aria-hidden='true' />
-                {mainEvent?.competition ?? 'UFC'}
-              </span>
-              {mainEvent && (
-                <>
-                  <span className='inline-flex items-center gap-1.5 text-metallic-titanium'>
-                    <CalendarClock size={11} aria-hidden='true' />
-                    {formatFightDate(mainEvent.startTime)}
-                  </span>
-                  <span className='inline-flex items-center gap-1.5 text-metallic-titanium'>
-                    <MapPin size={11} aria-hidden='true' />
-                    {mainEvent.bout.venue} · {mainEvent.bout.location}
-                  </span>
-                </>
-              )}
+            <p className='max-w-xl font-serif text-base italic leading-relaxed text-cream/75 sm:text-lg'>
+              Carteleras con cuotas de referencia, procedencia declarada y un boleto claro antes de
+              confirmar.
+            </p>
+
+            <div className='flex flex-wrap items-center gap-3'>
+              <Link to={sportsbookHref} className='btn btn-primary btn-lg'>
+                Abrir cartelera UFC
+                <ArrowRight size={16} aria-hidden='true' />
+              </Link>
+              <a href='#como-funciona' className='btn btn-ghost btn-lg'>
+                Cómo funciona
+              </a>
             </div>
 
-            {isLoading && !mainEvent ? (
-              <div className='space-y-4' aria-busy='true' aria-label='Cargando evento principal'>
-                <div className='h-4 w-32 animate-pulse bg-obsidian-elevated' />
-                <div className='h-14 w-full max-w-3xl animate-pulse bg-obsidian-elevated sm:h-20' />
-                <div className='h-4 w-full max-w-xl animate-pulse bg-obsidian-surface' />
-              </div>
-            ) : error && !mainEvent ? (
-              <div className='flex min-w-0 flex-col items-start gap-4 border border-crimson/40 bg-crimson/5 p-5'>
-                <div>
-                  <h1 className='font-display text-2xl font-bold uppercase tracking-tight text-white sm:text-3xl'>
-                    La cartelera no está disponible
-                  </h1>
-                  <p className='mt-2 max-w-xl text-xs leading-relaxed text-metallic-titanium'>{error}</p>
-                </div>
-                <button
-                  type='button'
-                  onClick={reload}
-                  className='btn btn-danger'
-                >
-                  <Activity size={13} aria-hidden='true' />
-                  Reintentar
-                </button>
-              </div>
-            ) : mainEvent ? (
-              <>
-                <div className='max-w-4xl'>
-                  <h1 className='font-display text-[clamp(2rem,8vw,4.5rem)] uppercase leading-[1] tracking-[0.01em] text-cream sm:text-7xl lg:text-8xl'>
-                    <span className='block break-normal sm:inline'>{mainEvent.bout.red.name}</span>{' '}
-                    <span className='block text-burgundy-hi sm:inline'>vs.</span>{' '}
-                    <span className='block break-normal sm:inline'>{mainEvent.bout.blue.name}</span>
-                  </h1>
-                  <p className='mt-4 max-w-2xl font-serif text-base italic leading-relaxed text-cream/80 sm:text-lg'>
-                    {mainEvent.bout.isTitleFight
-                      ? 'Combate de título'
-                      : 'Evento principal'}{' '}
-                    a {mainEvent.bout.scheduledRounds} asaltos en{' '}
-                    {mainEvent.bout.weightDivisionLabel}. Cuotas decimales y americanas desde el
-                    snapshot de {source?.name ?? 'la fuente declarada'}.
-                  </p>
-                </div>
-
-                <div className='grid max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2'>
-                  <FighterOddsCard fighter={mainEvent.bout.red} selection={redSelection} corner='red' />
-                  <FighterOddsCard
-                    fighter={mainEvent.bout.blue}
-                    selection={blueSelection}
-                    corner='blue'
-                  />
-                </div>
-
-                <div className='flex flex-wrap items-center gap-3 pt-1'>
-                  <Link
-                    to={sportsbookHref}
-                    className='btn btn-primary btn-lg'
-                  >
-                    <Swords size={16} aria-hidden='true' />
-                    Abrir cartelera completa
-                    <ArrowRight size={15} aria-hidden='true' />
-                  </Link>
-                  <span className='font-mono text-[10px] uppercase tracking-wide text-metallic-slate'>
-                    {cardEvents.length} combates · {marketsPerBout} mercados por combate
-                  </span>
-                </div>
-
-                {updatedAt && (
-                  <p className='font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
-                    Cuotas actualizadas {updatedAt} · Fuente: {source?.name ?? 'snapshot declarado'}
-                  </p>
-                )}
-              </>
-            ) : (
-              <div>
-                <h1 className='font-display text-3xl font-bold uppercase tracking-tight text-white'>
-                  Cartelera sin eventos
-                </h1>
-                <p className='mt-2 text-xs text-metallic-titanium'>
-                  No hay combates programados en este momento.
-                </p>
-              </div>
-            )}
+            <p className='font-mono text-[11px] uppercase tracking-wide text-sage'>
+              {isLoading
+                ? 'Consultando carteleras…'
+                : error
+                  ? 'Cartelera no disponible'
+                  : `${events.length} combates · ${marketCount} mercados · snapshot declarado`}
+            </p>
           </div>
+
+          <figure className='relative overflow-hidden border border-white/10 bg-[#0A0A0A]'>
+            <img
+              src={hero.image}
+              alt={hero.alt}
+              decoding='async'
+              className='aspect-[4/3] w-full object-cover'
+              style={{ objectPosition: hero.focus }}
+            />
+            <div
+              aria-hidden='true'
+              className='pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#0A0A0A]/90 to-transparent'
+            />
+            <figcaption className='absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2'>
+              <span className='rounded-[3px] bg-cream px-1.5 py-[3px] font-mono text-[10px] font-semibold uppercase leading-none tracking-wider text-plum'>
+                {hero.title} · {hero.subtitle}
+              </span>
+              <span className='font-mono text-[10px] uppercase tracking-wider text-lime-400'>
+                #1 UFC / MMA
+              </span>
+            </figcaption>
+          </figure>
         </section>
 
-        <section className='flex flex-col gap-4'>
-          <div className='flex flex-wrap items-end justify-between gap-3 border-b border-obsidian-border pb-3'>
-            <div className='min-w-0'>
-              <p className='font-mono text-[9px] font-bold uppercase tracking-wide text-sage'>
-                Cartelera estelar
-              </p>
-              <h2 className='mt-1 font-display text-lg font-bold uppercase tracking-tight text-white'>
-                Combates principales
-              </h2>
-            </div>
-            <Link
-              to={sportsbookHref}
-              className='inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-wide text-lime-400 hover:text-cream'
-            >
-              Ver todos los mercados
-              <ArrowRight size={12} aria-hidden='true' />
-            </Link>
-          </div>
+        {/* ------------------------------------------------------------ */}
+        {/* Disciplinas: la puerta de entrada (como las categorías de un   */}
+        {/* sportsbook), en lugar de volcar combates y nombres             */}
+        {/* ------------------------------------------------------------ */}
+        <section aria-label='Disciplinas' className='flex flex-col gap-4'>
+          <SectionLabel code='#1'>Disciplinas</SectionLabel>
+          <SportsBentoGrid
+            activeSport='mma'
+            onSelectSport={(sport) => navigate(`/sportsbook?sport=${sport}`)}
+            mmaStats={mmaStats}
+          />
+        </section>
 
-          {isLoading && mainCardEvents.length === 0 ? (
-            <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-              {[0, 1, 2, 3].map((item) => (
-                <div
-                  key={item}
-                  className='h-48 animate-pulse border border-obsidian-border bg-obsidian-card'
-                />
-              ))}
+        {/* ------------------------------------------------------------ */}
+        {/* Próxima cartelera: una sola tarjeta, evento estelar plegado    */}
+        {/* ------------------------------------------------------------ */}
+        <section aria-label='Próxima cartelera' className='flex flex-col gap-4'>
+          <SectionLabel code='#2'>Próxima cartelera</SectionLabel>
+
+          {isLoading && !activeCard ? (
+            <div
+              className='h-44 animate-pulse border border-white/10 bg-obsidian-card'
+              aria-busy='true'
+              aria-label='Cargando cartelera'
+            />
+          ) : error && !activeCard ? (
+            <div className='flex flex-col items-start gap-4 border border-burgundy-hi/60 bg-burgundy/20 p-6'>
+              <div>
+                <h2 className='font-display text-2xl uppercase tracking-wide text-cream'>
+                  La cartelera no está disponible
+                </h2>
+                <p className='mt-2 max-w-xl text-sm leading-relaxed text-cream/75'>{error}</p>
+              </div>
+              <button type='button' onClick={reload} className='btn btn-danger'>
+                <RefreshCw size={14} aria-hidden='true' />
+                Reintentar
+              </button>
             </div>
-          ) : mainCardEvents.length > 0 ? (
-            <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-              {mainCardEvents.map((event) => (
-                <FeaturedBout key={event.id} event={event} cardKey={activeCard?.key} />
-              ))}
+          ) : activeCard ? (
+            <div className='border border-white/10 bg-obsidian-card'>
+              <div className='flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6'>
+                <div className='min-w-0'>
+                  <div className='flex flex-wrap items-center gap-2'>
+                    <span className='rounded-[2px] bg-burgundy px-1.5 py-1 font-mono text-[10px] font-bold leading-none text-cream'>
+                      UFC
+                    </span>
+                    <span
+                      className={`font-mono text-[10px] font-bold uppercase tracking-wider ${
+                        activeCard.liveCount > 0 || activeCard.isBettingOpen
+                          ? 'text-lime-400'
+                          : 'text-sage'
+                      }`}
+                    >
+                      {activeCard.liveCount > 0
+                        ? `${activeCard.liveCount} en vivo`
+                        : activeCard.isBettingOpen
+                          ? 'Apuestas abiertas'
+                          : 'Apuestas cerradas'}
+                    </span>
+                  </div>
+
+                  <h2 className='mt-3 font-display text-3xl uppercase leading-none tracking-wide text-cream sm:text-4xl'>
+                    {activeCard.competition}
+                  </h2>
+
+                  <div className='mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] uppercase tracking-wide text-sage'>
+                    <span className='inline-flex items-center gap-1.5'>
+                      <CalendarClock size={12} aria-hidden='true' />
+                      {formatFightDate(activeCard.startTime)}
+                    </span>
+                    <span className='inline-flex items-center gap-1.5'>
+                      <MapPin size={12} aria-hidden='true' />
+                      {activeCard.venue} · {activeCard.location}
+                    </span>
+                    <span>
+                      {activeCard.events.length} combates · {activeCard.marketCount} mercados
+                    </span>
+                  </div>
+                </div>
+
+                <Link to={sportsbookHref} className='btn btn-primary btn-lg shrink-0'>
+                  Ver cartelera
+                  <ArrowRight size={16} aria-hidden='true' />
+                </Link>
+              </div>
+
+              {mainEvent && (
+                <details className='group border-t border-white/10'>
+                  <summary className='flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 font-mono text-[11px] font-semibold uppercase tracking-wider text-sage transition-colors hover:text-cream sm:px-6 [&::-webkit-details-marker]:hidden'>
+                    <span>Evento estelar y cuotas</span>
+                    <ChevronDown
+                      size={14}
+                      aria-hidden='true'
+                      className='transition-transform duration-200 group-open:rotate-180'
+                    />
+                  </summary>
+                  <div className='flex flex-col gap-3 px-5 pb-5 sm:px-6 sm:pb-6'>
+                    <p className='font-mono text-[10px] uppercase tracking-wide text-sage'>
+                      {mainEvent.bout.weightDivisionLabel} · {mainEvent.bout.scheduledRounds}{' '}
+                      asaltos
+                    </p>
+                    <div className='grid gap-2 sm:grid-cols-2'>
+                      <OddsPill name={mainEvent.bout.red.name} selection={red} />
+                      <OddsPill name={mainEvent.bout.blue.name} selection={blue} />
+                    </div>
+                    {updatedAt && (
+                      <p className='font-mono text-[10px] uppercase tracking-wide text-sage'>
+                        Cuotas actualizadas {updatedAt} · Fuente:{' '}
+                        {source?.name ?? 'snapshot declarado'}
+                      </p>
+                    )}
+                  </div>
+                </details>
+              )}
             </div>
           ) : (
-            <p className='border border-obsidian-border bg-obsidian-card p-5 text-xs text-metallic-titanium'>
-              No hay combates principales publicados en este momento.
+            <p className='border border-white/10 bg-obsidian-card p-5 text-sm text-sage'>
+              No hay combates programados en este momento.
             </p>
           )}
         </section>
 
-        <section className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-          <div className='flex flex-col gap-2 border border-obsidian-border bg-obsidian-surface p-5'>
-            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-sage'>
-              <Database size={14} aria-hidden='true' />
-              Cartelera verificada
-            </div>
-            <p className='text-xs leading-relaxed text-metallic-titanium'>
-              Cada combate conserva división, ronda y posición en su cartelera. Los {events.length}{' '}
-              combates y sus {marketCount} mercados proceden de snapshots declarados y muestran su
-              procedencia.
-            </p>
+        {/* ------------------------------------------------------------ */}
+        {/* Cómo funciona: pasos numerados con obra tramada                */}
+        {/* ------------------------------------------------------------ */}
+        <section id='como-funciona' className='flex scroll-mt-24 flex-col gap-6'>
+          <div className='flex flex-col gap-3'>
+            <SectionLabel code='#3'>Cómo funciona</SectionLabel>
+            <h2 className='font-display text-4xl uppercase leading-none tracking-wide text-cream sm:text-5xl'>
+              Tres pasos. <span className='text-lime-400'>Nada oculto.</span>
+            </h2>
           </div>
 
-          <div className='flex flex-col gap-2 border border-obsidian-border bg-obsidian-surface p-5'>
-            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-sage'>
-              <ShieldCheck size={14} aria-hidden='true' />
-              Cuotas declaradas
-            </div>
-            <p className='text-xs leading-relaxed text-metallic-titanium'>
-              Cada mercado indica su proveedor y su timestamp de observación. Las cuatro familias de
-              UFC se presentan desde el snapshot declarado de cada cartelera; son cuotas de
-              referencia, no una línea ejecutable.
-            </p>
-          </div>
-
-          <div className='flex flex-col gap-2 border border-obsidian-border bg-obsidian-surface p-5'>
-            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-sage'>
-              <Activity size={14} aria-hidden='true' />
-              Boleto protegido
-            </div>
-            <p className='text-xs leading-relaxed text-metallic-titanium'>
-              Añade cuotas y revisa monto, cuota total y ganancia antes de confirmar. Validamos tu
-              saldo y protegemos cada apuesta contra envíos duplicados.
-            </p>
+          <div className='grid gap-4 md:grid-cols-3'>
+            {STEPS.map((step) => (
+              <article
+                key={step.code}
+                className='flex flex-col border border-white/10 bg-obsidian-card'
+              >
+                <img
+                  src={step.art.image}
+                  alt=''
+                  loading='lazy'
+                  decoding='async'
+                  className='aspect-[16/10] w-full object-cover opacity-90'
+                  style={{ objectPosition: step.art.focus }}
+                />
+                <div className='flex flex-1 flex-col gap-2 p-5'>
+                  <p className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em]'>
+                    <span className='text-lime-400'>{step.code}</span>{' '}
+                    <span className='text-sage'>{step.kind}</span>
+                  </p>
+                  <h3 className='font-display text-2xl uppercase leading-none tracking-wide text-cream'>
+                    {step.title}
+                  </h3>
+                  <p className='text-sm leading-relaxed text-cream/70'>{step.text}</p>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
-        <p className='border-t border-obsidian-border pt-4 text-[10px] leading-relaxed text-metallic-slate'>
+        {/* ------------------------------------------------------------ */}
+        {/* Preguntas frecuentes                                           */}
+        {/* ------------------------------------------------------------ */}
+        <section className='flex flex-col gap-4'>
+          <SectionLabel code='#4'>Preguntas frecuentes</SectionLabel>
+          <div className='divide-y divide-white/10 border-y border-white/10'>
+            {FAQ.map((item) => (
+              <details key={item.q} className='group py-4'>
+                <summary className='flex cursor-pointer list-none items-center justify-between gap-4 font-display text-xl uppercase tracking-wide text-cream transition-colors hover:text-lime-400 [&::-webkit-details-marker]:hidden'>
+                  {item.q}
+                  <ChevronDown
+                    size={18}
+                    aria-hidden='true'
+                    className='shrink-0 text-sage transition-transform duration-200 group-open:rotate-180'
+                  />
+                </summary>
+                <p className='mt-3 max-w-3xl text-sm leading-relaxed text-cream/70'>{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <p className='border-t border-white/10 pt-4 text-[11px] leading-relaxed text-sage'>
           Cartelera y cuotas con fines informativos. Las cuotas son un snapshot de referencia y no
           una cotización ejecutable. Juega de forma responsable.
         </p>

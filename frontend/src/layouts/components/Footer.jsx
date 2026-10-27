@@ -16,7 +16,7 @@ export default function Footer() {
                 aria-hidden='true'
                 className='h-10 w-10 shrink-0 object-contain'
               />
-              <span className='font-display text-lg font-bold tracking-tight text-white'>
+              <span className='font-serif text-lg font-bold tracking-tight text-white'>
                 ZENBET
               </span>
             </div>

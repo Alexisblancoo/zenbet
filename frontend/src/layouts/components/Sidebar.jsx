@@ -106,7 +106,7 @@ export default function Sidebar() {
             UFC
           </span>
           <div className='min-w-0'>
-            <p className='font-display text-[11px] font-bold uppercase leading-tight tracking-wide text-white'>
+            <p className='font-serif text-[11px] font-bold uppercase leading-tight tracking-wide text-white'>
               Artes marciales
             </p>
             <p className='mt-0.5 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
@@ -133,7 +133,7 @@ export default function Sidebar() {
                 >
                   <span className='flex min-w-0 items-center gap-2'>
                     <Icon size={13} className='shrink-0' aria-hidden='true' />
-                    <span className='truncate font-display text-[10px] font-bold uppercase tracking-wide'>
+                    <span className='truncate font-serif text-[10px] font-bold uppercase tracking-wide'>
                       {category.name}
                     </span>
                   </span>
@@ -162,7 +162,7 @@ export default function Sidebar() {
                     className={category.isHot ? 'shrink-0 text-crimson' : 'shrink-0'}
                     aria-hidden='true'
                   />
-                  <span className='truncate font-display text-[10px] font-bold uppercase tracking-wide'>
+                  <span className='truncate font-serif text-[10px] font-bold uppercase tracking-wide'>
                     {category.name}
                   </span>
                 </span>

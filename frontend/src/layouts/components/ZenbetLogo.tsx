@@ -39,7 +39,7 @@ export default function ZenbetLogo({ compact = false, className = '' }: ZenbetLo
     return (
       <span className={`flex flex-col items-center gap-0.5 ${className}`}>
         <ZenbetMark size='sm' />
-        <span className='font-display text-[8px] font-bold uppercase leading-none tracking-[0.18em] text-white'>
+        <span className='font-serif text-[8px] font-bold uppercase leading-none tracking-[0.18em] text-white'>
           ZENBET
         </span>
         <span className='flex items-center gap-1 whitespace-nowrap font-mono text-[5px] uppercase leading-none tracking-[0.12em] text-lime-400'>
@@ -58,7 +58,7 @@ export default function ZenbetLogo({ compact = false, className = '' }: ZenbetLo
     >
       <ZenbetMark className='transition-[filter] duration-200 group-hover:drop-shadow-[0_0_12px_rgba(212,255,63,0.55)]' />
       <span className='flex min-w-0 flex-col'>
-        <span className='font-display text-[20px] font-bold uppercase leading-none tracking-[0.18em] text-white sm:text-[21px]'>
+        <span className='font-serif text-[20px] font-bold uppercase leading-none tracking-[0.18em] text-white sm:text-[21px]'>
           ZENBET
         </span>
         <span className='mt-1 flex items-center gap-1.5 whitespace-nowrap font-mono text-[8px] uppercase leading-none tracking-[0.17em] text-lime-400 sm:text-[9px]'>
