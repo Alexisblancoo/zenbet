@@ -194,40 +194,32 @@ export default function SportsBentoGrid({
                   : 'border-neutral-800 bg-[#0D0D0D] hover:border-neutral-700 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.8)]'
               } ${sport.id === 'mma' ? 'col-span-2' : 'col-span-1'}`}
             >
-              {/* 1. Lienzo pictórico clásico al óleo con resolución robusta de ruta Vite */}
+              {/* 1. Puntillismo Hermes: semitono monocromo en Shibuya Lime (#D4FF3F) sobre negro */}
               <div
                 aria-hidden='true'
-                className='pointer-events-none absolute inset-0 overflow-hidden'
+                className={`zb-stipple ${active ? 'opacity-100' : sport.available ? 'opacity-80' : 'opacity-55'} transition-opacity duration-500 group-hover:opacity-100`}
               >
-                <img
-                  src={art.image}
-                  alt={art.alt}
-                  loading='lazy'
-                  decoding='async'
-                  className='pointer-events-none absolute inset-0 h-full w-full object-cover opacity-50 grayscale contrast-200 brightness-90 transition-[transform,opacity,filter] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105 group-hover:grayscale-0 group-hover:opacity-70 motion-reduce:transition-none motion-reduce:group-hover:scale-100 will-change-[transform,opacity,filter]'
-                />
+                <div className='zb-stipple__tone'>
+                  <img
+                    src={art.image}
+                    alt=''
+                    loading='lazy'
+                    decoding='async'
+                    className='zb-stipple__img'
+                  />
+                  <div className='zb-stipple__dots' />
+                </div>
+                <div className='zb-stipple__tint' />
               </div>
-
-              {/* 2. Efecto Duotono estilo Hermes en Shibuya Lime (#D4FF3F) */}
-              <div
-                aria-hidden='true'
-                className='pointer-events-none absolute inset-0 bg-[#D4FF3F]/20 mix-blend-color transition-opacity duration-700 group-hover:opacity-30'
-              />
-
-              {/* 3. Líneas de barrido CRT / Terminal scanlines en gradiente 4px */}
-              <div
-                aria-hidden='true'
-                className='pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,0,0,0.6)_50%)] bg-[length:100%_4px] opacity-40 transition-opacity duration-500 group-hover:opacity-25'
-              />
 
               {/* 4. Capas de legibilidad (Gradientes de contraste superior e inferior) */}
               <div
                 aria-hidden='true'
-                className='pointer-events-none absolute inset-x-0 bottom-0 h-4/5 bg-gradient-to-t from-[#121212] via-[#121212]/70 to-transparent'
+                className='pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-[#121212]/90 via-[#121212]/45 to-transparent'
               />
               <div
                 aria-hidden='true'
-                className='pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#121212] via-[#121212]/70 to-transparent'
+                className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#121212]/70 via-[#121212]/30 to-transparent'
               />
 
               {/* 5. Resplandor sutil Shibuya en hover/active */}
