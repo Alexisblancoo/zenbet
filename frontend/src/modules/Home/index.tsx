@@ -13,7 +13,7 @@ import {
 } from '@/domain/ufc';
 import { useUfcEvents } from '@/hooks/useUfcEvents';
 import SportsBentoGrid from '@/modules/Sportsbook/components/SportsBentoGrid';
-import { HOME_ART, SPORT_CLASSICAL_ART } from '@/modules/Sportsbook/components/sportVisuals';
+import { HOME_ART } from '@/modules/Sportsbook/components/sportVisuals';
 
 const STEPS = [
   {
@@ -87,7 +87,6 @@ export default function Home() {
   const updatedAt = formatUpdatedAt(mainEvent?.oddsUpdatedAt ?? null);
   const sportsbookHref = activeCard ? `/sportsbook?card=${activeCard.key}` : '/sportsbook';
   const marketCount = events.reduce((total, event) => total + event.markets.length, 0);
-  const hero = SPORT_CLASSICAL_ART.mma;
 
   const mmaStats = useMemo(() => {
     const openMarketCount = events.reduce((count, event) => {
@@ -143,39 +142,24 @@ export default function Home() {
             </p>
           </div>
 
-          <div className='grid grid-cols-2 items-start gap-3 sm:gap-4'>
-            {[
-              { art: HOME_ART.cardsharps, className: 'sm:mt-12', tag: '' },
-              { art: { ...hero, focus: '30% 62%' }, className: '', tag: '#1 UFC / MMA' },
-            ].map(({ art, className, tag }) => (
-              <figure
-                key={art.title}
-                className={`relative overflow-hidden border border-white/10 bg-[#0A0A0A] ${className}`}
-              >
-                <img
-                  src={art.image}
-                  alt={art.alt}
-                  decoding='async'
-                  className='aspect-[3/4] w-full object-cover'
-                  style={{ objectPosition: art.focus }}
-                />
-                <div
-                  aria-hidden='true'
-                  className='pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-[#0A0A0A]/90 to-transparent'
-                />
-                <figcaption className='absolute inset-x-2 bottom-2 flex flex-col items-start gap-1'>
-                  <span className='max-w-full truncate rounded-[3px] bg-cream px-1.5 py-[3px] font-mono text-[9px] font-semibold uppercase leading-none tracking-wider text-plum'>
-                    {art.title} · {art.subtitle}
-                  </span>
-                  {tag && (
-                    <span className='font-mono text-[10px] uppercase tracking-wider text-lime-400'>
-                      {tag}
-                    </span>
-                  )}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+          <figure className='relative overflow-hidden border border-white/10 bg-[#0A0A0A]'>
+            <img
+              src={HOME_ART.cardsharps.image}
+              alt={HOME_ART.cardsharps.alt}
+              decoding='async'
+              className='aspect-[4/3] w-full object-cover'
+              style={{ objectPosition: '35% 35%' }}
+            />
+            <div
+              aria-hidden='true'
+              className='pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-[#0A0A0A]/90 to-transparent'
+            />
+            <figcaption className='absolute inset-x-3 bottom-3'>
+              <span className='zb-plaque'>
+                {HOME_ART.cardsharps.title} · {HOME_ART.cardsharps.subtitle}
+              </span>
+            </figcaption>
+          </figure>
         </section>
 
         {/* ------------------------------------------------------------ */}
@@ -326,7 +310,7 @@ export default function Home() {
                     className='aspect-[16/10] w-full object-cover'
                     style={{ objectPosition: step.art.focus }}
                   />
-                  <span className='absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-[3px] bg-cream px-1.5 py-[3px] font-mono text-[9px] font-semibold uppercase leading-none tracking-wider text-plum'>
+                  <span className='zb-plaque absolute bottom-2 left-2 max-w-[calc(100%-1rem)]'>
                     {step.art.title} · {step.art.subtitle}
                   </span>
                 </div>

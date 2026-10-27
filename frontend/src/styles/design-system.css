@@ -105,6 +105,32 @@
   }
 
   /* ------------------------------------------------------------------------
+     Cartela de obra: nombre de la pintura sobre la imagen tramada.
+     Placa oscura translúcida con texto crema (contraste > 14:1): no compite
+     con el verde lima de la imagen. Cambiar aquí cambia todas las cartelas.
+     ------------------------------------------------------------------------ */
+  .zb-plaque {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 4px 7px;
+    border: 1px solid rgb(var(--zb-cream) / 0.3);
+    border-radius: 3px;
+    background: rgb(5 5 5 / 0.82);
+    color: rgb(var(--zb-cream));
+    font-family: var(--zb-font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+
+  /* ------------------------------------------------------------------------
      Botones: una sola receta, cuatro roles.
      primary   lima  -> la acción principal de la pantalla (una por vista)
      secondary teal  -> acciones de apoyo
