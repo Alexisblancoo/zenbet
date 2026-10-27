@@ -286,15 +286,15 @@ export default function SportsBentoGrid({
               {/* Fila inferior: Tipografía y contadores de actividad */}
               <div className='relative z-10 mt-3 flex min-w-0 flex-1 flex-col justify-end'>
                 <div className='min-w-0'>
-                  {/* Título de la obra clásica en tono sutil */}
-                  <span className='block truncate font-mono text-[8px] tracking-widest uppercase text-neutral-400 group-hover:text-neutral-300'>
+                  {/* Cartela de museo: morado #4A2545 sobre placa crema #F3E5AB (contraste 10:1) */}
+                  <span className='inline-block max-w-full truncate rounded-[3px] bg-[#F3E5AB] px-1.5 py-[3px] align-top font-mono text-[9px] font-semibold uppercase leading-none tracking-wider text-[#4A2545] shadow-[0_1px_0_rgba(0,0,0,0.5)]'>
                     {art.title} · {art.epoch}
                   </span>
 
-                  {/* Título principal del deporte (cambia a #D4FF3F en hover) */}
+                  {/* Nombre del deporte: crema #F3E5AB; lima #D4FF3F en hover/activo */}
                   <span
-                    className={`mt-0.5 block break-words font-display text-[13px] font-bold uppercase leading-tight tracking-tight transition-colors duration-200 sm:text-sm ${
-                      active ? 'text-[#D4FF3F]' : 'text-white group-hover:text-[#D4FF3F]'
+                    className={`mt-1.5 block break-words font-display [text-shadow:0_1px_6px_rgba(0,0,0,0.85)] text-[13px] font-bold uppercase leading-tight tracking-tight transition-colors duration-200 sm:text-sm ${
+                      active ? 'text-[#D4FF3F]' : 'text-[#F3E5AB] group-hover:text-[#D4FF3F]'
                     }`}
                   >
                     {sport.label}
