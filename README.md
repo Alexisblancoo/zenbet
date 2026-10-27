@@ -1,6 +1,7 @@
 # ZenBet
 
-Plataforma de apuestas deportivas UFC con backend .NET 10 (Clean Architecture)
+Plataforma de apuestas deportivas de momento solo tiene 
+UFC con backend .NET 10 (Clean Architecture)
 y frontend React + Vite.
 
 ## Estructura
