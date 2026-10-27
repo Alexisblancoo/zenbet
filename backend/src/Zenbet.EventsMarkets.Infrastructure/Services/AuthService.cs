@@ -71,9 +71,9 @@ public sealed class AuthService : IAuthService
             fieldErrors["email"] = new[] { "Ingresa un correo electrónico válido." };
         }
 
-        if (password.Length < 8)
+        if (password.Length < 4)
         {
-            fieldErrors["password"] = new[] { "La contraseña debe tener al menos 8 caracteres." };
+            fieldErrors["password"] = new[] { "La contraseña debe tener al menos 4 caracteres." };
         }
         else if (password.Length > 128)
         {
@@ -120,6 +120,9 @@ public sealed class AuthService : IAuthService
         var accountId = Guid.NewGuid();
         var walletId = WalletId.New();
 
+        var isFirstUser = !await _dbContext.UserAccounts.AnyAsync(cancellationToken);
+        var role = isFirstUser || username.Equals("admin", StringComparison.OrdinalIgnoreCase) ? "admin" : "player";
+
         var account = new UserAccount(
             accountId,
             username,
@@ -127,20 +130,20 @@ public sealed class AuthService : IAuthService
             email,
             normalizedEmail,
             _passwordHasher.Hash(password),
-            "player",
+            role,
             now,
             now);
 
         var wallet = new Wallet(walletId, UserId.From(accountId));
 
-        // La economía arranca en $0.00. Si un entorno configura un bono de
-        // bienvenida positivo, se aplica como movimiento explícito.
-        if (_options.Value.InitialBalance > 0m)
+        // La economía arranca en $0.00 para jugadores o con saldo administrativo.
+        var initialBalance = role == "admin" ? 10000m : _options.Value.InitialBalance;
+        if (initialBalance > 0m)
         {
             var welcomeBonus = wallet.Deposit(
-                new Money(_options.Value.InitialBalance),
-                "Bono de bienvenida",
-                "WELCOME-BONUS");
+                new Money(initialBalance),
+                role == "admin" ? "Fondos iniciales de Administrador" : "Bono de bienvenida",
+                role == "admin" ? "ADMIN-FUNDS" : "WELCOME-BONUS");
             welcomeBonus.Complete();
         }
 

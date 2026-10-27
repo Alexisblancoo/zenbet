@@ -25,6 +25,8 @@ import { BetStatusBadge } from '@/modules/Wallet/components/WalletStatusBadge';
 
 type TicketFilter = 'active' | 'past' | 'all';
 
+const EMPTY_BETS: readonly WalletBet[] = [];
+
 const FILTERS: readonly { value: TicketFilter; label: string }[] = [
   { value: 'active', label: 'Activas' },
   { value: 'past', label: 'Finalizadas' },
@@ -44,13 +46,13 @@ interface StatTileProps {
   readonly value: string;
   readonly detail: string;
   readonly icon: typeof Clock3;
-  readonly accent?: 'gold' | 'money' | 'neutral';
+  readonly accent?: 'lime' | 'money' | 'neutral';
 }
 
 function StatTile({ label, value, detail, icon: Icon, accent = 'neutral' }: StatTileProps) {
   const tone =
-    accent === 'gold'
-      ? 'border-[#D4AF37]/25 bg-[#D4AF37]/[0.045] text-[#FFD700]'
+    accent === 'lime'
+      ? 'border-lime-400/25 bg-lime-400/[0.045] text-lime-400'
       : accent === 'money'
         ? 'border-money/20 bg-money/[0.045] text-money'
         : 'border-white/[0.08] bg-white/[0.02] text-metallic-titanium';
@@ -83,7 +85,7 @@ interface TicketCardProps {
 function TicketCard({ bet }: TicketCardProps) {
   const pending = bet.status === 'pending';
   const accent = pending
-    ? 'bg-[#D4AF37]'
+    ? 'bg-lime-400'
     : bet.status === 'won'
       ? 'bg-odds-up'
       : bet.status === 'lost'
@@ -94,13 +96,13 @@ function TicketCard({ bet }: TicketCardProps) {
   const returnLabel = pending ? 'Retorno potencial' : bet.payout !== null ? 'Pagado' : 'Retorno';
 
   return (
-    <article className='group relative overflow-hidden rounded-sm border border-white/[0.09] bg-[#07090E] shadow-[0_18px_45px_-32px_rgba(0,0,0,0.9)] transition-colors duration-150 hover:border-white/[0.16]'>
+    <article className='group relative overflow-hidden rounded-sm border border-white/[0.09] bg-[#0A0A0A] shadow-[0_18px_45px_-32px_rgba(0,0,0,0.9)] transition-colors duration-150 hover:border-white/[0.16]'>
       <span aria-hidden='true' className={`block h-px w-full ${accent} opacity-80`} />
 
       <div className='p-4 sm:p-5'>
         <div className='flex items-start justify-between gap-3'>
           <div className='flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1'>
-            <span className='font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[#D4AF37]'>
+            <span className='font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-lime-400'>
               {bet.ticket}
             </span>
             <span aria-hidden='true' className='text-metallic-slate'>·</span>
@@ -149,7 +151,7 @@ function TicketCard({ bet }: TicketCardProps) {
             </span>
             <span
               className={`mt-1 block font-mono text-[12px] font-bold tabular-nums ${
-                bet.status === 'won' ? 'text-odds-up' : pending ? 'text-[#FFD700]' : 'text-metallic-platinum'
+                bet.status === 'won' ? 'text-odds-up' : pending ? 'text-lime-400' : 'text-metallic-platinum'
               }`}
             >
               {formatWalletMoney(returnValue)}
@@ -172,7 +174,7 @@ function TicketCard({ bet }: TicketCardProps) {
 function EmptyTickets({ filtered }: { readonly filtered: boolean }) {
   return (
     <div className='surface-panel flex flex-col items-center justify-center px-6 py-16 text-center'>
-      <span className='grid h-12 w-12 place-items-center rounded-sm border border-[#D4AF37]/30 bg-[#D4AF37]/[0.06] text-[#FFD700]'>
+      <span className='grid h-12 w-12 place-items-center rounded-sm border border-lime-400/30 bg-lime-400/[0.06] text-lime-400'>
         <Ticket size={20} strokeWidth={1.7} aria-hidden='true' />
       </span>
       <h2 className='mt-4 font-display text-sm font-bold uppercase tracking-wide text-white'>
@@ -186,7 +188,7 @@ function EmptyTickets({ filtered }: { readonly filtered: boolean }) {
       <div className='mt-5 flex flex-wrap justify-center gap-2'>
         <Link
           to='/sportsbook'
-          className='inline-flex items-center gap-2 rounded-sm border border-crimson/60 bg-crimson px-4 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-white transition-colors hover:bg-crimson-pure'
+          className='inline-flex items-center gap-2 rounded-sm border border-lime-400 bg-lime-400 px-4 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-[#0D0D0D] transition-colors hover:bg-lime-500'
         >
           Ver cartelera UFC
           <ArrowRight size={12} aria-hidden='true' />
@@ -208,7 +210,7 @@ export default function MyBetsPage() {
   const { snapshot, status, error, refresh } = useWalletDashboard();
   const [filter, setFilter] = useState<TicketFilter>('all');
 
-  const bets = snapshot?.bets ?? [];
+  const bets = snapshot?.bets ?? EMPTY_BETS;
 
   const activeBets = useMemo(() => bets.filter(isActive), [bets]);
   const pastBets = useMemo(() => bets.filter((bet) => !isActive(bet)), [bets]);
@@ -255,7 +257,7 @@ export default function MyBetsPage() {
       />
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute inset-x-0 top-0 h-[560px] bg-[radial-gradient(ellipse_at_78%_0%,rgba(212,175,55,0.075),transparent_48%)]'
+        className='pointer-events-none absolute inset-x-0 top-0 h-[560px] bg-[radial-gradient(ellipse_at_78%_0%,rgba(212,255,63,0.075),transparent_48%)]'
       />
 
       <div className='relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8'>
@@ -269,12 +271,12 @@ export default function MyBetsPage() {
               Sportsbook
             </Link>
             <span aria-hidden='true'>/</span>
-            <span className='text-[#D4AF37]'>Mis apuestas</span>
+            <span className='text-lime-400'>Mis apuestas</span>
           </div>
 
           <div className='mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
             <div className='min-w-0'>
-              <div className='inline-flex items-center gap-2 border border-[#D4AF37]/30 bg-[#D4AF37]/[0.055] px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-brutal text-[#FFD700]'>
+              <div className='inline-flex items-center gap-2 border border-lime-400/30 bg-lime-400/[0.055] px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-brutal text-lime-400'>
                 <ReceiptText size={11} aria-hidden='true' />
                 Historial personal
               </div>
@@ -355,7 +357,7 @@ export default function MyBetsPage() {
                 value={String(activeBets.length)}
                 detail={activeBets.length === 1 ? 'Ticket en juego' : 'Tickets en juego'}
                 icon={Clock3}
-                accent='gold'
+                accent='lime'
               />
               <StatTile
                 label='En juego'
@@ -395,7 +397,7 @@ export default function MyBetsPage() {
                       onClick={() => setFilter(option.value)}
                       className={`inline-flex items-center gap-2 rounded-sm border px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wide transition-colors ${
                         selected
-                          ? 'border-[#D4AF37]/55 bg-[#D4AF37]/[0.09] text-[#FFD700]'
+                          ? 'border-lime-400/55 bg-lime-400/[0.09] text-lime-400'
                           : 'border-obsidian-border bg-obsidian-surface/40 text-metallic-titanium hover:border-metallic-slate hover:text-white'
                       }`}
                     >
@@ -428,7 +430,7 @@ export default function MyBetsPage() {
                       >
                         Tickets activos
                       </h2>
-                      <span className='font-mono text-[9px] uppercase tracking-wide text-[#D4AF37]'>
+                      <span className='font-mono text-[9px] uppercase tracking-wide text-lime-400'>
                         {formatWalletMoney(potentialReturn)} en juego
                       </span>
                     </div>
@@ -470,7 +472,7 @@ export default function MyBetsPage() {
               </p>
               <Link
                 to='/wallet'
-                className='inline-flex shrink-0 items-center gap-1.5 font-display text-[10px] font-bold uppercase tracking-wide text-[#D4AF37] transition-colors hover:text-[#FFD700]'
+                className='inline-flex shrink-0 items-center gap-1.5 font-display text-[10px] font-bold uppercase tracking-wide text-lime-400 transition-colors hover:text-lime-400'
               >
                 Ver movimientos
                 <ArrowRight size={11} aria-hidden='true' />

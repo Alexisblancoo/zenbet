@@ -18,7 +18,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        /* Superficies: nunca negro puro; traza azul-violeta muy baja. */
+        /* Superficies: negro profundo sin tinte, elevación por contraste. */
         obsidian: {
           DEFAULT: token('--zb-canvas'),
           abyss: token('--zb-canvas'),
@@ -70,15 +70,6 @@ export default {
           800: token('--zb-crimson-800'),
           900: token('--zb-crimson-900'),
         },
-        gold: {
-          DEFAULT: token('--zb-gold-500'),
-          imperial: token('--zb-gold-500'),
-          specular: token('--zb-gold-100'),
-          bright: token('--zb-gold-400'),
-          burnished: token('--zb-gold-700'),
-          antique: token('--zb-gold-900'),
-          glow: 'rgb(var(--zb-gold-500) / 0.4)',
-        },
         metallic: {
           chrome: token('--zb-metal-50'),
           platinum: token('--zb-metal-100'),
@@ -108,7 +99,7 @@ export default {
           DEFAULT: token('--zb-electric-500'),
           soft: token('--zb-electric-400'),
         },
-        /* Verde lima de acción (#D4FF3F). */
+        /* Verde lima de acción: registro, secciones, configuración y CTAs. */
         lime: {
           DEFAULT: token('--zb-lime-400'),
           100: token('--zb-lime-100'),
@@ -214,20 +205,9 @@ export default {
         'odds-up': 'var(--zb-shadow-up)',
         'odds-down': 'var(--zb-shadow-down)',
         live: 'var(--zb-shadow-live)',
+        'glow-crimson': '0px 0px 28px -4px rgb(var(--zb-crimson-500) / 0.5)',
         'glow-lime': 'var(--zb-glow-lime)',
         'glow-lime-sm': 'var(--zb-glow-lime-sm)',
-        /* Compatibilidad con los nombres existentes del producto. */
-        'brutal-crimson': '4px 4px 0px 0px rgb(var(--zb-crimson-500))',
-        'brutal-crimson-lg': '6px 6px 0px 0px rgb(var(--zb-crimson-500))',
-        'brutal-crimson-sm': '2px 2px 0px 0px rgb(var(--zb-crimson-500))',
-        'brutal-gold': '4px 4px 0px 0px rgb(var(--zb-gold-500))',
-        'brutal-gold-lg': '6px 6px 0px 0px rgb(var(--zb-gold-500))',
-        'brutal-gold-sm': '2px 2px 0px 0px rgb(var(--zb-gold-500))',
-        'brutal-chrome': '4px 4px 0px 0px rgb(var(--zb-metal-100))',
-        'brutal-gunmetal': '5px 5px 0px 0px rgb(var(--zb-obsidian-850))',
-        'glow-crimson': '0px 0px 28px -4px rgb(var(--zb-crimson-500) / 0.5)',
-        'glow-gold': '0px 0px 28px -4px rgb(var(--zb-gold-500) / 0.45)',
-        'glow-metallic': '0px 0px 20px -4px rgb(var(--zb-metal-100) / 0.25)',
       },
 
       dropShadow: {
@@ -242,12 +222,8 @@ export default {
       backgroundImage: {
         'gradient-obsidian-radial':
           'radial-gradient(ellipse at 50% 0%, rgb(var(--zb-surface-raised)) 0%, rgb(var(--zb-canvas)) 72%)',
-        'gradient-metallic-cold':
-          'linear-gradient(135deg, rgb(var(--zb-metal-100)) 0%, rgb(var(--zb-metal-400)) 42%, rgb(var(--zb-metal-700)) 100%)',
         'gradient-crimson-fire':
           'linear-gradient(135deg, rgb(var(--zb-crimson-500)) 0%, rgb(var(--zb-crimson-600)) 58%, rgb(var(--zb-crimson-900)) 100%)',
-        'gradient-gold-royal':
-          'linear-gradient(135deg, rgb(var(--zb-gold-100)) 0%, rgb(var(--zb-gold-500)) 55%, rgb(var(--zb-gold-900)) 100%)',
         'gradient-glass-sheen':
           'linear-gradient(145deg, rgb(255 255 255 / 0.07) 0%, transparent 44%, rgb(255 255 255 / 0.018) 100%)',
         'gradient-ambient-crimson':

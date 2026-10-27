@@ -20,6 +20,7 @@ export default function MobileDock() {
   const { openAuth } = useAuthModal();
   const { selections } = useBetSlip();
   const [slipOpen, setSlipOpen] = useState(false);
+  const [lastPathname, setLastPathname] = useState(location.pathname);
   const titleId = useId();
   const panelRef = useRef(null);
 
@@ -27,9 +28,12 @@ export default function MobileDock() {
   const totalOdds = calculateTotalOdds(selections);
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
-  useEffect(() => {
+  // Navegar cierra el boleto móvil. El ajuste ocurre en render para no abrir
+  // un frame con el panel anterior sobre la ruta nueva.
+  if (lastPathname !== location.pathname) {
+    setLastPathname(location.pathname);
     setSlipOpen(false);
-  }, [location.pathname]);
+  }
 
   useEffect(() => {
     if (!slipOpen) return undefined;
@@ -96,7 +100,7 @@ export default function MobileDock() {
 
       <nav
         aria-label='Accesos rápidos'
-        className='fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.1] bg-[#07090E]/95 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl min-[1400px]:hidden'
+        className='fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.1] bg-[#0A0A0A]/95 pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-xl min-[1400px]:hidden'
       >
         <div className='mx-auto grid max-w-lg grid-cols-5'>
           <NavLink
@@ -105,7 +109,7 @@ export default function MobileDock() {
             aria-label='Inicio ZenBet'
             className={({ isActive }) =>
               `${ITEM_CLASS} ${
-                isActive ? 'text-[#FFD700]' : 'text-metallic-titanium hover:text-white'
+                isActive ? 'text-lime-400' : 'text-metallic-titanium hover:text-white'
               }`
             }
           >
@@ -117,7 +121,7 @@ export default function MobileDock() {
             aria-label='Cartelera UFC'
             className={({ isActive }) =>
               `${ITEM_CLASS} ${
-                isActive ? 'text-crimson' : 'text-metallic-titanium hover:text-white'
+                isActive ? 'text-lime-400' : 'text-metallic-titanium hover:text-white'
               }`
             }
           >
@@ -154,7 +158,7 @@ export default function MobileDock() {
               aria-label='Abrir mis apuestas'
               className={({ isActive }) =>
                 `${ITEM_CLASS} ${
-                  isActive ? 'text-[#FFD700]' : 'text-metallic-titanium hover:text-white'
+                  isActive ? 'text-lime-400' : 'text-metallic-titanium hover:text-white'
                 }`
               }
             >
@@ -183,7 +187,7 @@ export default function MobileDock() {
               aria-label='Abrir mi perfil'
               className={({ isActive }) =>
                 `${ITEM_CLASS} ${
-                  isActive ? 'text-crimson' : 'text-metallic-titanium hover:text-white'
+                  isActive ? 'text-lime-400' : 'text-metallic-titanium hover:text-white'
                 }`
               }
             >
@@ -217,7 +221,7 @@ export default function MobileDock() {
             type='button'
             aria-label='Cerrar boleto de apuestas'
             onClick={() => setSlipOpen(false)}
-            className='absolute inset-0 h-full w-full cursor-default bg-[#03050A]/80 backdrop-blur-sm'
+            className='absolute inset-0 h-full w-full cursor-default bg-[#050505]/80 backdrop-blur-sm'
           />
 
           <h2 id={titleId} className='sr-only'>
@@ -230,7 +234,7 @@ export default function MobileDock() {
             aria-modal='true'
             aria-labelledby={titleId}
             tabIndex={-1}
-            className='reveal-up absolute inset-x-0 bottom-0 flex h-[min(84dvh,780px)] flex-col overflow-hidden rounded-t-2xl border-t border-white/[0.14] bg-[#07090E] shadow-[0_-30px_90px_-28px_rgba(0,0,0,0.95)] outline-none'
+            className='reveal-up absolute inset-x-0 bottom-0 flex h-[min(84dvh,780px)] flex-col overflow-hidden rounded-t-2xl border-t border-white/[0.14] bg-[#0D0D0D] shadow-[0_-30px_90px_-28px_rgba(0,0,0,0.95)] outline-none'
           >
             <div className='flex shrink-0 justify-center pb-1 pt-2' aria-hidden='true'>
               <span className='h-1 w-10 bg-white/20' />

@@ -6,7 +6,6 @@
 .git/
 .gitignore
 docker/
-legacy/
 README.md
 .env
 .env.*

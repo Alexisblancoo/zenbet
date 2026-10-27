@@ -39,7 +39,7 @@
   ráfagas de cuotas no producen renders ni destellos en cascada.
 - Cuota sin cambio → se reutiliza el mapa anterior (sin re-render).
 - `OddsQuote.sequence` permite reiniciar el destello aunque el valor se repita.
-- Flash `odds-flash-up` / `odds-flash-down` (800ms, `design-system.css`) + flecha de tendencia en `EventCard`.
+- Destello por `data-trend` en `MarketMatrix` / `FightCard` (animaciones de `shibuya.css`) + flecha de tendencia.
 - `prefers-reduced-motion` desactiva las animaciones desde el design system.
 
 ## Uso

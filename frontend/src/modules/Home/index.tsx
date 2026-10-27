@@ -201,7 +201,7 @@ export default function Home() {
       </div>
 
       <div className='mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 py-8 sm:px-6 lg:px-8'>
-        <section className='border-brutal-cold relative overflow-hidden bg-gradient-obsidian-radial p-6 sm:p-10'>
+        <section className='relative overflow-hidden border border-white/[0.08] bg-gradient-obsidian-radial p-6 sm:p-10'>
           <div className='pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-crimson/12 blur-3xl' />
           <div className='pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-electric/10 blur-3xl' />
 
@@ -278,7 +278,7 @@ export default function Home() {
                 <div className='flex flex-wrap items-center gap-3 pt-1'>
                   <Link
                     to={sportsbookHref}
-                    className='inline-flex items-center gap-2 border border-crimson bg-crimson px-5 py-3 font-display text-xs font-bold uppercase tracking-wide text-white transition-colors duration-150 hover:bg-crimson-pure focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60'
+                    className='inline-flex items-center gap-2 border border-lime-400 bg-lime-400 px-5 py-3 font-display text-xs font-bold uppercase tracking-wide text-[#0D0D0D] transition-colors duration-150 hover:bg-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400/60'
                   >
                     <Swords size={16} aria-hidden='true' />
                     Abrir cartelera completa

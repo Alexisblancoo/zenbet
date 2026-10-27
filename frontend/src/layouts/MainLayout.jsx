@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -15,7 +16,7 @@ export default function MainLayout() {
 
   return (
     <div
-      className={`min-h-screen bg-obsidian-void text-slate-100 flex flex-col font-sans selection:bg-crimson selection:text-white ${bottomPadding} min-[1400px]:pb-0`}
+      className={`min-h-screen bg-canvas text-white flex flex-col font-sans selection:bg-lime-400 selection:text-black ${bottomPadding} min-[1400px]:pb-0`}
     >
       {/* Header Fijo */}
       <Header />
@@ -23,8 +24,22 @@ export default function MainLayout() {
       {/* Cuerpo principal con Sidebar y Contenido de rutas */}
       <div className='flex-1 flex w-full max-w-[1920px] mx-auto'>
         <Sidebar />
-        <main className='flex-1 min-w-0 flex flex-col bg-obsidian-void'>
-          <Outlet />
+        <main className='flex-1 min-w-0 flex flex-col bg-canvas'>
+          <Suspense
+            fallback={
+              <div
+                className='flex min-h-[50vh] items-center justify-center'
+                role='status'
+                aria-live='polite'
+              >
+                <span className='font-mono text-[10px] font-bold uppercase tracking-ultra text-metallic-slate'>
+                  Cargando…
+                </span>
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 

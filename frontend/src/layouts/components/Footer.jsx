@@ -10,7 +10,7 @@ export default function Footer() {
           {/* Columna Marca */}
           <div className='md:col-span-1'>
             <div className='flex items-center gap-2'>
-              <div className='flex h-7 w-7 items-center justify-center rounded-sm bg-white font-display font-bold text-[#07090E] text-sm'>
+              <div className='flex h-7 w-7 items-center justify-center rounded-sm bg-white font-display font-bold text-[#0D0D0D] text-sm'>
                 Z
               </div>
               <span className='font-display text-lg font-bold tracking-tight text-white'>

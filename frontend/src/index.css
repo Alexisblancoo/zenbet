@@ -2,15 +2,14 @@
 @import 'tailwindcss';
 @import './styles/tokens.css';
 @import './styles/design-system.css';
-@import './styles/zenbet-brutalist.css';
 @import './styles/shibuya.css';
 
 /* Tailwind v4 conserva la configuración de tokens existente. */
 @config '../tailwind.config.js';
 
 /* ==========================================================================
-   ZENBET - BRUTALIST INTERACTIVE DESIGN ENGINE
-   Inspirado en la estética monolítica de shibuyayoichi.com y bleibtgleich.dev
+   ZENBET / BASE
+   Lienzo #0D0D0D, acento lima de acción y retícula técnica.
    ========================================================================== */
 
 @layer base {
@@ -26,45 +25,31 @@
     border-color: rgb(var(--zb-border) / 0.85);
   }
 
-  :root {
-    /* Puente de compatibilidad para los estilos existentes. */
-    --bg-obsidian-void: rgb(var(--zb-canvas));
-    --bg-obsidian-surface: rgb(var(--zb-surface));
-    --accent-crimson: rgb(var(--zb-crimson-500));
-    --accent-crimson-pure: rgb(var(--zb-crimson-600));
-    --accent-gold-imperial: rgb(var(--zb-gold-500));
-    --metallic-chrome: rgb(var(--zb-metal-50));
-    --metallic-titanium: rgb(var(--zb-metal-400));
-    --metallic-gunmetal: rgb(var(--zb-metal-600));
-    --metallic-dark: rgb(var(--zb-metal-700));
-  }
-
   html {
-    background-color: var(--bg-obsidian-void);
+    background-color: rgb(var(--zb-canvas));
     color: rgb(var(--zb-text));
     font-family: var(--zb-font-sans);
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    scroll-behavior: auto; /* Delegado a Lenis para control de inercia */
   }
 
   body {
-    background-color: var(--bg-obsidian-void);
+    background-color: rgb(var(--zb-canvas));
     overflow-x: hidden;
     position: relative;
     min-height: 100vh;
   }
 
-  /* Selección de texto con tinta blanca para mantener contraste. */
+  /* Selección de texto en el acento de acción. */
   ::selection {
-    background-color: rgb(var(--zb-crimson-500));
-    color: #FFFFFF;
+    background-color: rgb(var(--zb-lime-400));
+    color: rgb(var(--zb-ink-inverse));
   }
 }
 
 /* ==========================================================================
-   1. NOISE & GRAIN TEXTURE OVERLAY
+   NOISE & GRAIN TEXTURE OVERLAY
    Generador procedural vectorial SVG - Zero lag, aceleración por GPU
    ========================================================================== */
 
@@ -87,13 +72,13 @@ body::before {
 }
 
 /* ==========================================================================
-   2. SCROLLBAR MINIMALISTA OSCURA (Dark Brutalist Scrollbar)
+   SCROLLBAR MINIMALISTA OSCURA
    ========================================================================== */
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--metallic-gunmetal) var(--bg-obsidian-void);
+  scrollbar-color: rgb(var(--zb-line-strong)) rgb(var(--zb-canvas));
 }
 
 /* WebKit (Chrome, Edge, Safari) */
@@ -103,121 +88,16 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-obsidian-void);
-  border-left: 1px solid rgba(255, 255, 255, 0.03);
+  background: rgb(var(--zb-canvas));
+  border-left: 1px solid rgb(255 255 255 / 0.03);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
-  border-radius: 0px; /* Brutalismo puro: esquinas afiladas */
+  background: rgb(var(--zb-line-strong));
+  border-radius: 0px; /* Esquinas afiladas */
   transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-crimson);
-}
-
-/* ==========================================================================
-   3. BORDES FINOS METÁLICOS & GLASSMORPHISM OSCURO
-   ========================================================================== */
-
-/**
- * Borde Metálico Frío Estándar (Titanio y Cromo Cepillado)
- */
-.border-brutal-cold {
-  position: relative;
-  border: 1px solid transparent;
-  background: 
-    linear-gradient(#0C1017, #0C1017) padding-box,
-    linear-gradient(135deg, rgba(248, 250, 252, 0.4) 0%, rgba(148, 163, 184, 0.15) 35%, rgba(30, 41, 59, 0.9) 70%, rgba(226, 232, 240, 0.35) 100%) border-box;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
-}
-
-/**
- * Borde Metálico Carmesí Agresivo
- */
-.border-brutal-crimson {
-  position: relative;
-  border: 1px solid transparent;
-  background: 
-    linear-gradient(#0C1017, #0C1017) padding-box,
-    linear-gradient(135deg, #FF2A55 0%, rgba(148, 163, 184, 0.25) 30%, #5C000F 70%, #EF4444 100%) border-box;
-  box-shadow: 
-    0 0 16px -4px rgba(255, 42, 85, 0.3),
-    inset 0 1px 0 0 rgba(255, 42, 85, 0.25);
-}
-
-/**
- * Borde Metálico Azul Técnico
- */
-.border-brutal-gold {
-  position: relative;
-  border: 1px solid transparent;
-  background: 
-    linear-gradient(#0C1017, #0C1017) padding-box,
-    linear-gradient(135deg, #DBEAFE 0%, #3B82F6 35%, #1E3A8A 70%, #60A5FA 100%) border-box;
-  box-shadow: 
-    0 0 16px -4px rgba(59, 130, 246, 0.25),
-    inset 0 1px 0 0 rgba(219, 234, 254, 0.2);
-}
-
-/**
- * Glassmorphism Brutalista Oscuro (Obsidian Glass)
- */
-.glass-brutal {
-  background: rgba(12, 16, 23, 0.78);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  border: 1px solid rgba(226, 232, 240, 0.12);
-}
-
-/* ==========================================================================
-   4. EFECTOS DE BRILLO Y BARRIDO METÁLICO (Specular Shimmer)
-   ========================================================================== */
-
-.metallic-interactive {
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), filter 0.22s ease;
-}
-
-.metallic-interactive::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -160%;
-  width: 120%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.04) 40%,
-    rgba(255, 255, 255, 0.22) 50%,
-    rgba(255, 255, 255, 0.04) 60%,
-    transparent 100%
-  );
-  transform: skewX(-22deg);
-  transition: left 0.75s ease;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.metallic-interactive:hover::after {
-  left: 200%;
-}
-
-.metallic-interactive:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.06);
-}
-
-/* Tipografía de alto contraste: sin degradados que reduzcan la legibilidad. */
-.text-metallic-chrome {
-  color: #FFFFFF;
-  -webkit-text-fill-color: currentColor;
-}
-
-.text-metallic-gold {
-  color: rgb(var(--zb-ink-primary));
-  -webkit-text-fill-color: currentColor;
+  background: rgb(var(--zb-lime-400));
 }

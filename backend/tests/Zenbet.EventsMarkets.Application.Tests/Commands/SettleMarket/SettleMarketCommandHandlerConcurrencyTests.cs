@@ -22,8 +22,7 @@ using DomainEventId = Zenbet.EventsMarkets.Domain.ValueObjects.EventId;
 
 public sealed class SettleMarketCommandHandlerConcurrencyTests : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:16-alpine")
         .WithDatabase("zenbet_test")
         .WithUsername("test")
         .WithPassword("test")

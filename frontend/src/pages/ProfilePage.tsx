@@ -79,7 +79,7 @@ export default function ProfilePage() {
       />
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[radial-gradient(ellipse_at_82%_0%,rgba(212,175,55,0.075),transparent_52%)]'
+        className='pointer-events-none absolute inset-x-0 top-0 h-[620px] bg-[radial-gradient(ellipse_at_82%_0%,rgba(212,255,63,0.075),transparent_52%)]'
       />
 
       <div className='relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8'>
@@ -89,12 +89,12 @@ export default function ProfilePage() {
               Inicio
             </Link>
             <span aria-hidden='true'>/</span>
-            <span className='text-[#D4AF37]'>Mi perfil</span>
+            <span className='text-lime-400'>Mi perfil</span>
           </div>
 
           <div className='mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
             <div>
-              <div className='inline-flex items-center gap-2 border border-[#D4AF37]/30 bg-[#D4AF37]/[0.055] px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-brutal text-[#FFD700]'>
+              <div className='inline-flex items-center gap-2 border border-lime-400/30 bg-lime-400/[0.055] px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-brutal text-lime-400'>
                 <UserRound size={11} aria-hidden='true' />
                 Cuenta ZenBet
               </div>
@@ -110,14 +110,14 @@ export default function ProfilePage() {
             <div className='flex flex-wrap items-center gap-2'>
               <Link
                 to='/my-bets'
-                className='inline-flex items-center gap-2 rounded-sm border border-[#D4AF37]/40 bg-[#D4AF37]/[0.06] px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-[#FFD700] transition-colors hover:bg-[#D4AF37]/[0.1]'
+                className='inline-flex items-center gap-2 rounded-sm border border-lime-400/40 bg-lime-400/[0.06] px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-lime-400 transition-colors hover:bg-lime-400/[0.1]'
               >
                 <ReceiptText size={12} aria-hidden='true' />
                 Mis apuestas
               </Link>
               <Link
                 to='/sportsbook'
-                className='inline-flex items-center gap-2 rounded-sm border border-crimson/60 bg-crimson px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-white transition-colors hover:bg-crimson-pure'
+                className='inline-flex items-center gap-2 rounded-sm border border-lime-400 bg-lime-400 px-3 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-[#0D0D0D] transition-colors hover:bg-lime-500'
               >
                 Apostar ahora
                 <ArrowRight size={12} aria-hidden='true' />
@@ -139,7 +139,7 @@ export default function ProfilePage() {
             </div>
 
             <div className='mt-6 flex items-center gap-4'>
-              <span className='grid h-16 w-16 shrink-0 place-items-center border border-[#D4AF37]/55 bg-[#D4AF37]/[0.06] font-display text-xl font-bold tracking-[0.08em] text-[#FFD700] shadow-[0_0_30px_-16px_rgba(255,215,0,0.8)]'>
+              <span className='grid h-16 w-16 shrink-0 place-items-center border border-lime-400/55 bg-lime-400/[0.06] font-display text-xl font-bold tracking-[0.08em] text-lime-400 shadow-[0_0_30px_-16px_rgba(212,255,63,0.8)]'>
                 {initials}
               </span>
               <div className='min-w-0'>
@@ -204,7 +204,7 @@ export default function ProfilePage() {
             className='glass-panel reveal-up stagger-1 relative scroll-mt-24 overflow-hidden p-5 sm:p-6 lg:col-span-8'
           >
             <div aria-hidden='true' className='pointer-events-none absolute inset-0'>
-              <div className='absolute -right-24 -top-28 h-64 w-64 rounded-full bg-[#D4AF37]/[0.07] blur-3xl' />
+              <div className='absolute -right-24 -top-28 h-64 w-64 rounded-full bg-lime-400/[0.07] blur-3xl' />
               <div className='absolute -bottom-28 left-1/4 h-64 w-64 rounded-full bg-money/10 blur-3xl' />
             </div>
 
@@ -212,7 +212,7 @@ export default function ProfilePage() {
               <div className='flex flex-wrap items-start justify-between gap-3'>
                 <div>
                   <div className='inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-ultra text-metallic-titanium'>
-                    <span className='grid h-5 w-5 place-items-center rounded-sm border border-[#D4AF37]/30 bg-[#D4AF37]/[0.06] text-[#FFD700]'>
+                    <span className='grid h-5 w-5 place-items-center rounded-sm border border-lime-400/30 bg-lime-400/[0.06] text-lime-400'>
                       <Wallet size={11} aria-hidden='true' />
                     </span>
                     <h2 id='profile-wallet-title'>Billetera</h2>
@@ -252,7 +252,7 @@ export default function ProfilePage() {
                     .{fraction}
                   </span>
                 </span>
-                <span className='mb-1 rounded-sm border border-[#D4AF37]/30 bg-[#D4AF37]/[0.06] px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-[#FFD700]'>
+                <span className='mb-1 rounded-sm border border-lime-400/30 bg-lime-400/[0.06] px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-lime-400'>
                   USD
                 </span>
                 <span className='mb-1 font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
@@ -288,11 +288,11 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className='mt-6 grid grid-cols-2 gap-2 lg:grid-cols-4'>
-                  <div className='border border-[#D4AF37]/20 bg-[#D4AF37]/[0.035] p-3'>
+                  <div className='border border-lime-400/20 bg-lime-400/[0.035] p-3'>
                     <span className='block font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
                       Saldo base
                     </span>
-                    <span className='mt-1.5 block font-mono text-sm font-bold text-[#FFD700] tabular-nums'>
+                    <span className='mt-1.5 block font-mono text-sm font-bold text-lime-400 tabular-nums'>
                       {formatWalletMoney(0)}
                     </span>
                   </div>
@@ -337,14 +337,14 @@ export default function ProfilePage() {
                 <button
                   type='button'
                   onClick={handleViewTransactions}
-                  className='inline-flex items-center justify-center gap-2 rounded-sm border border-crimson/70 bg-crimson px-4 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide text-white transition-colors hover:bg-crimson-pure'
+                  className='inline-flex items-center justify-center gap-2 rounded-sm border border-lime-400 bg-lime-400 px-4 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide text-[#0D0D0D] transition-colors hover:bg-lime-500'
                 >
                   Ver movimientos
                   <ArrowRight size={12} aria-hidden='true' />
                 </button>
                 <Link
                   to='/my-bets'
-                  className='inline-flex items-center justify-center gap-2 rounded-sm border border-[#D4AF37]/35 bg-[#D4AF37]/[0.05] px-4 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide text-[#FFD700] transition-colors hover:bg-[#D4AF37]/[0.1]'
+                  className='inline-flex items-center justify-center gap-2 rounded-sm border border-lime-400/35 bg-lime-400/[0.05] px-4 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide text-lime-400 transition-colors hover:bg-lime-400/[0.1]'
                 >
                   <ReceiptText size={12} aria-hidden='true' />
                   Mis apuestas
@@ -359,7 +359,7 @@ export default function ProfilePage() {
               </div>
 
               <p className='mt-4 flex items-start gap-2 border-t border-obsidian-border/50 pt-3 text-[10px] leading-relaxed text-metallic-slate'>
-                <Sparkles size={11} className='mt-0.5 shrink-0 text-[#D4AF37]' aria-hidden='true' />
+                <Sparkles size={11} className='mt-0.5 shrink-0 text-lime-400' aria-hidden='true' />
                 Tu cuenta inicia en {formatWalletMoney(0)}. Usa la recarga para sumar
                 saldo; el historial inferior muestra depósitos, apuestas y liquidaciones
                 reales.

@@ -79,6 +79,3 @@ npm run build
 El flujo se validó con los endpoints reales: registro con saldo `$0.00`,
 `GET /wallet` y `GET /bets` autenticados, recarga con idempotencia, apuesta y
 actualización del historial.
-
-`walletDemoData.ts` se conserva únicamente como fixture histórico y no está
-conectado a la aplicación.

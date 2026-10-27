@@ -105,7 +105,7 @@ export default function AuthModalShell({
       role={isPage ? undefined : 'dialog'}
       aria-modal={isPage ? undefined : 'true'}
       aria-labelledby={titleId}
-      className={`relative mx-auto max-h-[calc(100dvh-1.5rem)] w-full overflow-y-auto border border-white/[0.12] bg-[#0A0E16]/95 p-5 shadow-[0_32px_100px_-30px_rgba(0,0,0,0.95)] backdrop-blur-xl sm:max-h-[calc(100dvh-2.5rem)] sm:p-7 ${
+      className={`relative mx-auto max-h-[calc(100dvh-1.5rem)] w-full overflow-y-auto border border-white/[0.12] bg-[#121212]/95 p-5 shadow-[0_32px_100px_-30px_rgba(0,0,0,0.95)] backdrop-blur-xl sm:max-h-[calc(100dvh-2.5rem)] sm:p-7 ${
         isPage ? 'max-w-xl' : 'max-w-lg'
       }`}
     >
@@ -151,7 +151,7 @@ export default function AuthModalShell({
 
   return (
     <div
-      className='fixed inset-0 z-modal flex items-center justify-center bg-[#04060A]/85 p-3 backdrop-blur-md sm:p-5'
+      className='fixed inset-0 z-modal flex items-center justify-center bg-[#050505]/85 p-3 backdrop-blur-md sm:p-5'
       role='presentation'
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();

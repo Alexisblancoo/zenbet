@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { ShieldAlert, ArrowLeft, FileText, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle2 } from 'lucide-react';
 
 export default function Terms() {
   return (
-    <main className='min-h-screen w-full bg-obsidian-void text-metallic-platinum py-12 px-4 sm:px-6 lg:px-8'>
+    <main className='min-h-screen w-full bg-canvas text-metallic-platinum py-12 px-4 sm:px-6 lg:px-8'>
       <div className='mx-auto max-w-4xl'>
         {/* Navegación y Encabezado */}
         <div className='mb-8'>

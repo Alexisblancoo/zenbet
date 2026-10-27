@@ -91,7 +91,7 @@ export default function Sidebar() {
   const totalMarkets = events.reduce((count, event) => count + event.markets.length, 0);
 
   return (
-    <aside className='no-scrollbar sticky top-16 hidden h-[calc(100vh-4rem)] w-[224px] shrink-0 self-start overflow-y-auto border-r border-white/[0.08] bg-[#07090E]/94 backdrop-blur-xl lg:flex lg:flex-col'>
+    <aside className='no-scrollbar sticky top-16 hidden h-[calc(100vh-4rem)] w-[224px] shrink-0 self-start overflow-y-auto border-r border-white/[0.08] bg-[#0A0A0A]/94 backdrop-blur-xl lg:flex lg:flex-col'>
       <div className='px-3 pb-3 pt-4'>
         <div className='flex items-center justify-between'>
           <span className='shibuya-kicker text-metallic-slate'>Sportsbook</span>
@@ -151,7 +151,7 @@ export default function Sidebar() {
                 className={({ isActive }) =>
                   `group relative flex items-center justify-between gap-2 border px-2.5 py-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson ${
                     isActive
-                      ? 'shibuya-rail-active border-white/[0.06] text-white'
+                      ? 'shibuya-rail-active border-white/[0.06] text-lime-400'
                       : 'border-transparent text-metallic-titanium hover:border-white/[0.05] hover:bg-white/[0.025] hover:text-white'
                   }`
                 }

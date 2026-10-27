@@ -36,7 +36,7 @@ export default function AuthPageLayout({ mode, children }: AuthPageLayoutProps) 
   const isRegister = mode === 'register';
 
   return (
-    <div className='relative isolate min-h-[calc(100vh-4rem)] overflow-hidden bg-[#07090E]'>
+    <div className='relative isolate min-h-[calc(100vh-4rem)] overflow-hidden bg-[#0D0D0D]'>
       <div
         aria-hidden='true'
         className='pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:radial-gradient(ellipse_at_50%_0%,black,transparent_72%)]'

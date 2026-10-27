@@ -2,7 +2,8 @@
    ZENBET / DESIGN TOKENS
    Fuente de verdad del sistema visual. Los tokens primitivos se declaran como
    canales RGB para que Tailwind pueda aplicar opacidad sin perder el matiz.
-   Dirección de arte: obsidiana profunda, cromo frío, glass y acentos de casa.
+   Dirección de arte: negro profundo #0D0D0D, neutros sin tinte, glass y acentos
+   de casa (lime de acción, crimson live, money de selección).
    ========================================================================== */
 
 :root {
@@ -10,29 +11,29 @@
 
   /* ------------------------------------------------------------------------
      Primitivos / superficies
-     Prohibido el negro puro: todos los neutros llevan una traza azul-violeta.
+     Negro puro sin tinte: lienzo #0D0D0D, internos #050505, elevado #121212.
      ------------------------------------------------------------------------ */
-  --zb-obsidian-1000: 4 6 10;
-  --zb-obsidian-950: 7 9 14;
-  --zb-obsidian-900: 10 14 22;
-  --zb-obsidian-850: 14 19 28;
-  --zb-obsidian-800: 17 23 34;
-  --zb-obsidian-750: 22 29 42;
-  --zb-obsidian-700: 30 38 52;
-  --zb-obsidian-600: 42 51 66;
+  --zb-obsidian-1000: 5 5 5;
+  --zb-obsidian-950: 13 13 13;
+  --zb-obsidian-900: 18 18 18;
+  --zb-obsidian-850: 5 5 5;
+  --zb-obsidian-800: 24 24 24;
+  --zb-obsidian-750: 30 30 30;
+  --zb-obsidian-700: 38 38 38;
+  --zb-obsidian-600: 52 52 52;
 
   /* Líneas y separadores */
-  --zb-line-subtle: 28 34 48;
-  --zb-line: 38 46 64;
-  --zb-line-strong: 54 65 88;
-  --zb-line-glass: 226 232 240;
+  --zb-line-subtle: 28 28 28;
+  --zb-line: 44 44 44;
+  --zb-line-strong: 58 58 58;
+  --zb-line-glass: 232 232 232;
 
   /* Tinta */
   --zb-ink-primary: 255 255 255;
-  --zb-ink-secondary: 203 213 225;
-  --zb-ink-muted: 148 163 184;
-  --zb-ink-faint: 100 116 139;
-  --zb-ink-inverse: 7 9 14;
+  --zb-ink-secondary: 218 218 218;
+  --zb-ink-muted: 156 156 156;
+  --zb-ink-faint: 110 110 110;
+  --zb-ink-inverse: 13 13 13;
 
   /* ------------------------------------------------------------------------
      Marca / Zenbet
@@ -48,23 +49,15 @@
   --zb-crimson-800: 140 30 45;
   --zb-crimson-900: 80 17 26;
 
-  /* Retirado de la interfaz. Los canales resuelven a plata fría para que
-     cualquier clase heredada no introduzca un cuarto acento. */
-  --zb-gold-100: 255 255 255;
-  --zb-gold-400: 226 232 240;
-  --zb-gold-500: 203 213 225;
-  --zb-gold-700: 148 163 184;
-  --zb-gold-900: 51 65 85;
-
-  /* Metales fríos: soporte para cromo, titanio y acero */
-  --zb-metal-50: 242 245 250;
-  --zb-metal-100: 226 232 240;
-  --zb-metal-200: 203 213 225;
-  --zb-metal-300: 180 192 208;
-  --zb-metal-400: 148 163 184;
-  --zb-metal-500: 124 139 161;
-  --zb-metal-600: 91 107 130;
-  --zb-metal-700: 30 41 59;
+  /* Metales neutros: soporte para cromo, titanio y acero (gris puro) */
+  --zb-metal-50: 245 245 245;
+  --zb-metal-100: 234 234 234;
+  --zb-metal-200: 214 214 214;
+  --zb-metal-300: 190 190 190;
+  --zb-metal-400: 158 158 158;
+  --zb-metal-500: 132 132 132;
+  --zb-metal-600: 98 98 98;
+  --zb-metal-700: 34 34 34;
 
   /* ------------------------------------------------------------------------
      Semántica de color
@@ -76,12 +69,18 @@
   --zb-electric-500: 59 130 246;
   --zb-electric-400: 96 165 250;
 
-  /* Verde lima de acción (#D4FF3F). */
+  /* ------------------------------------------------------------------------
+     Verde lima de acción (#D4FF3F)
+     Registro, pestañas de secciones, configuración y CTAs principales.
+     Texto sobre lima: negro puro (#0D0D0D).
+     ------------------------------------------------------------------------ */
   --zb-lime-100: 240 255 186;
   --zb-lime-200: 224 255 128;
   --zb-lime-400: 212 255 63;
   --zb-lime-500: 186 232 37;
   --zb-lime-600: 141 187 16;
+  --zb-cta: var(--zb-lime-400);
+  --zb-cta-hi: var(--zb-lime-500);
 
   --zb-odds-up: 16 185 129;
   --zb-odds-up-strong: 0 255 135;
@@ -95,7 +94,7 @@
      Alias semánticos (consumir estos en la UI, no los primitivos)
      ------------------------------------------------------------------------ */
   --zb-canvas: var(--zb-obsidian-950);
-  --zb-canvas-raised: var(--zb-obsidian-900);
+  --zb-canvas-raised: var(--zb-obsidian-1000);
   --zb-surface: var(--zb-obsidian-900);
   --zb-surface-raised: var(--zb-obsidian-850);
   --zb-surface-elevated: var(--zb-obsidian-800);
@@ -110,9 +109,9 @@
   --zb-text-muted: var(--zb-ink-muted);
   --zb-text-faint: var(--zb-ink-faint);
 
-  --zb-accent: var(--zb-crimson-500);
-  --zb-accent-strong: var(--zb-crimson-600);
-  --zb-accent-soft: var(--zb-crimson-200);
+  --zb-accent: var(--zb-lime-400);
+  --zb-accent-strong: var(--zb-lime-500);
+  --zb-accent-soft: var(--zb-lime-200);
   --zb-money: var(--zb-money-500);
   --zb-money-bright: var(--zb-money-400);
   --zb-electric: var(--zb-electric-500);
@@ -210,7 +209,7 @@
     inset 0 1px 2px rgb(0 0 0 / 0.42),
     inset 0 -1px 0 rgb(255 255 255 / 0.025);
   --zb-shadow-focus:
-    0 0 0 2px rgb(7 9 14 / 1),
+    0 0 0 2px rgb(13 13 13 / 1),
     0 0 0 4px rgb(var(--zb-electric-500) / 0.8);
   --zb-shadow-up: 0 0 28px -6px rgb(var(--zb-money-500) / 0.4);
   --zb-shadow-down: 0 0 28px -6px rgb(var(--zb-crimson-500) / 0.36);
@@ -218,9 +217,9 @@
   --zb-glow-lime: 0 0 34px -8px rgb(var(--zb-lime-400) / 0.55);
   --zb-glow-lime-sm: 0 0 20px -6px rgb(var(--zb-lime-400) / 0.45);
 
-  --zb-glass-bg: rgb(10 14 22 / 0.88);
-  --zb-glass-bg-strong: rgb(8 12 19 / 0.96);
-  --zb-glass-border: rgb(226 232 240 / 0.14);
+  --zb-glass-bg: rgb(8 8 8 / 0.9);
+  --zb-glass-bg-strong: rgb(12 12 12 / 0.97);
+  --zb-glass-border: rgb(235 235 235 / 0.13);
   --zb-glass-highlight: rgb(255 255 255 / 0.06);
   --zb-glass-blur: 16px;
 

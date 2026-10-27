@@ -62,7 +62,7 @@ import FighterComparisonModal from '../components/FighterComparisonModal';
 import HubStatusBadge from '../components/HubStatusBadge';
 import SourceBadge from '../components/SourceBadge';
 import SportComingSoon from '../components/SportComingSoon';
-import TrendingSportsGrid from '../components/TrendingSportsGrid';
+import SportsBentoGrid from '../components/SportsBentoGrid';
 
 const SECTION_DESCRIPTIONS: Readonly<Record<string, string>> = {
   main: 'La cartelera estelar abre con el combate de título. Cuatro familias por pelea, sin cambiar de pestaña.',
@@ -854,7 +854,7 @@ export default function MmaEventsPage() {
         <div className='mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-4 sm:py-5 lg:px-6'>
           <div className='grid grid-cols-1 items-start gap-4 min-[1400px]:grid-cols-[minmax(0,1fr)_360px] min-[1400px]:gap-5'>
             <div className='flex min-w-0 flex-col gap-4'>
-              <TrendingSportsGrid
+              <SportsBentoGrid
                 activeSport={activeSport}
                 onSelectSport={handleSelectSport}
                 mmaStats={mmaStats}
@@ -893,7 +893,7 @@ export default function MmaEventsPage() {
             data-hero-visible={Boolean(heroEvent)}
             data-hero-event-id={heroEvent?.id ?? undefined}
           >
-            <TrendingSportsGrid
+            <SportsBentoGrid
               activeSport={activeSport}
               onSelectSport={handleSelectSport}
               mmaStats={mmaStats}

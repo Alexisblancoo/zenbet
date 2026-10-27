@@ -1,20 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Cookie, ShieldCheck, X } from 'lucide-react';
+import { Cookie } from 'lucide-react';
 
 export default function ConsentNotice() {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
+  const [isVisible, setIsVisible] = useState(() => {
     try {
-      const consent = localStorage.getItem('zenbet_cookies_accepted');
-      if (!consent) {
-        setIsVisible(true);
-      }
+      return !localStorage.getItem('zenbet_cookies_accepted');
     } catch {
-      setIsVisible(true);
+      return true;
     }
-  }, []);
+  });
 
   const handleAcceptAll = () => {
     try {
@@ -90,7 +85,7 @@ export default function ConsentNotice() {
           <button
             type='button'
             onClick={handleAcceptAll}
-            className='flex-1 md:flex-initial border border-crimson bg-crimson px-4 py-2 font-display text-xs font-bold uppercase tracking-wide text-white shadow-brutal-crimson-sm hover:bg-crimson-pure transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+            className='flex-1 md:flex-initial border border-lime-400 bg-lime-400 px-4 py-2 font-display text-xs font-bold uppercase tracking-wide text-[#0D0D0D] shadow-glow-lime-sm hover:bg-lime-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400/70'
             aria-label='Aceptar todas las cookies'
           >
             Aceptar Todas

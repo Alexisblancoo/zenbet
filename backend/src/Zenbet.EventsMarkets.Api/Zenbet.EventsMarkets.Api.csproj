@@ -1,10 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Zenbet.EventsMarkets.Api</RootNamespace>
+    <UserSecretsId>493a39ba-afff-4c12-a6cb-cc10cf626d72</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

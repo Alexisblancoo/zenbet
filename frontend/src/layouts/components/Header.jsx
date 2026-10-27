@@ -37,7 +37,7 @@ export default function Header() {
 
   return (
     <>
-      <header className='sticky top-0 z-40 w-full border-b border-white/[0.09] bg-[#07090E]/95 backdrop-blur-xl'>
+      <header className='sticky top-0 z-40 w-full border-b border-white/[0.09] bg-[#0A0A0A]/95 backdrop-blur-xl'>
         <div className='mx-auto flex h-16 max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8'>
           {/* Marca / Logo */}
           <div className='flex min-w-0 items-center gap-6 xl:gap-8'>
@@ -126,7 +126,7 @@ export default function Header() {
                 <button
                   type='button'
                   onClick={() => openAuth('register')}
-                  className='flex items-center gap-1.5 border border-crimson-pure bg-crimson-pure px-3 py-1 font-display text-xs font-bold uppercase tracking-wide text-white shadow-brutal-crimson-sm transition-all hover:brightness-110 active:translate-x-0.5 active:translate-y-0.5'
+                  className='flex items-center gap-1.5 border border-lime-400 bg-lime-400 px-3 py-1 font-display text-xs font-bold uppercase tracking-wide text-[#0D0D0D] shadow-glow-lime-sm transition-all hover:bg-lime-500 active:translate-x-0.5 active:translate-y-0.5'
                   aria-label='Crear nueva cuenta'
                 >
                   <UserPlus size={12} aria-hidden='true' />

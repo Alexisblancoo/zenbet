@@ -85,7 +85,7 @@ export function WalletDepositPanel({
       className={`glass-panel relative overflow-hidden p-5 sm:p-6 ${className}`}
     >
       <div aria-hidden='true' className='pointer-events-none absolute inset-0'>
-        <div className='absolute -right-24 -top-28 h-56 w-56 rounded-full bg-[#D4AF37]/[0.07] blur-3xl' />
+        <div className='absolute -right-24 -top-28 h-56 w-56 rounded-full bg-lime-400/[0.07] blur-3xl' />
         <div className='absolute -bottom-24 left-1/4 h-48 w-48 rounded-full bg-money/[0.07] blur-3xl' />
       </div>
 
@@ -93,7 +93,7 @@ export function WalletDepositPanel({
         <div className='flex flex-wrap items-start justify-between gap-3'>
           <div>
             <div className='inline-flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-ultra text-metallic-titanium'>
-              <span className='grid h-5 w-5 place-items-center rounded-sm border border-[#D4AF37]/30 bg-[#D4AF37]/[0.06] text-[#FFD700]'>
+              <span className='grid h-5 w-5 place-items-center rounded-sm border border-lime-400/30 bg-lime-400/[0.06] text-lime-400'>
                 <ArrowDownToLine size={11} aria-hidden='true' />
               </span>
               <h2 id='wallet-deposit-title'>Recargar saldo</h2>
@@ -121,7 +121,7 @@ export function WalletDepositPanel({
               <div className='relative'>
                 <span
                   aria-hidden='true'
-                  className='pointer-events-none absolute inset-y-0 left-0 grid w-10 place-items-center border-r border-white/[0.08] font-mono text-sm font-bold text-[#FFD700]'
+                  className='pointer-events-none absolute inset-y-0 left-0 grid w-10 place-items-center border-r border-white/[0.08] font-mono text-sm font-bold text-lime-400'
                 >
                   $
                 </span>
@@ -141,7 +141,7 @@ export function WalletDepositPanel({
                   placeholder='25.00'
                   aria-describedby={`${inputId}-hint`}
                   aria-invalid={!isValidAmount && amount.length > 0}
-                  className='h-11 w-full border border-white/[0.1] bg-[#07090E]/80 pl-12 pr-16 font-mono text-sm font-bold text-white outline-none transition-colors placeholder:text-metallic-slate/60 focus:border-[#D4AF37]/55 focus:ring-1 focus:ring-[#D4AF37]/25'
+                  className='h-11 w-full border border-white/[0.1] bg-[#0D0D0D]/80 pl-12 pr-16 font-mono text-sm font-bold text-white outline-none transition-colors placeholder:text-metallic-slate/60 focus:border-lime-400/55 focus:ring-1 focus:ring-lime-400/25'
                 />
                 <span
                   aria-hidden='true'
@@ -179,8 +179,8 @@ export function WalletDepositPanel({
                       }}
                       className={`h-11 min-w-14 border px-3 font-mono text-[11px] font-bold tabular-nums transition-colors ${
                         isSelected
-                          ? 'border-[#D4AF37]/60 bg-[#D4AF37]/[0.1] text-[#FFD700]'
-                          : 'border-white/[0.1] bg-white/[0.02] text-metallic-platinum hover:border-[#D4AF37]/40 hover:text-white'
+                          ? 'border-lime-400/60 bg-lime-400/[0.1] text-lime-400'
+                          : 'border-white/[0.1] bg-white/[0.02] text-metallic-platinum hover:border-lime-400/40 hover:text-white'
                       }`}
                     >
                       ${preset}
@@ -224,14 +224,14 @@ export function WalletDepositPanel({
 
           <div className='mt-5 flex flex-col gap-3 border-t border-obsidian-border/60 pt-4 sm:flex-row sm:items-center sm:justify-between'>
             <p className='flex max-w-xl items-start gap-2 text-[10px] leading-relaxed text-metallic-slate'>
-              <Info size={12} className='mt-0.5 shrink-0 text-[#D4AF37]' aria-hidden='true' />
+              <Info size={12} className='mt-0.5 shrink-0 text-lime-400' aria-hidden='true' />
               En este entorno la recarga se acredita de inmediato y no procesa un pago
               real.
             </p>
             <button
               type='submit'
               disabled={!isValidAmount || isSubmitting}
-              className='inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-[#D4AF37]/55 bg-[#D4AF37]/[0.1] px-4 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-[#FFD700] transition-colors hover:bg-[#D4AF37]/[0.16] disabled:cursor-not-allowed disabled:opacity-45 sm:shrink-0'
+              className='inline-flex min-h-10 items-center justify-center gap-2 rounded-sm border border-lime-400/55 bg-lime-400/[0.1] px-4 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-lime-400 transition-colors hover:bg-lime-400/[0.16] disabled:cursor-not-allowed disabled:opacity-45 sm:shrink-0'
             >
               {isSubmitting ? (
                 <Loader2 size={12} className='animate-spin' aria-hidden='true' />

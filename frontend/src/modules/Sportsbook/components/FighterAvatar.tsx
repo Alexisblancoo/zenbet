@@ -65,7 +65,7 @@ export default function FighterAvatar({
       className={`relative inline-grid shrink-0 place-items-center rounded-full p-[2px] ${FRAME_CLASSES[corner]} ${className}`}
     >
       <span
-        className={`relative grid place-items-center overflow-hidden rounded-full border border-white/15 bg-[#080B11] ${SIZE_CLASSES[size]}`}
+        className={`relative grid place-items-center overflow-hidden rounded-full border border-white/15 bg-[#151515] ${SIZE_CLASSES[size]}`}
       >
         <span
           aria-hidden='true'

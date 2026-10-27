@@ -29,7 +29,7 @@ domain/bets.ts                Selecciones, cuota/retorno, stake, GUID, errores
 
 ## Flujo de envío
 
-1. El usuario agrega picks desde `EventCard` (un pick por combate).
+1. El usuario agrega picks desde `FightCard` (un pick por combate).
 2. `BetSlipProvider` cruza cada `selectionId` con la última cotización del hub.
 3. Con cuotas pendientes no se puede confirmar: primero se aceptan.
 4. El stake se valida en cliente (mín/máx) y el saldo queda como advertencia
