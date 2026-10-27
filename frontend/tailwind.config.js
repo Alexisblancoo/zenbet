@@ -128,12 +128,12 @@ export default {
 
       fontFamily: {
         /* El nombre canónico vive en tokens.css (--font-display / --font-sans);
-           Anton para titulares y botones, Playfair solo editorial, Arimo para lectura. */
-        display: ['Anton', 'Oswald', '"Arial Narrow"', 'Impact', 'sans-serif'],
+           Playfair Display para titulares, Arimo para lectura. */
+        display: ['"Playfair Display"', 'Playfair', 'Georgia', '"Times New Roman"', 'serif'],
         serif: ['"Playfair Display"', 'Georgia', '"Times New Roman"', 'serif'],
         sans: ['Arimo', '"Helvetica Neue"', 'Arial', '"Segoe UI"', 'sans-serif'],
         mono: ['JetBrains Mono', '"IBM Plex Mono"', '"SFMono-Regular"', 'monospace'],
-        odds: ['JetBrains Mono', '"IBM Plex Mono"', '"SFMono-Regular"', 'monospace'],
+        odds: ['"Space Grotesk"', 'Arimo', 'sans-serif'],
         technical: ['JetBrains Mono', '"IBM Plex Mono"', 'monospace'],
       },
 

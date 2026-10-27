@@ -113,7 +113,7 @@ export default function Home() {
               Zenbet · Shibuya <span className='text-lime-400'>/</span> Sportsbook
             </p>
 
-            <h1 className='font-display text-[clamp(2.4rem,7vw,5rem)] uppercase leading-[0.98] tracking-[0.01em] text-cream'>
+            <h1 className='font-display text-[clamp(2.2rem,6vw,4.5rem)] font-bold uppercase leading-[1.02] tracking-tight text-cream'>
               Elige el deporte.
               <br />
               <span className='text-lime-400'>Revisa cada cuota.</span>
@@ -194,7 +194,7 @@ export default function Home() {
           ) : error && !activeCard ? (
             <div className='flex flex-col items-start gap-4 border border-burgundy-hi/60 bg-burgundy/20 p-6'>
               <div>
-                <h2 className='font-display text-2xl uppercase tracking-wide text-cream'>
+                <h2 className='font-display text-2xl font-bold uppercase tracking-tight text-cream'>
                   La cartelera no está disponible
                 </h2>
                 <p className='mt-2 max-w-xl text-sm leading-relaxed text-cream/75'>{error}</p>
@@ -227,7 +227,7 @@ export default function Home() {
                     </span>
                   </div>
 
-                  <h2 className='mt-3 font-display text-3xl uppercase leading-none tracking-wide text-cream sm:text-4xl'>
+                  <h2 className='mt-3 font-display text-3xl font-bold uppercase leading-none tracking-tight text-cream sm:text-4xl'>
                     {activeCard.competition}
                   </h2>
 
@@ -294,7 +294,7 @@ export default function Home() {
         <section id='como-funciona' className='flex scroll-mt-24 flex-col gap-6'>
           <div className='flex flex-col gap-3'>
             <SectionLabel code='#3'>Cómo funciona</SectionLabel>
-            <h2 className='font-display text-4xl uppercase leading-none tracking-wide text-cream sm:text-5xl'>
+            <h2 className='font-display text-3xl font-bold uppercase leading-tight tracking-tight text-cream sm:text-5xl'>
               Tres pasos. <span className='text-lime-400'>Nada oculto.</span>
             </h2>
           </div>
@@ -318,7 +318,7 @@ export default function Home() {
                     <span className='text-lime-400'>{step.code}</span>{' '}
                     <span className='text-sage'>{step.kind}</span>
                   </p>
-                  <h3 className='font-display text-2xl uppercase leading-none tracking-wide text-cream'>
+                  <h3 className='font-display text-xl font-bold uppercase leading-tight tracking-tight text-cream'>
                     {step.title}
                   </h3>
                   <p className='text-sm leading-relaxed text-cream/70'>{step.text}</p>
@@ -336,7 +336,7 @@ export default function Home() {
           <div className='divide-y divide-white/10 border-y border-white/10'>
             {FAQ.map((item) => (
               <details key={item.q} className='group py-4'>
-                <summary className='flex cursor-pointer list-none items-center justify-between gap-4 font-display text-xl uppercase tracking-wide text-cream transition-colors hover:text-lime-400 [&::-webkit-details-marker]:hidden'>
+                <summary className='flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-bold uppercase tracking-tight text-cream transition-colors sm:text-lg hover:text-lime-400 [&::-webkit-details-marker]:hidden'>
                   {item.q}
                   <ChevronDown
                     size={18}

@@ -29,7 +29,7 @@ export default function Header() {
   };
 
   const navLinkClasses = ({ isActive }) =>
-    `relative flex items-center gap-1.5 border-b-2 px-3 py-1.5 font-display text-[13px] uppercase tracking-[0.08em] transition-colors duration-150 ${
+    `relative flex items-center gap-1.5 border-b-2 px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider transition-colors duration-150 ${
       isActive
         ? 'border-lime-400 text-cream'
         : 'border-transparent text-sage hover:text-cream'

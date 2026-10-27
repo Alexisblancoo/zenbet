@@ -121,8 +121,9 @@
     border: 1px solid transparent;
     border-radius: var(--zb-radius-sm);
     font-family: var(--zb-font-display);
-    font-size: 0.8125rem;
-    letter-spacing: 0.07em;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     line-height: 1;
     text-transform: uppercase;
     white-space: nowrap;
@@ -136,8 +137,8 @@
 
   .btn:active:not(:disabled) { transform: translateY(1px); }
   .btn:disabled { cursor: not-allowed; opacity: 0.45; }
-  .btn-sm { min-height: var(--zb-control-sm); padding: 0 0.75rem; font-size: 0.75rem; }
-  .btn-lg { min-height: var(--zb-control-lg); padding: 0 1.5rem; font-size: 0.9375rem; }
+  .btn-sm { min-height: var(--zb-control-sm); padding: 0 0.75rem; font-size: 0.6875rem; }
+  .btn-lg { min-height: var(--zb-control-lg); padding: 0 1.5rem; font-size: 0.8125rem; }
 
   .btn-primary {
     border-color: rgb(var(--zb-lime-400));

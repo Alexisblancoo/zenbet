@@ -141,18 +141,18 @@
 
   /* ------------------------------------------------------------------------
      Tipografía
-     Display (Anton) para titulares y botones; serif (Playfair) solo editorial;
-     sans (Arimo) para lectura; mono (JetBrains Mono) para datos y cuotas.
+     Display y serif: Playfair Display; sans (Arimo) para lectura;
+     mono (JetBrains Mono) para datos; Space Grotesk para cuotas.
      ------------------------------------------------------------------------ */
-  --zb-font-display: 'Anton', 'Oswald', 'Arial Narrow', Impact, sans-serif;
+  --zb-font-display: 'Playfair Display', 'Playfair', Georgia, 'Times New Roman', serif;
   --zb-font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --zb-font-sans: 'Arimo', 'Helvetica Neue', Arial, 'Segoe UI', sans-serif;
   --zb-font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', monospace;
-  --zb-font-odds: 'JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', monospace;
+  --zb-font-odds: 'Space Grotesk', 'Arimo', sans-serif;
 
   /* Nombres canónicos Tailwind v4. La config los consume vía var() y el
      producto puede usarlos directamente en estilos propios. */
-  --font-display: 'Anton', 'Oswald', 'Arial Narrow', Impact, sans-serif;
+  --font-display: 'Playfair Display', 'Playfair', Georgia, 'Times New Roman', serif;
   --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-sans: 'Arimo', 'Helvetica Neue', Arial, 'Segoe UI', sans-serif;
 
