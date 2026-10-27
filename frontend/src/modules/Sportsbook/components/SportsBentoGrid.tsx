@@ -205,6 +205,7 @@ export default function SportsBentoGrid({
                   loading='lazy'
                   decoding='async'
                   className='zb-stipple__img'
+                  style={{ objectPosition: art.focus }}
                 />
               </div>
 

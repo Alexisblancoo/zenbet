@@ -12,19 +12,26 @@ LIME = (212, 255, 63)      # #D4FF3F
 BG = (10, 10, 10)          # #0A0A0A
 WIDTH = 960                # px de la imagen final (las tarjetas son < 700px)
 GAMMA = 0.85               # <1 aclara medios tonos; >1 los oscurece
-CROP = {'tennis': (28, 25, 585, 515)}  # recorta bordes blancos
+CROP = {}                  # {'deporte': (izq, arriba, der, abajo)} para recortar bordes
+INVERT = {'tennis'}         # grabados de línea (fondo blanco): trazo lima sobre negro
+GAMMA_BY = {'esports': 1.3, 'tennis': 1.2, 'basketball': 0.8, 'boxing': 0.9}  # ajuste por obra
 
 root = Path(__file__).resolve().parent.parent
 src, out = root / 'art-src', root / 'public' / 'art'
 out.mkdir(parents=True, exist_ok=True)
 
 for path in sorted(src.glob('*.jpg')):
+    if path.stem.startswith('spare-'):  # obras guardadas sin usar
+        continue
+    gamma = GAMMA_BY.get(path.stem, GAMMA)
     im = Image.open(path).convert('L')
     if path.stem in CROP:
         im = im.crop(CROP[path.stem])
     im = im.resize((WIDTH, round(im.height * WIDTH / im.width)), Image.LANCZOS)
     im = ImageOps.autocontrast(im, cutoff=1.5)
-    im = im.point(lambda v: int(255 * (v / 255) ** GAMMA))
+    if path.stem in INVERT:
+        im = ImageOps.invert(im)
+    im = im.point(lambda v: int(255 * (v / 255) ** gamma))
     im = im.filter(ImageFilter.UnsharpMask(radius=2, percent=90, threshold=2))
     bw = im.convert('1')  # Floyd-Steinberg: la trama de puntos
     pal = Image.new('P', bw.size)
