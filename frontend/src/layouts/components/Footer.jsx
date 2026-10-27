@@ -10,9 +10,12 @@ export default function Footer() {
           {/* Columna Marca */}
           <div className='md:col-span-1'>
             <div className='flex items-center gap-2'>
-              <div className='flex h-7 w-7 items-center justify-center rounded-sm bg-white font-display font-bold text-[#0D0D0D] text-sm'>
-                Z
-              </div>
+              <img
+                src={`${import.meta.env.BASE_URL}logo.png`}
+                alt=''
+                aria-hidden='true'
+                className='h-10 w-10 shrink-0 object-contain'
+              />
               <span className='font-display text-lg font-bold tracking-tight text-white'>
                 ZENBET
               </span>
