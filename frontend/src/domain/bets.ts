@@ -82,6 +82,11 @@ export interface BetSelection {
   readonly eventEndsAt: string;
   readonly eventIsExpired: boolean;
   readonly eventIsBettingOpen: boolean;
+  /**
+   * El mercado fue liquidado por el backend. Es independiente del estado del
+   * combate: otros mercados del mismo evento pueden seguir abiertos.
+   */
+  readonly marketSettled?: boolean;
 }
 
 /** Selección enriquecida con la cotización vigente del hub. */
@@ -174,10 +179,15 @@ const CLOSED_EVENT_STATUSES = new Set(['finished', 'cancelled', 'void', 'suspend
 export function isSelectionEventClosed(
   selection: Pick<
     BetSelection,
-    'eventStatus' | 'eventEndsAt' | 'eventIsExpired' | 'eventIsBettingOpen'
+    | 'eventStatus'
+    | 'eventEndsAt'
+    | 'eventIsExpired'
+    | 'eventIsBettingOpen'
+    | 'marketSettled'
   >,
   nowMs = Date.now(),
 ): boolean {
+  if (selection.marketSettled) return true;
   if (selection.eventIsExpired) return true;
   if (selection.eventIsBettingOpen === false) return true;
   if (CLOSED_EVENT_STATUSES.has(selection.eventStatus.toLowerCase())) return true;
@@ -185,6 +195,30 @@ export function isSelectionEventClosed(
   if (!selection.eventEndsAt) return false;
   const endsAt = new Date(selection.eventEndsAt).getTime();
   return !Number.isNaN(endsAt) && endsAt <= nowMs;
+}
+
+/**
+ * Red de seguridad local para el cierre por horario. SignalR es la fuente
+ * principal, pero si el mensaje final se pierde (o la pestaña estuvo
+ * suspendida) el pick debe dejar de ser apostable al vencer `endsAt`.
+ */
+export function expireSelectionsByTime(
+  selections: readonly BetSelection[],
+  nowMs = Date.now(),
+): readonly BetSelection[] {
+  let changed = false;
+
+  const next = selections.map((selection) => {
+    if (selection.eventIsExpired || !selection.eventEndsAt) return selection;
+
+    const endsAt = new Date(selection.eventEndsAt).getTime();
+    if (Number.isNaN(endsAt) || endsAt > nowMs) return selection;
+
+    changed = true;
+    return { ...selection, eventIsExpired: true, eventIsBettingOpen: false };
+  });
+
+  return changed ? next : selections;
 }
 
 /**

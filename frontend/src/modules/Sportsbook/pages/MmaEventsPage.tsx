@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -13,6 +13,7 @@ import {
 
 import BetSlip from '@/components/BetSlip';
 import { useBetSlip } from '@/context/betSlipState';
+import { useFightHubState } from '@/context/fightHubState';
 import type { SelectionInput } from '@/domain/bets';
 import { formatDecimalOdds, type OddsQuote } from '@/domain/odds';
 import {
@@ -30,6 +31,7 @@ import {
   findMarket,
   findSelectionByCode,
   findUfcCard,
+  findUfcHero,
   fightResultLabel,
   fightStatusLabel,
   formatAmericanOdds,
@@ -41,6 +43,7 @@ import {
   formatRank,
   formatSnapshotAt,
   formatWeightDivision,
+  isEventHeroEligible,
   isTerminalEventStatus,
   ufcCardNumber,
   UFC_BILLING_SECTIONS,
@@ -50,7 +53,6 @@ import {
   type UfcMarket,
   type UfcSelection,
 } from '@/domain/ufc';
-import { useFightHub } from '@/hooks/useFightHub';
 import { useUfcEvents } from '@/hooks/useUfcEvents';
 import CardNav, { type CardSectionKey } from '../components/CardNav';
 import CardSelector from '../components/CardSelector';
@@ -361,6 +363,8 @@ function MainEventHero({
   onAddSelection,
   onRemoveSelection,
 }: MainEventHeroProps) {
+  if (!isEventHeroEligible(event)) return null;
+
   const { bout } = event;
   const source = findEventSource(event);
   const moneyline = findMarket(event, 'moneyline');
@@ -597,10 +601,25 @@ export default function MmaEventsPage() {
     [sourceEvents],
   );
   const watchedCardKeys = useMemo(() => baseCards.map((card) => card.key), [baseCards]);
-  const fightHub = useFightHub({
-    eventIds: watchedEventIds,
-    cardKeys: watchedCardKeys,
-  });
+  const fightHub = useFightHubState();
+  const { watchEvents, unwatchEvents, watchCards, unwatchCards } = fightHub;
+  const fightHubOwnerId = useId();
+
+  useEffect(() => {
+    watchEvents(fightHubOwnerId, watchedEventIds);
+  }, [fightHubOwnerId, watchedEventIds, watchEvents]);
+
+  useEffect(() => {
+    watchCards(fightHubOwnerId, watchedCardKeys);
+  }, [fightHubOwnerId, watchedCardKeys, watchCards]);
+
+  useEffect(
+    () => () => {
+      unwatchEvents(fightHubOwnerId);
+      unwatchCards(fightHubOwnerId);
+    },
+    [fightHubOwnerId, unwatchCards, unwatchEvents],
+  );
 
   // SignalR no reproduce mensajes perdidos. Al reconectar, se refresca la
   // cartelera por REST y se descartan los mapas de updates anteriores.
@@ -639,12 +658,18 @@ export default function MmaEventsPage() {
     [activeSportDefinition.eventSportKeys, events],
   );
   const cards = useMemo(() => buildUfcCards(sportEvents), [sportEvents]);
-  const activeCard = findUfcCard(cards, searchParams.get('card'));
+  const activeCard = findUfcCard(cards, searchParams.get('card'), nowMs);
   const activeKey = activeCard?.key ?? null;
   const activeEvents = useMemo(
     () => activeCard?.events ?? EMPTY_EVENTS,
     [activeCard],
   );
+  const hero = useMemo(
+    () => findUfcHero(cards, activeCard?.key ?? null, nowMs),
+    [activeCard?.key, cards, nowMs],
+  );
+  const heroCard = hero?.card;
+  const heroEvent = hero?.event;
   const [lastActiveKey, setLastActiveKey] = useState(activeKey);
 
   // Cambiar de cartelera reinicia la sección y cierra la ficha comparativa sin
@@ -849,8 +874,10 @@ export default function MmaEventsPage() {
   return (
     <div className='shibuya-page min-h-full pb-6 min-[1400px]:pb-0'>
       <CardNav
-        eventName={mainEvent?.competition ?? 'UFC'}
-        dateLabel={mainEvent ? formatFightDate(mainEvent.startTime) : 'Próximo sábado'}
+        eventName={heroEvent?.competition ?? 'UFC'}
+        dateLabel={
+          heroEvent ? formatFightDate(heroEvent.startTime) : 'Próximas carteleras'
+        }
         marketCount={marketCount}
         sections={sectionCounts}
         activeSection={activeSection}
@@ -861,7 +888,11 @@ export default function MmaEventsPage() {
 
       <div className='mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-4 sm:py-5 lg:px-6'>
         <div className='grid grid-cols-1 items-start gap-4 min-[1400px]:grid-cols-[minmax(0,1fr)_360px] min-[1400px]:gap-5'>
-          <div className='flex min-w-0 flex-col gap-4'>
+          <div
+            className='flex min-w-0 flex-col gap-4'
+            data-hero-visible={Boolean(heroEvent)}
+            data-hero-event-id={heroEvent?.id ?? undefined}
+          >
             <TrendingSportsGrid
               activeSport={activeSport}
               onSelectSport={handleSelectSport}
@@ -870,12 +901,12 @@ export default function MmaEventsPage() {
 
             <CardSelector cards={cards} activeKey={activeKey} onSelect={handleSelectCard} />
 
-            {mainEvent && (
+            {heroEvent && (
               <MainEventHero
-                event={mainEvent}
-                boutCount={activeEvents.length}
-                marketCount={marketCount}
-                selectionCount={selectionCount}
+                event={heroEvent}
+                boutCount={heroCard?.events.length ?? 0}
+                marketCount={heroCard?.marketCount ?? 0}
+                selectionCount={heroCard?.selectionCount ?? 0}
                 selectedIds={selectedIds}
                 oddsMap={quotes}
                 onAddSelection={handleAddSelection}

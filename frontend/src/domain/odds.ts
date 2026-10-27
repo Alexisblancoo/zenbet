@@ -28,6 +28,12 @@ export interface OddsUpdate {
   readonly occurredAt?: string;
 }
 
+/** Evento `ReceiveMarketSettled`: el mercado ya no acepta apuestas. */
+export interface MarketSettlement {
+  readonly marketId: string;
+  readonly settledAt: number | null;
+}
+
 /**
  * La API conserva cuatro decimales para no perder precisión al normalizar el
  * consenso. La cartelera presenta dos decimales, el formato habitual de una
@@ -98,6 +104,34 @@ export function parseOddsUpdate(payload: unknown): OddsUpdate | null {
   const occurredAt = readString(nested.timestamp) ?? readString(payload.timestamp);
 
   return { marketId, selectionId, odds, ...(occurredAt ? { occurredAt } : {}) };
+}
+
+/**
+ * Normaliza el payload de `ReceiveMarketSettled`.
+ * El backend envía `{ marketId, settlementData, timestamp }`; se aceptan
+ * alias por si el contrato evoluciona.
+ */
+export function parseMarketSettled(payload: unknown): MarketSettlement | null {
+  if (!isRecord(payload)) return null;
+
+  const nested = isRecord(payload.settlementData) ? payload.settlementData : payload;
+  const marketId =
+    readString(payload.marketId) ??
+    readString(payload.market_id) ??
+    readString(nested.marketId) ??
+    readString(nested.market_id);
+  if (!marketId) return null;
+
+  const timestamp =
+    readString(payload.timestamp) ??
+    readString(payload.settledAt) ??
+    readString(nested.settledAt);
+  const parsedTimestamp = timestamp ? Date.parse(timestamp) : Number.NaN;
+
+  return {
+    marketId,
+    settledAt: Number.isFinite(parsedTimestamp) ? parsedTimestamp : null,
+  };
 }
 
 /**

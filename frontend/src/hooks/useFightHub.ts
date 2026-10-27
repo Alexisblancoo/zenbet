@@ -245,6 +245,12 @@ export function useFightHub(options: UseFightHubOptions = {}): UseFightHubResult
     setLastUpdateAt(Date.now());
   }, []);
 
+  /** Sin grupos que observar no se mantiene una conexión abierta. */
+  useEffect(() => {
+    if (enabled) return;
+    publishStatus('disconnected');
+  }, [enabled, publishStatus]);
+
   useEffect(() => {
     if (!enabled) return undefined;
 

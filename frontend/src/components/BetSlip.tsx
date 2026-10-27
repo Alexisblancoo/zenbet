@@ -227,6 +227,9 @@ export default function BetSlip({
   const allClosedSuspended =
     hasClosedSelections &&
     closedSelections.every((selection) => selection.eventStatus === 'suspended');
+  const allClosedMarketSettled =
+    hasClosedSelections &&
+    closedSelections.every((selection) => selection.marketSettled === true);
 
   const totalOdds = calculateTotalOdds(selections);
   const basePotentialPayout = calculatePotentialPayout(stake, selections);
@@ -860,9 +863,11 @@ export default function BetSlip({
                           </p>
                           {closed && (
                             <span className='mt-1 inline-flex border border-white/10 bg-white/[0.03] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-metallic-slate'>
-                              {selection.eventStatus === 'suspended'
-                                ? 'Suspendido · sin apuestas'
-                                : 'Finalizado · sin apuestas'}
+                              {selection.marketSettled
+                                ? 'Mercado cerrado · sin apuestas'
+                                : selection.eventStatus === 'suspended'
+                                  ? 'Suspendido · sin apuestas'
+                                  : 'Finalizado · sin apuestas'}
                             </span>
                           )}
                           {activeTab === 'single' && selections.length > 1 && (
@@ -949,13 +954,17 @@ export default function BetSlip({
                       />
                       <div className='min-w-0 flex-1'>
                         <p className='font-mono text-[10px] font-bold uppercase tracking-brutal text-metallic-titanium'>
-                          {allClosedSuspended
+                          {allClosedMarketSettled
                             ? closedSelectionCount === 1
-                              ? 'El combate se suspendió'
-                              : `${closedSelectionCount} combates suspendidos`
-                            : closedSelectionCount === 1
-                              ? 'El combate finalizó'
-                              : `${closedSelectionCount} combates finalizaron`}
+                              ? 'El mercado se cerró'
+                              : `${closedSelectionCount} mercados se cerraron`
+                            : allClosedSuspended
+                              ? closedSelectionCount === 1
+                                ? 'El combate se suspendió'
+                                : `${closedSelectionCount} combates suspendidos`
+                              : closedSelectionCount === 1
+                                ? 'El combate finalizó'
+                                : `${closedSelectionCount} combates finalizaron`}
                         </p>
                         <p className='mt-1 text-[10px] leading-relaxed text-metallic-slate'>
                           Los mercados cerrados ya no aceptan apuestas. Quita las selecciones
@@ -1283,7 +1292,11 @@ export default function BetSlip({
                           ) : hasClosedSelections ? (
                             <>
                               <LockKeyhole size={15} aria-hidden='true' />
-                              {allClosedSuspended ? 'Combate suspendido' : 'Combate finalizado'}
+                              {allClosedMarketSettled
+                                ? 'Mercado cerrado'
+                                : allClosedSuspended
+                                  ? 'Combate suspendido'
+                                  : 'Combate finalizado'}
                             </>
                           ) : !isAuthenticated ? (
                             <>

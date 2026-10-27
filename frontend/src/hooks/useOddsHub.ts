@@ -4,10 +4,9 @@ import { HubConnectionState, type HubConnection } from '@microsoft/signalr';
 import {
   AUTH_TOKEN_CHANGED_EVENT,
   AUTH_UNAUTHORIZED_EVENT,
-  authToken,
   type AuthTokenChangeDetail,
 } from '@/api';
-import { applyOddsUpdate, parseOddsUpdate, type OddsQuote, type OddsUpdate } from '@/domain/odds';
+import { applyOddsUpdate, parseMarketSettled, parseOddsUpdate, type OddsQuote, type OddsUpdate } from '@/domain/odds';
 import {
   createOddsHubConnection,
   ODDS_HUB_EVENTS,
@@ -21,6 +20,7 @@ import {
  * - Reconexión automática con backoff exponencial + watchdog propio.
  * - Suscripción por grupos: `joinMarket` / `leaveMarket` (los mercados visibles).
  * - Escucha `ReceiveOddsUpdate` y expone `quotes` con dirección (`up`/`down`).
+ * - Escucha `ReceiveMarketSettled` y acumula los mercados liquidados.
  * - Si la sesión expira (401) detiene el canal y se reconecta al renovarse.
  */
 
@@ -40,6 +40,8 @@ export interface UseOddsHubResult {
   readonly isConnected: boolean;
   /** Última cotización por `selectionId`. */
   readonly quotes: Readonly<Record<string, OddsQuote>>;
+  /** Mercados liquidados observados en esta sesión (monótono). */
+  readonly settledMarkets: ReadonlySet<string>;
   /** Epoch ms del último lote aplicado (indicador de frescura). */
   readonly lastUpdateAt: number | null;
   joinMarket(marketId: string): void;
@@ -55,6 +57,9 @@ export function useOddsHub(options: UseOddsHubOptions = {}): UseOddsHubResult {
 
   const [status, setStatus] = useState<OddsHubStatus>('disconnected');
   const [quotes, setQuotes] = useState<Record<string, OddsQuote>>({});
+  const [settledMarkets, setSettledMarkets] = useState<ReadonlySet<string>>(
+    () => new Set<string>(),
+  );
   const [lastUpdateAt, setLastUpdateAt] = useState<number | null>(null);
 
   const connectionRef = useRef<HubConnection | null>(null);
@@ -124,6 +129,21 @@ export function useOddsHub(options: UseOddsHubOptions = {}): UseOddsHubResult {
     [flushPendingUpdates],
   );
 
+  const handleMarketSettled = useCallback((payload: unknown) => {
+    const settlement = parseMarketSettled(payload);
+    if (!settlement) return;
+
+    // Un mercado liquidado no vuelve a abrirse; el set solo crece durante la
+    // vida del provider. La persistencia del boleto guarda el cierre por pick.
+    setSettledMarkets((previous) => {
+      if (previous.has(settlement.marketId)) return previous;
+
+      const next = new Set(previous);
+      next.add(settlement.marketId);
+      return next;
+    });
+  }, []);
+
   /* ---------------------------------------------------------------------- */
   /* Grupos                                                                  */
   /* ---------------------------------------------------------------------- */
@@ -180,7 +200,6 @@ export function useOddsHub(options: UseOddsHubOptions = {}): UseOddsHubResult {
   /** Reintento del watchdog cuando el reconector automático agotó su política. */
   const scheduleRestart = useCallback(() => {
     if (disposedRef.current || watchdogTimerRef.current !== null) return;
-    if (!authToken.has()) return;
 
     const attempt = watchdogAttemptRef.current++;
     const delay = Math.min(WATCHDOG_MAX_DELAY_MS, WATCHDOG_BASE_DELAY_MS * 2 ** attempt);
@@ -194,12 +213,6 @@ export function useOddsHub(options: UseOddsHubOptions = {}): UseOddsHubResult {
   const startConnection = useCallback(async () => {
     const connection = connectionRef.current;
     if (!connection || disposedRef.current) return;
-
-    // Sin token no se intenta: el evento de login reinicia el canal.
-    if (!authToken.has()) {
-      publishStatus('disconnected');
-      return;
-    }
 
     if (connection.state !== HubConnectionState.Disconnected) return;
 
@@ -282,6 +295,7 @@ export function useOddsHub(options: UseOddsHubOptions = {}): UseOddsHubResult {
     connectionRef.current = connection;
 
     connection.on(ODDS_HUB_EVENTS.oddsUpdate, enqueueOddsUpdate);
+    connection.on(ODDS_HUB_EVENTS.marketSettled, handleMarketSettled);
     connection.onreconnecting(() => publishStatus('reconnecting'));
     connection.onreconnected(() => {
       watchdogAttemptRef.current = 0;
@@ -305,10 +319,11 @@ export function useOddsHub(options: UseOddsHubOptions = {}): UseOddsHubResult {
       }
 
       connection.off(ODDS_HUB_EVENTS.oddsUpdate, enqueueOddsUpdate);
+      connection.off(ODDS_HUB_EVENTS.marketSettled, handleMarketSettled);
       connectionRef.current = null;
       void connection.stop().catch(() => {});
     };
-  }, [enabled, enqueueOddsUpdate, publishStatus, rejoinMarkets, scheduleRestart, clearWatchdog]);
+  }, [enabled, enqueueOddsUpdate, handleMarketSettled, publishStatus, rejoinMarkets, scheduleRestart, clearWatchdog]);
 
   /** Sincroniza los grupos con los mercados visibles (join nuevos, leave salidos). */
   useEffect(() => {
@@ -333,10 +348,11 @@ export function useOddsHub(options: UseOddsHubOptions = {}): UseOddsHubResult {
       status,
       isConnected: status === 'connected',
       quotes,
+      settledMarkets,
       lastUpdateAt,
       joinMarket,
       leaveMarket,
     }),
-    [status, quotes, lastUpdateAt, joinMarket, leaveMarket],
+    [status, quotes, settledMarkets, lastUpdateAt, joinMarket, leaveMarket],
   );
 }

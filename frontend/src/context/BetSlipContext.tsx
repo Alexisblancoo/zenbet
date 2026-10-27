@@ -1,11 +1,13 @@
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { createIdempotencyKey } from '@/api';
 import { BALANCE_UPDATED_EVENT, useAuth } from '@/context/authState';
+import { useFightHubState } from '@/context/fightHubState';
 import {
   areOddsEqual,
   calculatePromoBonus,
   countPendingOdds,
+  expireSelectionsByTime,
   isSelectionEventClosed,
   normalizeSelectionInput,
   resolvePromoCode,
@@ -18,6 +20,7 @@ import {
   type PlaceBetOutcome,
   type SelectionInput,
 } from '@/domain/bets';
+import { isTerminalEventStatus, type UfcFightClock, type UfcFightUpdate } from '@/domain/ufc';
 import { useOddsHub } from '@/hooks/useOddsHub';
 import {
   betService,
@@ -27,15 +30,23 @@ import {
   resolveWalletId,
 } from '@/services/betService';
 
+import {
+  BET_SLIP_STORAGE_KEY,
+  loadPersistedSelections,
+  parsePersistedSelections,
+  serializeSelections,
+  writePersistedSelections,
+} from './betSlipPersistence';
 import { BetSlipContext, type BetSlipContextValue } from './betSlipState';
 
 /**
- * BetSlipProvider — estado global del boleto + única conexión SignalR.
+ * BetSlipProvider — estado global del boleto + conexiones SignalR compartidas.
  *
- * El hub se comparte con la cartelera (no se abre una conexión por componente)
- * y sus cuotas se cruzan con la cuota aceptada de cada selección. La alerta de
- * "cuota cambiada" es, por tanto, una comparación derivada, sin efectos que
- * encadenen renders.
+ * Las selecciones aceptadas se hidratan y persisten en localStorage (sin la
+ * cuota viva). El boleto se sincroniza entre pestañas, revalida el cierre por
+ * horario al recuperar foco/visibilidad y consume el FightHub compartido para
+ * cerrar picks cuando el combate termina. El OddsHub avisa además cuando un
+ * mercado fue liquidado.
  */
 
 interface AttemptKey {
@@ -43,10 +54,64 @@ interface AttemptKey {
   readonly signature: string;
 }
 
+/**
+ * Al recargar con selecciones persistidas, el OddsHub quiere conectarse antes
+ * de que la cartelera termine su primer fetch. El backend limita a 5 req/s por
+ * IP, así que se le da prioridad a la carga de eventos y al FightHub; el
+ * OddsHub se suma poco después. Sin picks hidratados no hay prisa: los
+ * mercados visibles llegan recién cuando la cartelera ya cargó.
+ */
+const ODDS_HUB_START_DELAY_MS = 1_200;
+
+function buildRealtimeLifecycles(
+  updates: Readonly<Record<string, UfcFightUpdate>>,
+  clocks: Readonly<Record<string, UfcFightClock>>,
+  nowMs = Date.now(),
+): readonly EventLifecycle[] {
+  const lifecycles = new Map<string, EventLifecycle>();
+
+  for (const [eventId, update] of Object.entries(updates)) {
+    lifecycles.set(eventId, {
+      eventId,
+      status: update.status,
+      endsAt: update.endsAt,
+      isExpired: update.isExpired,
+      isBettingOpen: update.isBettingOpen,
+    });
+  }
+
+  for (const [eventId, clock] of Object.entries(clocks)) {
+    if (lifecycles.has(eventId)) continue;
+
+    const endsAt = new Date(clock.endsAt).getTime();
+    const reachedEnd = !Number.isNaN(endsAt) && endsAt <= nowMs;
+    const isExpired = reachedEnd || isTerminalEventStatus(clock.status);
+
+    lifecycles.set(eventId, {
+      eventId,
+      status: clock.status,
+      endsAt: clock.endsAt,
+      isExpired,
+      isBettingOpen: !isExpired && clock.status.toLowerCase() !== 'suspended',
+    });
+  }
+
+  return [...lifecycles.values()];
+}
+
 export function BetSlipProvider({ children }: { children: ReactNode }) {
   const { user, isAuthenticated } = useAuth();
+  const {
+    updates: fightUpdates,
+    clocks: fightClocks,
+    watchEvents,
+    unwatchEvents,
+  } = useFightHubState();
+  const fightHubOwnerId = useId();
 
-  const [selections, setSelections] = useState<readonly BetSelection[]>([]);
+  const [selections, setSelections] = useState<readonly BetSelection[]>(() =>
+    expireSelectionsByTime(loadPersistedSelections()),
+  );
   const [visibleMarkets, setVisibleMarketsState] = useState<readonly string[]>([]);
   const [isPlacingBet, setIsPlacingBet] = useState(false);
   const [error, setError] = useState<BetFailure | null>(null);
@@ -55,6 +120,104 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
 
   const attemptRef = useRef<AttemptKey | null>(null);
   const placingRef = useRef(false);
+  const lastPersistedRef = useRef<string | null>(null);
+  // Solo la hidratación inicial justifica cederle el primer turno al REST.
+  const [oddsHubReady, setOddsHubReady] = useState(() => selections.length === 0);
+
+  useEffect(() => {
+    if (oddsHubReady) return undefined;
+
+    const timer = window.setTimeout(() => setOddsHubReady(true), ODDS_HUB_START_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [oddsHubReady]);
+
+  /* ---------------------------------------------------------------------- */
+  /* Persistencia y sincronización entre pestañas                            */
+  /* ---------------------------------------------------------------------- */
+
+  useEffect(() => {
+    const serialized = serializeSelections(selections);
+    if (lastPersistedRef.current === serialized) return;
+
+    lastPersistedRef.current = serialized;
+    writePersistedSelections(serialized);
+  }, [selections]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== BET_SLIP_STORAGE_KEY) return;
+      if (event.storageArea && event.storageArea !== window.localStorage) return;
+
+      // Otra pestaña vació el boleto: se refleja sin reescribir la llave.
+      if (event.newValue === null) {
+        lastPersistedRef.current = serializeSelections([]);
+        setSelections((previous) => (previous.length === 0 ? previous : []));
+        return;
+      }
+
+      const parsed = parsePersistedSelections(event.newValue);
+      if (parsed === null) return;
+
+      const next = expireSelectionsByTime(parsed);
+      const serialized = serializeSelections(next);
+      lastPersistedRef.current = serialized;
+
+      setSelections((previous) =>
+        serializeSelections(previous) === serialized ? previous : next,
+      );
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  // Red de seguridad local: SignalR puede perder el mensaje final o la
+  // pestaña puede estar suspendida. Reevaluar `endsAt` periódicamente y al
+  // recuperar foco evita que un combate vencido siga apostable.
+  useEffect(() => {
+    const revalidate = () => {
+      setSelections((previous) => expireSelectionsByTime(previous));
+    };
+
+    revalidate();
+
+    const interval = window.setInterval(revalidate, 30_000);
+    const handleFocus = () => revalidate();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') revalidate();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
+  /* ---------------------------------------------------------------------- */
+  /* Grupos del FightHub para los combates del boleto                        */
+  /* ---------------------------------------------------------------------- */
+
+  const selectionEventIds = useMemo(
+    () => [...new Set(selections.map((selection) => selection.eventId))],
+    [selections],
+  );
+
+  useEffect(() => {
+    watchEvents(fightHubOwnerId, selectionEventIds);
+  }, [fightHubOwnerId, selectionEventIds, watchEvents]);
+
+  useEffect(
+    () => () => {
+      unwatchEvents(fightHubOwnerId);
+    },
+    [fightHubOwnerId, unwatchEvents],
+  );
 
   /* ---------------------------------------------------------------------- */
   /* Mercados suscritos: visibles + seleccionados                            */
@@ -79,10 +242,13 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
   const {
     status: hubStatus,
     quotes,
+    settledMarkets,
     lastUpdateAt,
   } = useOddsHub({
     markets: activeMarkets,
-    enabled: isAuthenticated && activeMarkets.length > 0,
+    // El hub de cuotas es público: también observa a invitados para cerrar
+    // mercados liquidados sin depender de una sesión iniciada.
+    enabled: oddsHubReady && activeMarkets.length > 0,
   });
 
   /* ---------------------------------------------------------------------- */
@@ -142,22 +308,65 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const addSelection = useCallback((input: SelectionInput) => {
-    const selection = normalizeSelectionInput(input);
-    if (!selection) return;
+  // El FightHub compartido sigue observando los combates del boleto aunque el
+  // usuario abandone la cartelera. Los updates cierran el pick sin esperar a
+  // que vuelva a montarse MmaEventsPage.
+  useEffect(() => {
+    const lifecycles = buildRealtimeLifecycles(fightUpdates, fightClocks);
+    if (lifecycles.length === 0) return;
 
-    attemptRef.current = null;
-    setError(null);
-    setReceipt(null);
+    // oxlint-disable-next-line react/set-state-in-effect -- evento externo de SignalR
+    syncEventLifecycle(lifecycles);
+  }, [fightClocks, fightUpdates, syncEventLifecycle]);
 
-    // Regla de casa: un pick por combate (reemplaza la cuota previa del evento).
-    setSelections((previous) => [
-      ...previous.filter(
-        (item) => item.eventId !== selection.eventId && item.selectionId !== selection.selectionId,
-      ),
-      selection,
-    ]);
-  }, []);
+  // Un mercado liquidado es terminal para sus picks. Se conserva la selección
+  // visible (el usuario decide cuándo quitarla) pero el CTA queda bloqueado.
+  useEffect(() => {
+    if (settledMarkets.size === 0) return;
+
+    // oxlint-disable-next-line react/set-state-in-effect -- evento externo de SignalR
+    setSelections((previous) => {
+      let changed = false;
+      const next = previous.map((selection) => {
+        if (!settledMarkets.has(selection.marketId) || selection.marketSettled) {
+          return selection;
+        }
+
+        changed = true;
+        return { ...selection, marketSettled: true };
+      });
+
+      return changed ? next : previous;
+    });
+  }, [settledMarkets]);
+
+  const addSelection = useCallback(
+    (input: SelectionInput) => {
+      const selection = normalizeSelectionInput(input);
+      if (!selection) return;
+
+      // Si el mercado ya se liquidó mientras la UI mostraba una cuota previa,
+      // el pick nace bloqueado en lugar de habilitar el CTA por error.
+      const accepted = settledMarkets.has(selection.marketId)
+        ? { ...selection, marketSettled: true }
+        : selection;
+
+      attemptRef.current = null;
+      setError(null);
+      setReceipt(null);
+
+      // Regla de casa: un pick por combate (reemplaza la cuota previa del evento).
+      setSelections((previous) => [
+        ...previous.filter(
+          (item) =>
+            item.eventId !== accepted.eventId &&
+            item.selectionId !== accepted.selectionId,
+        ),
+        accepted,
+      ]);
+    },
+    [settledMarkets],
+  );
 
   const removeSelection = useCallback((selectionId: string) => {
     attemptRef.current = null;
@@ -229,11 +438,14 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
       if (closedSelection) {
         return reject(
           createBetFailure('EVENT_CLOSED', {
-            title:
-              closedSelection.eventStatus === 'suspended'
+            title: closedSelection.marketSettled
+              ? 'Mercado cerrado'
+              : closedSelection.eventStatus === 'suspended'
                 ? 'Combate suspendido'
                 : 'Combate finalizado',
-            message: `${closedSelection.eventName} ya no acepta apuestas. Elimina la selección para continuar.`,
+            message: closedSelection.marketSettled
+              ? `${closedSelection.eventName}: este mercado ya no acepta apuestas. Elimina la selección para continuar.`
+              : `${closedSelection.eventName} ya no acepta apuestas. Elimina la selección para continuar.`,
           }),
         );
       }

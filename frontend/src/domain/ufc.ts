@@ -288,12 +288,33 @@ function readOptionalBoolean(value: unknown): boolean | null {
   return typeof value === 'boolean' ? value : null;
 }
 
-const TERMINAL_EVENT_STATUSES = new Set(['finished', 'cancelled', 'void']);
+const TERMINAL_EVENT_STATUSES = new Set([
+  'finished',
+  'cancelled',
+  'canceled',
+  'void',
+  'finalizado',
+  'cancelado',
+  'anulado',
+]);
 const LIVE_EVENT_STATUSES = new Set(['live', 'suspended']);
 
 /** Estados en los que el combate ya no puede aceptar picks. */
 export function isTerminalEventStatus(status: string): boolean {
   return TERMINAL_EVENT_STATUSES.has(status.toLowerCase());
+}
+
+/**
+ * Elegibilidad estricta para el Hero: el combate debe seguir vivo y su
+ * ventana estimada no puede haber vencido. `isExpired` es la fuente principal;
+ * `endsAt` actúa como red de seguridad local.
+ */
+export function isEventHeroEligible(event: UfcEvent, nowMs = Date.now()): boolean {
+  return (
+    !event.isExpired &&
+    !isTerminalEventStatus(event.status) &&
+    !hasReached(event.endsAt, nowMs)
+  );
 }
 
 /**
@@ -872,38 +893,117 @@ export function buildUfcCards(events: readonly UfcEvent[]): readonly UfcCard[] {
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 }
 
-function localDateKey(value: string | Date): string {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return typeof value === 'string' ? value.slice(0, 10) : '';
-  }
+export function isUfcCardHeroEligible(card: UfcCard, nowMs = Date.now()): boolean {
+  return card.events.some((event) => isEventHeroEligible(event, nowMs));
+}
 
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
+function findDefaultUfcCard(
+  cards: readonly UfcCard[],
+  nowMs: number,
+): UfcCard | undefined {
+  // Una cartelera con combates vivos siempre manda.
+  const live =
+    cards.find(
+      (card) =>
+        card.status === 'live' &&
+        card.isBettingOpen &&
+        isUfcCardHeroEligible(card, nowMs),
+    ) ??
+    cards.find(
+      (card) => card.status === 'live' && isUfcCardHeroEligible(card, nowMs),
+    );
+  if (live) return live;
+
+  // Después, la siguiente cartelera activa con mercado abierto. Las carteleras
+  // terminadas nunca compiten aquí aunque su fecha local sea "hoy".
+  const nextOpen = cards.find(
+    (card) => card.isBettingOpen && isUfcCardHeroEligible(card, nowMs),
+  );
+  if (nextOpen) return nextOpen;
+
+  const nextActive = cards.find((card) => isUfcCardHeroEligible(card, nowMs));
+  if (nextActive) return nextActive;
+
+  // Fallback solo para navegación: permite revisar resultados antiguos, pero
+  // el Hero se mantiene oculto porque no hay ningún evento elegible.
+  return cards[cards.length - 1] ?? cards[0];
 }
 
 export function findUfcCard(
   cards: readonly UfcCard[],
   key: string | null,
+  nowMs = Date.now(),
 ): UfcCard | undefined {
-  if (key) return cards.find((card) => card.key === key) ?? cards[0];
+  if (key) {
+    const requested = cards.find((card) => card.key === key);
+    if (requested) return requested;
+  }
 
-  // Sin selección explícita, prioriza la cartelera que está en vivo; después
-  // la de hoy en la zona local del usuario (aunque ya haya terminado) y, por
-  // último, la siguiente abierta o la más reciente si todas cerraron.
-  const live = cards.find((card) => card.status === 'live' && card.isBettingOpen);
+  return findDefaultUfcCard(cards, nowMs);
+}
+
+export interface UfcHeroSelection {
+  readonly card: UfcCard;
+  readonly event: UfcEvent;
+}
+
+function heroEventForCard(card: UfcCard, nowMs: number): UfcEvent | null {
+  const eligible = card.events.filter((event) => isEventHeroEligible(event, nowMs));
+  if (eligible.length === 0) return null;
+
+  const live = eligible.find((event) => event.status.toLowerCase() === 'live');
   if (live) return live;
 
-  const todayKey = localDateKey(new Date());
-  const today = cards.find((card) => localDateKey(card.startTime) === todayKey);
-  if (today) return today;
+  const mainEvent =
+    eligible.find((event) => event.id === card.mainEvent.id) ??
+    eligible.find(
+      (event) => event.bout.billing === 'main' && event.bout.billingOrder === 1,
+    );
+  if (mainEvent) return mainEvent;
 
   return (
-    cards.find((card) => card.isBettingOpen) ??
-    cards[cards.length - 1] ??
-    cards[0]
+    [...eligible].sort((a, b) => {
+      const time = a.startTime.localeCompare(b.startTime);
+      return time !== 0 ? time : a.bout.billingOrder - b.bout.billingOrder;
+    })[0] ?? null
   );
+}
+
+/**
+ * Selecciona el evento que puede ocupar el Hero. Prioriza la cartelera
+ * solicitada si sigue elegible; si expiró, rota a la cartelera viva o a la
+ * siguiente activa. Devuelve `null` cuando no queda ningún combate válido.
+ */
+export function findUfcHero(
+  cards: readonly UfcCard[],
+  preferredKey: string | null,
+  nowMs = Date.now(),
+): UfcHeroSelection | null {
+  const eligibleCards = cards.filter((card) => isUfcCardHeroEligible(card, nowMs));
+  if (eligibleCards.length === 0) return null;
+
+  const preferred = preferredKey
+    ? eligibleCards.find((card) => card.key === preferredKey)
+    : undefined;
+  const live =
+    eligibleCards.find((card) => card.status === 'live' && card.isBettingOpen) ??
+    eligibleCards.find((card) => card.status === 'live');
+  const nextOpen = eligibleCards.find((card) => card.isBettingOpen);
+
+  const candidates = [preferred, live, nextOpen, ...eligibleCards].filter(
+    (card): card is UfcCard => card !== undefined,
+  );
+  const seen = new Set<string>();
+
+  for (const card of candidates) {
+    if (seen.has(card.key)) continue;
+    seen.add(card.key);
+
+    const event = heroEventForCard(card, nowMs);
+    if (event) return { card, event };
+  }
+
+  return null;
 }
 
 export function ufcCardNumber(competition: string): string | null {
