@@ -14,7 +14,7 @@ WIDTH = 960                # px de la imagen final (las tarjetas son < 700px)
 GAMMA = 0.85               # <1 aclara medios tonos; >1 los oscurece
 CROP = {}                  # {'deporte': (izq, arriba, der, abajo)} para recortar bordes
 INVERT = {'tennis'}         # grabados de línea (fondo blanco): trazo lima sobre negro
-GAMMA_BY = {'esports': 1.3, 'tennis': 1.2, 'basketball': 0.8, 'boxing': 0.9}  # ajuste por obra
+GAMMA_BY = {'esports': 1.3, 'tennis': 1.2, 'basketball': 0.7, 'boxing': 0.9}  # ajuste por obra
 
 root = Path(__file__).resolve().parent.parent
 src, out = root / 'art-src', root / 'public' / 'art'
