@@ -64,8 +64,8 @@
      Verde dinero = selección/saldo/éxito/monto. Rojo = acción/live/riesgo.
      Azul = procedencia, metadatos y foco técnico.
      ------------------------------------------------------------------------ */
-  --zb-money-500: 16 185 129;
-  --zb-money-400: 0 255 135;
+  --zb-money-500: 212 175 55;   /* oro #D4AF37: saldo, ganancias, premios */
+  --zb-money-400: 245 196 81;   /* oro claro #F5C451 */
   --zb-electric-500: 59 130 246;
   --zb-electric-400: 96 165 250;
 
@@ -81,6 +81,25 @@
   --zb-lime-600: 141 187 16;
   --zb-cta: var(--zb-lime-400);
   --zb-cta-hi: var(--zb-lime-500);
+
+  /* ------------------------------------------------------------------------
+     Paleta de apoyo (una función por color, ver docs en cada alias)
+     cream  #F3E5AB  texto de marca y placas (14.8:1 sobre #121212)
+     plum   #4A2545  texto sobre placa crema (10:1)
+     burgundy #800020 relleno de combate/peligro (texto encima en crema)
+     teal   #0F4C5C  acciones secundarias (texto lima/crema encima)
+     sage   #A8B5A2  texto secundario e info (9:1 sobre #121212)
+     paper  #F5F1E8 / ink-paper #382C26  boleto de apuesta
+     ------------------------------------------------------------------------ */
+  --zb-cream: 243 229 171;
+  --zb-plum: 74 37 69;
+  --zb-burgundy: 128 0 32;
+  --zb-burgundy-hi: 160 20 52;
+  --zb-teal: 15 76 92;
+  --zb-teal-hi: 24 103 122;
+  --zb-sage: 168 181 162;
+  --zb-paper: 245 241 232;
+  --zb-ink-paper: 56 44 38;
 
   --zb-odds-up: 16 185 129;
   --zb-odds-up-strong: 0 255 135;
@@ -115,23 +134,26 @@
   --zb-money: var(--zb-money-500);
   --zb-money-bright: var(--zb-money-400);
   --zb-electric: var(--zb-electric-500);
-  --zb-positive: var(--zb-money-500);
+  --zb-positive: var(--zb-odds-up);
   --zb-negative: var(--zb-crimson-500);
   --zb-warning: var(--zb-crimson-500);
   --zb-info: var(--zb-electric-500);
 
   /* ------------------------------------------------------------------------
      Tipografía
-     Display para titulares; sans para lectura; mono para cuotas y cifras.
+     Display (Anton) para titulares y botones; serif (Playfair) solo editorial;
+     sans (Arimo) para lectura; mono (JetBrains Mono) para datos y cuotas.
      ------------------------------------------------------------------------ */
-  --zb-font-display: 'Playfair Display', 'Playfair', Georgia, 'Times New Roman', serif;
+  --zb-font-display: 'Anton', 'Oswald', 'Arial Narrow', Impact, sans-serif;
+  --zb-font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --zb-font-sans: 'Arimo', 'Helvetica Neue', Arial, 'Segoe UI', sans-serif;
   --zb-font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', monospace;
-  --zb-font-odds: 'Space Grotesk', 'Arimo', sans-serif;
+  --zb-font-odds: 'JetBrains Mono', 'IBM Plex Mono', 'SFMono-Regular', monospace;
 
   /* Nombres canónicos Tailwind v4. La config los consume vía var() y el
      producto puede usarlos directamente en estilos propios. */
-  --font-display: 'Playfair Display', 'Playfair', Georgia, 'Times New Roman', serif;
+  --font-display: 'Anton', 'Oswald', 'Arial Narrow', Impact, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-sans: 'Arimo', 'Helvetica Neue', Arial, 'Segoe UI', sans-serif;
 
   --zb-text-2xs: 0.625rem;
@@ -210,8 +232,8 @@
     inset 0 -1px 0 rgb(255 255 255 / 0.025);
   --zb-shadow-focus:
     0 0 0 2px rgb(13 13 13 / 1),
-    0 0 0 4px rgb(var(--zb-electric-500) / 0.8);
-  --zb-shadow-up: 0 0 28px -6px rgb(var(--zb-money-500) / 0.4);
+    0 0 0 4px rgb(var(--zb-lime-400) / 0.85);
+  --zb-shadow-up: 0 0 28px -6px rgb(var(--zb-odds-up) / 0.4);
   --zb-shadow-down: 0 0 28px -6px rgb(var(--zb-crimson-500) / 0.36);
   --zb-shadow-live: 0 0 32px -8px rgb(var(--zb-crimson-500) / 0.38);
   --zb-glow-lime: 0 0 34px -8px rgb(var(--zb-lime-400) / 0.55);

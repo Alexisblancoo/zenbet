@@ -69,9 +69,9 @@ const SPORTS_CATEGORIES = [
 ];
 
 const TOOL_LINKS = [
-  { label: 'Mi billetera', path: '/wallet', icon: Wallet, tone: 'text-money' },
-  { label: 'Boleto rápido', path: '/sportsbook', icon: Ticket, tone: 'text-crimson' },
-  { label: 'Estadísticas', path: '/example', icon: Activity, tone: 'text-electric-soft' },
+  { label: 'Mi billetera', path: '/wallet', icon: Wallet, tone: 'text-gold' },
+  { label: 'Boleto rápido', path: '/sportsbook', icon: Ticket, tone: 'text-sage' },
+  { label: 'Estadísticas', path: '/example', icon: Activity, tone: 'text-sage' },
 ];
 
 export default function Sidebar() {
@@ -95,14 +95,14 @@ export default function Sidebar() {
       <div className='px-3 pb-3 pt-4'>
         <div className='flex items-center justify-between'>
           <span className='shibuya-kicker text-metallic-slate'>Sportsbook</span>
-          <span className='inline-flex items-center gap-1 border border-electric/30 bg-electric/[0.07] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-electric-soft'>
-            <span className='h-1 w-1 bg-electric' aria-hidden='true' />
+          <span className='inline-flex items-center gap-1 border border-sage/30 bg-sage/[0.07] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-sage'>
+            <span className='h-1 w-1 bg-sage' aria-hidden='true' />
             24H
           </span>
         </div>
 
         <div className='mt-3 flex items-center gap-2.5 border border-white/[0.06] bg-white/[0.02] p-2'>
-          <span className='grid h-8 w-8 shrink-0 place-items-center border border-crimson/35 bg-crimson/10 font-display text-[9px] font-black text-crimson'>
+          <span className='grid h-8 w-8 shrink-0 place-items-center border border-burgundy-hi bg-burgundy font-display text-[10px] text-cream'>
             UFC
           </span>
           <div className='min-w-0'>
@@ -283,14 +283,14 @@ export default function Sidebar() {
       </div>
 
       <div className='mt-auto p-3'>
-        <div className='relative overflow-hidden border border-crimson/25 bg-linear-to-br from-crimson/[0.12] via-transparent to-electric/[0.05] p-3'>
+        <div className='relative overflow-hidden border border-burgundy-hi/50 bg-linear-to-br from-burgundy/40 via-transparent to-transparent p-3'>
           <span
             aria-hidden='true'
             className='pointer-events-none absolute -right-3 -top-4 font-display text-[64px] font-black leading-none text-white/[0.025]'
           >
             {cardNumber}
           </span>
-          <p className='relative shibuya-kicker text-crimson'>Main event</p>
+          <p className='relative shibuya-kicker text-cream'>Main event</p>
           <p className='relative mt-1 font-display text-[11px] font-bold uppercase leading-tight text-white'>
             <span className='block'>
               {featuredMainEvent
@@ -314,7 +314,7 @@ export default function Sidebar() {
           </p>
           <Link
             to={featuredCard ? `/sportsbook?card=${featuredCard.key}` : '/sportsbook'}
-            className='relative mt-2.5 inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wide text-crimson transition-colors hover:text-white'
+            className='relative mt-2.5 inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wide text-lime-400 transition-colors hover:text-cream'
           >
             Ver mercados
             <ChevronRight size={10} aria-hidden='true' />
@@ -322,7 +322,7 @@ export default function Sidebar() {
         </div>
 
         <p className='mt-2 flex items-center gap-1.5 font-mono text-[8px] uppercase leading-relaxed tracking-wide text-metallic-slate'>
-          <ShieldCheck size={9} className='shrink-0 text-electric-soft' aria-hidden='true' />
+          <ShieldCheck size={9} className='shrink-0 text-sage' aria-hidden='true' />
           Snapshot de fuentes · no ejecutable
         </p>
       </div>

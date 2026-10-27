@@ -129,10 +129,6 @@ export default function SportsBentoGrid({
             <span className='font-mono text-[9px] font-bold tracking-widest uppercase text-[#D4FF3F]'>
               / DISCIPLINA & AGON
             </span>
-            <span className='h-1 w-1 rounded-full bg-white/20' aria-hidden='true' />
-            <span className='font-mono text-[8px] tracking-wider uppercase text-neutral-400'>
-              ARS CLASSICA · SHIBUYA LIME
-            </span>
           </div>
           <h2
             id='sports-bento-title'
@@ -231,13 +227,6 @@ export default function SportsBentoGrid({
                 }}
               />
 
-              {/* Marca de agua del icono deportivo en fondo */}
-              <Icon
-                aria-hidden='true'
-                strokeWidth={1.2}
-                className='pointer-events-none absolute -bottom-5 -right-3 h-24 w-24 -rotate-12 text-white/[0.035] transition-transform duration-500 group-hover:scale-105 group-hover:text-[#D4FF3F]/[0.08] motion-reduce:transition-none'
-              />
-
               {/* Fila superior: Icono de disciplina + Código clásico + Estado */}
               <div className='relative z-10 flex items-start justify-between gap-2'>
                 <div className='flex items-center gap-2'>
@@ -253,10 +242,6 @@ export default function SportsBentoGrid({
                     <Icon size={15} strokeWidth={2} aria-hidden='true' />
                   </span>
 
-                  {/* Kicker catalogador Hermes Agent */}
-                  <span className='hidden font-mono text-[8px] font-semibold tracking-wider uppercase text-neutral-400 group-hover:text-neutral-300 min-[420px]:inline-block'>
-                    {art.code}
-                  </span>
                 </div>
 
                 {/* Badge de disponibilidad */}
@@ -293,7 +278,7 @@ export default function SportsBentoGrid({
 
                   {/* Nombre del deporte: crema #F3E5AB; lima #D4FF3F en hover/activo */}
                   <span
-                    className={`mt-1.5 block break-words font-display [text-shadow:0_1px_6px_rgba(0,0,0,0.85)] text-[13px] font-bold uppercase leading-tight tracking-tight transition-colors duration-200 sm:text-sm ${
+                    className={`mt-1.5 block break-words font-display [text-shadow:0_1px_6px_rgba(0,0,0,0.85)] text-lg uppercase leading-tight tracking-[0.03em] transition-colors duration-200 sm:text-xl ${
                       active ? 'text-[#D4FF3F]' : 'text-[#F3E5AB] group-hover:text-[#D4FF3F]'
                     }`}
                   >

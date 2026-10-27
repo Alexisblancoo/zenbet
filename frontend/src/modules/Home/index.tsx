@@ -94,7 +94,7 @@ function FeaturedBout({ event, cardKey }: { event: UfcEvent; cardKey?: string })
   return (
     <Link
       to={cardKey ? `/sportsbook?card=${cardKey}` : '/sportsbook'}
-      className='group flex min-w-0 flex-col gap-3 border border-obsidian-border bg-obsidian-card p-4 transition-colors duration-200 hover:border-crimson/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60'
+      className='group flex min-w-0 flex-col gap-3 border border-obsidian-border bg-obsidian-card p-4 transition-colors duration-200 hover:border-lime-400/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60'
     >
       <div className='flex flex-wrap items-center justify-between gap-2'>
         <span className='font-mono text-[9px] font-bold uppercase tracking-wide text-crimson'>
@@ -105,7 +105,7 @@ function FeaturedBout({ event, cardKey }: { event: UfcEvent; cardKey?: string })
         </span>
       </div>
 
-      <h3 className='break-words font-display text-sm font-bold uppercase leading-tight text-white group-hover:text-crimson'>
+      <h3 className='break-words font-display text-sm font-bold uppercase leading-tight text-white group-hover:text-lime-400'>
         {event.name}
       </h3>
 
@@ -187,7 +187,7 @@ export default function Home() {
       <div className='w-full border-b border-obsidian-border bg-obsidian-surface/70'>
         <div className='mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2.5 font-mono text-[10px] uppercase tracking-wide text-metallic-slate sm:px-6 lg:px-8'>
           <span className='flex items-center gap-2'>
-            <span className='h-1.5 w-1.5 bg-crimson' aria-hidden='true' />
+            <span className='h-1.5 w-1.5 bg-lime-400' aria-hidden='true' />
             Carteleras UFC · próximos sábados · snapshot declarado
           </span>
           <span>
@@ -202,8 +202,7 @@ export default function Home() {
 
       <div className='mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 py-8 sm:px-6 lg:px-8'>
         <section className='relative overflow-hidden border border-white/[0.08] bg-gradient-obsidian-radial p-6 sm:p-10'>
-          <div className='pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-crimson/12 blur-3xl' />
-          <div className='pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-electric/10 blur-3xl' />
+          <div className='pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-burgundy/30 blur-3xl' />
 
           <div className='relative z-10 flex flex-col gap-6'>
             <div className='flex flex-wrap items-center gap-3 font-mono text-[10px] uppercase tracking-wide'>
@@ -242,7 +241,7 @@ export default function Home() {
                 <button
                   type='button'
                   onClick={reload}
-                  className='inline-flex items-center gap-2 border border-crimson/60 bg-crimson/10 px-4 py-2.5 font-display text-[10px] font-bold uppercase tracking-wide text-crimson transition-colors hover:bg-crimson/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/60'
+                  className='btn btn-danger'
                 >
                   <Activity size={13} aria-hidden='true' />
                   Reintentar
@@ -251,12 +250,12 @@ export default function Home() {
             ) : mainEvent ? (
               <>
                 <div className='max-w-4xl'>
-                  <h1 className='font-display text-[clamp(1.6rem,7vw,4.1rem)] font-bold uppercase leading-[0.98] tracking-tight text-white sm:text-6xl lg:text-7xl'>
+                  <h1 className='font-display text-[clamp(2rem,8vw,4.5rem)] uppercase leading-[1] tracking-[0.01em] text-cream sm:text-7xl lg:text-8xl'>
                     <span className='block break-normal sm:inline'>{mainEvent.bout.red.name}</span>{' '}
-                    <span className='block text-crimson sm:inline'>vs.</span>{' '}
+                    <span className='block text-burgundy-hi sm:inline'>vs.</span>{' '}
                     <span className='block break-normal sm:inline'>{mainEvent.bout.blue.name}</span>
                   </h1>
-                  <p className='mt-4 max-w-2xl text-sm leading-relaxed text-metallic-platinum sm:text-base'>
+                  <p className='mt-4 max-w-2xl font-serif text-base italic leading-relaxed text-cream/80 sm:text-lg'>
                     {mainEvent.bout.isTitleFight
                       ? 'Combate de título'
                       : 'Evento principal'}{' '}
@@ -278,7 +277,7 @@ export default function Home() {
                 <div className='flex flex-wrap items-center gap-3 pt-1'>
                   <Link
                     to={sportsbookHref}
-                    className='inline-flex items-center gap-2 border border-lime-400 bg-lime-400 px-5 py-3 font-display text-xs font-bold uppercase tracking-wide text-[#0D0D0D] transition-colors duration-150 hover:bg-lime-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400/60'
+                    className='btn btn-primary btn-lg'
                   >
                     <Swords size={16} aria-hidden='true' />
                     Abrir cartelera completa
@@ -311,7 +310,7 @@ export default function Home() {
         <section className='flex flex-col gap-4'>
           <div className='flex flex-wrap items-end justify-between gap-3 border-b border-obsidian-border pb-3'>
             <div className='min-w-0'>
-              <p className='font-mono text-[9px] font-bold uppercase tracking-wide text-crimson'>
+              <p className='font-mono text-[9px] font-bold uppercase tracking-wide text-sage'>
                 Cartelera estelar
               </p>
               <h2 className='mt-1 font-display text-lg font-bold uppercase tracking-tight text-white'>
@@ -320,7 +319,7 @@ export default function Home() {
             </div>
             <Link
               to={sportsbookHref}
-              className='inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-wide text-crimson hover:text-white'
+              className='inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-wide text-lime-400 hover:text-cream'
             >
               Ver todos los mercados
               <ArrowRight size={12} aria-hidden='true' />
@@ -351,7 +350,7 @@ export default function Home() {
 
         <section className='grid grid-cols-1 gap-4 md:grid-cols-3'>
           <div className='flex flex-col gap-2 border border-obsidian-border bg-obsidian-surface p-5'>
-            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-electric-soft'>
+            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-sage'>
               <Database size={14} aria-hidden='true' />
               Cartelera verificada
             </div>
@@ -363,7 +362,7 @@ export default function Home() {
           </div>
 
           <div className='flex flex-col gap-2 border border-obsidian-border bg-obsidian-surface p-5'>
-            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-electric-soft'>
+            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-sage'>
               <ShieldCheck size={14} aria-hidden='true' />
               Cuotas declaradas
             </div>
@@ -375,7 +374,7 @@ export default function Home() {
           </div>
 
           <div className='flex flex-col gap-2 border border-obsidian-border bg-obsidian-surface p-5'>
-            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-crimson'>
+            <div className='flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wide text-sage'>
               <Activity size={14} aria-hidden='true' />
               Boleto protegido
             </div>

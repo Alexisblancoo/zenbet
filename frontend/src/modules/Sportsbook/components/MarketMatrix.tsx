@@ -33,10 +33,10 @@ const MARKET_ACCENT: Record<
     bg: 'bg-crimson/[0.06]',
   },
   method_of_victory: {
-    tick: 'bg-electric',
-    text: 'text-electric-soft',
-    border: 'border-electric/30',
-    bg: 'bg-electric/[0.07]',
+    tick: 'bg-sage',
+    text: 'text-sage',
+    border: 'border-sage/30',
+    bg: 'bg-sage/[0.07]',
   },
   total_rounds: {
     tick: 'bg-white/80',
@@ -148,7 +148,7 @@ function MarketTile({
                 className={`grid h-3.5 w-3.5 shrink-0 place-items-center border font-mono text-[7px] font-bold ${
                   corner === 'red'
                     ? 'border-crimson/45 bg-crimson/10 text-crimson'
-                    : 'border-electric/45 bg-electric/10 text-electric-soft'
+                    : 'border-sage/45 bg-sage/10 text-sage'
                 }`}
                 aria-hidden='true'
               >
@@ -227,7 +227,7 @@ function MarketColumn({ family, index, market, children }: MarketColumnProps) {
             <span className='shrink-0 font-mono text-[8px] tabular-nums text-metallic-slate min-[1440px]:hidden'>
               {market?.selections.length ?? 0}
             </span>
-            <span className='hidden shrink-0 border border-electric/25 bg-electric/[0.07] px-1 py-0.5 font-mono text-[8px] font-bold tabular-nums text-electric-soft min-[1440px]:inline'>
+            <span className='hidden shrink-0 border border-sage/25 bg-sage/[0.07] px-1 py-0.5 font-mono text-[8px] font-bold tabular-nums text-sage min-[1440px]:inline'>
               L {line.toFixed(1)}
             </span>
           </>
@@ -447,7 +447,7 @@ export default function MarketMatrix({
               <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
                 Distancia
               </span>
-              <span className='font-mono text-[8px] font-bold uppercase text-electric-soft'>
+              <span className='font-mono text-[8px] font-bold uppercase text-sage'>
                 {bout.scheduledRounds} RDS
               </span>
             </div>

@@ -12,7 +12,7 @@ import { formatDecimalOdds } from '@/domain/odds';
 import ZenbetLogo from './ZenbetLogo';
 
 const ITEM_CLASS =
-  'relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric';
+  'relative flex min-h-14 flex-col items-center justify-center gap-0.5 px-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage';
 
 export default function MobileDock() {
   const location = useLocation();

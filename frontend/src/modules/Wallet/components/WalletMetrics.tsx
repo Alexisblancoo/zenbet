@@ -47,7 +47,7 @@ export function WalletMetrics({ metrics, className = '' }: WalletMetricsProps) {
       value: formatWinRate(metrics.winRate),
       detail: `${metrics.wonCount}G · ${metrics.lostCount}P`,
       icon: Target,
-      iconTone: 'border-electric/25 bg-electric/5 text-electric-soft',
+      iconTone: 'border-sage/25 bg-sage/5 text-sage',
       valueTone: 'text-white',
     },
     {

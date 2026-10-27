@@ -27,7 +27,7 @@ const BENEFITS = [
     icon: ShieldCheck,
     title: 'Sesión protegida',
     description: 'Contraseña cifrada y acceso personal a tu billetera.',
-    accent: 'text-electric',
+    accent: 'text-sage',
     border: 'border-white/[0.08] bg-white/[0.02]',
   },
 ] as const;
@@ -47,7 +47,7 @@ export default function AuthPageLayout({ mode, children }: AuthPageLayoutProps) 
       />
       <div
         aria-hidden='true'
-        className='pointer-events-none absolute bottom-0 right-0 h-80 w-80 rounded-full bg-electric/[0.06] blur-3xl'
+        className='pointer-events-none absolute bottom-0 right-0 h-80 w-80 rounded-full bg-sage/[0.06] blur-3xl'
       />
 
       <div className='relative mx-auto grid w-full max-w-6xl items-center gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(430px,520px)] lg:gap-12 lg:px-8 lg:py-12'>
@@ -111,8 +111,8 @@ export default function AuthPageLayout({ mode, children }: AuthPageLayoutProps) 
           </ul>
 
           <div className='mt-7 flex items-center gap-2 text-[10px] text-metallic-slate'>
-            <CheckCircle2 size={12} className='text-electric' aria-hidden='true' />
-            Cuotas de referencia con <span className='text-electric'>procedencia declarada</span>.
+            <CheckCircle2 size={12} className='text-sage' aria-hidden='true' />
+            Cuotas de referencia con <span className='text-sage'>procedencia declarada</span>.
           </div>
         </section>
 

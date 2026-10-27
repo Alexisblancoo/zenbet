@@ -17,7 +17,7 @@
 
   /* El foco nunca depende solo del color. */
   :focus-visible {
-    outline: 2px solid rgb(var(--zb-electric-500) / 0.95);
+    outline: 2px solid rgb(var(--zb-lime-400) / 0.95);
     outline-offset: 2px;
   }
 }
@@ -102,6 +102,80 @@
   .focus-ring:focus-visible {
     outline: none;
     box-shadow: var(--zb-shadow-focus);
+  }
+
+  /* ------------------------------------------------------------------------
+     Botones: una sola receta, cuatro roles.
+     primary   lima  -> la acción principal de la pantalla (una por vista)
+     secondary teal  -> acciones de apoyo
+     danger    burdeos -> cerrar sesión, cancelar, eliminar
+     ghost     contorno -> acciones terciarias
+     ------------------------------------------------------------------------ */
+  .btn {
+    display: inline-flex;
+    min-height: var(--zb-control-md);
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    border: 1px solid transparent;
+    border-radius: var(--zb-radius-sm);
+    font-family: var(--zb-font-display);
+    font-size: 0.8125rem;
+    letter-spacing: 0.07em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color var(--zb-duration-base) var(--zb-ease-out),
+      border-color var(--zb-duration-base) var(--zb-ease-out),
+      color var(--zb-duration-base) var(--zb-ease-out),
+      transform var(--zb-duration-fast) var(--zb-ease-out);
+  }
+
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn:disabled { cursor: not-allowed; opacity: 0.45; }
+  .btn-sm { min-height: var(--zb-control-sm); padding: 0 0.75rem; font-size: 0.75rem; }
+  .btn-lg { min-height: var(--zb-control-lg); padding: 0 1.5rem; font-size: 0.9375rem; }
+
+  .btn-primary {
+    border-color: rgb(var(--zb-lime-400));
+    background: rgb(var(--zb-lime-400));
+    color: rgb(var(--zb-ink-inverse));
+  }
+  .btn-primary:hover:not(:disabled) {
+    border-color: rgb(var(--zb-lime-200));
+    background: rgb(var(--zb-lime-200));
+  }
+
+  .btn-secondary {
+    border-color: rgb(var(--zb-teal-hi));
+    background: rgb(var(--zb-teal));
+    color: rgb(var(--zb-cream));
+  }
+  .btn-secondary:hover:not(:disabled) {
+    border-color: rgb(var(--zb-lime-400) / 0.7);
+    background: rgb(var(--zb-teal-hi));
+  }
+
+  .btn-danger {
+    border-color: rgb(var(--zb-burgundy-hi));
+    background: rgb(var(--zb-burgundy));
+    color: rgb(var(--zb-cream));
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: rgb(var(--zb-burgundy-hi));
+  }
+
+  .btn-ghost {
+    border-color: rgb(var(--zb-cream) / 0.22);
+    background: transparent;
+    color: rgb(var(--zb-cream));
+  }
+  .btn-ghost:hover:not(:disabled) {
+    border-color: rgb(var(--zb-cream) / 0.55);
+    background: rgb(var(--zb-cream) / 0.06);
   }
 
   /* ------------------------------------------------------------------------

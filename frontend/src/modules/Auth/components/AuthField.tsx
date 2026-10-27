@@ -45,7 +45,7 @@ export default function AuthField({
     ? 'border-crimson/70 bg-crimson/[0.035]'
     : hasSuccess
       ? 'border-money/45 bg-money/[0.025]'
-      : 'border-white/[0.13] bg-white/[0.025] hover:border-white/[0.22] focus-within:border-electric/70 focus-within:bg-white/[0.04]';
+      : 'border-white/[0.13] bg-white/[0.025] hover:border-white/[0.22] focus-within:border-sage/70 focus-within:bg-white/[0.04]';
 
   return (
     <div className='space-y-1.5'>
@@ -57,7 +57,7 @@ export default function AuthField({
       </label>
 
       <div
-        className={`flex min-h-12 w-full items-center border transition-colors duration-150 focus-within:ring-1 focus-within:ring-electric/25 ${borderClasses}`}
+        className={`flex min-h-12 w-full items-center border transition-colors duration-150 focus-within:ring-1 focus-within:ring-sage/25 ${borderClasses}`}
       >
         <Icon
           size={16}

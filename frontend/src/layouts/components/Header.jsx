@@ -29,10 +29,10 @@ export default function Header() {
   };
 
   const navLinkClasses = ({ isActive }) =>
-    `relative px-3 py-1.5 font-display text-xs font-bold uppercase tracking-wider transition-colors duration-150 flex items-center gap-1.5 ${
+    `relative flex items-center gap-1.5 border-b-2 px-3 py-1.5 font-display text-[13px] uppercase tracking-[0.08em] transition-colors duration-150 ${
       isActive
-        ? 'text-white border-b-2 border-crimson'
-        : 'text-metallic-titanium hover:text-white'
+        ? 'border-lime-400 text-cream'
+        : 'border-transparent text-sage hover:text-cream'
     }`;
 
   return (
@@ -49,9 +49,8 @@ export default function Header() {
                 Inicio
               </NavLink>
               <NavLink to='/sportsbook' className={navLinkClasses}>
-                <span className='h-1.5 w-1.5 bg-crimson' aria-hidden='true' />
                 Sportsbook
-                <span className='ml-1 border border-crimson/40 bg-crimson/10 px-1 py-0.5 font-mono text-[8px] font-bold text-crimson'>
+                <span className='ml-1 rounded-[2px] bg-burgundy px-1 py-0.5 font-mono text-[8px] font-bold text-cream'>
                   UFC
                 </span>
               </NavLink>
@@ -66,25 +65,19 @@ export default function Header() {
 
           {/* Acciones y Saldo de Usuario */}
           <div className='hidden sm:flex items-center gap-3'>
-            {/* Contexto de la cartelera publicada */}
-            <div className='hidden items-center gap-1.5 border border-crimson/35 bg-crimson/[0.08] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-crimson md:flex'>
-              <span className='h-1.5 w-1.5 bg-crimson' aria-hidden='true' />
-              <span>UFC · PRÓXIMAS</span>
-            </div>
-
             {/* Saldo / Billetera */}
             {user ? (
               <Link
                 to='/wallet'
                 title='Abrir mi billetera'
-                className='group flex items-center gap-2 border border-white/10 bg-obsidian-surface px-3 py-1 font-mono text-xs transition-colors hover:border-money/45 hover:bg-obsidian-elevated'
+                className='group flex items-center gap-2 border border-white/10 bg-obsidian-surface px-3 py-1 font-mono text-xs transition-colors hover:border-gold/50 hover:bg-obsidian-elevated'
               >
                 <Wallet size={13} className='text-money' aria-hidden='true' />
                 <span className='text-metallic-titanium'>SALDO:</span>
                 <span className='font-bold text-money tabular-nums'>{balanceLabel}</span>
                 <ChevronRight
                   size={12}
-                  className='text-metallic-slate transition-colors group-hover:text-money'
+                  className='text-metallic-slate transition-colors group-hover:text-gold'
                   aria-hidden='true'
                 />
               </Link>
@@ -96,7 +89,7 @@ export default function Header() {
                 <Link
                   to='/perfil'
                   title={`Perfil de ${user.username}`}
-                  className='group flex items-center gap-2 border border-white/10 bg-obsidian-surface px-3 py-1 font-display text-xs font-bold uppercase tracking-wide text-metallic-titanium transition-colors hover:border-white/25 hover:text-white'
+                  className='btn btn-ghost btn-sm'
                   aria-label='Abrir mi perfil'
                 >
                   <User size={12} className='text-white/75' aria-hidden='true' />
@@ -107,7 +100,7 @@ export default function Header() {
                   onClick={handleLogout}
                   title='Cerrar Sesión'
                   aria-label='Cerrar sesión'
-                  className='border border-obsidian-border bg-obsidian-surface p-1.5 text-metallic-titanium transition-colors hover:border-crimson hover:text-crimson'
+                  className='btn btn-ghost btn-sm !px-2 hover:!border-burgundy-hi hover:!bg-burgundy'
                 >
                   <LogOut size={13} aria-hidden='true' />
                 </button>
@@ -117,7 +110,7 @@ export default function Header() {
                 <button
                   type='button'
                   onClick={() => openAuth('login')}
-                  className='border border-obsidian-border bg-obsidian-surface px-3 py-1 font-display text-xs font-bold uppercase tracking-wider text-metallic-titanium hover:text-white hover:border-metallic-titanium transition-all flex items-center gap-1.5'
+                  className='btn btn-ghost btn-sm'
                   aria-label='Iniciar sesión'
                 >
                   <LogIn size={12} aria-hidden='true' />
@@ -126,7 +119,7 @@ export default function Header() {
                 <button
                   type='button'
                   onClick={() => openAuth('register')}
-                  className='flex items-center gap-1.5 border border-lime-400 bg-lime-400 px-3 py-1 font-display text-xs font-bold uppercase tracking-wide text-[#0D0D0D] shadow-glow-lime-sm transition-all hover:bg-lime-500 active:translate-x-0.5 active:translate-y-0.5'
+                  className='btn btn-primary btn-sm'
                   aria-label='Crear nueva cuenta'
                 >
                   <UserPlus size={12} aria-hidden='true' />
@@ -142,7 +135,7 @@ export default function Header() {
               <Link
                 to='/wallet'
                 aria-label={`Mi saldo disponible: ${balanceLabel}`}
-                className='flex items-center gap-1.5 border border-white/10 bg-obsidian-surface px-2 py-1.5 font-mono text-[10px] transition-colors hover:border-money/45 sm:hidden'
+                className='flex items-center gap-1.5 border border-white/10 bg-obsidian-surface px-2 py-1.5 font-mono text-[10px] transition-colors hover:border-gold/50 sm:hidden'
               >
                 <Wallet size={12} className='text-money' aria-hidden='true' />
                 <span className='font-bold text-money tabular-nums'>{balanceLabel}</span>
@@ -180,7 +173,7 @@ export default function Header() {
             <NavLink
               to='/sportsbook'
               onClick={() => setMobileMenuOpen(false)}
-              className='flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-crimson py-1'
+              className='flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-cream py-1'
             >
               Sportsbook UFC
             </NavLink>
@@ -197,7 +190,7 @@ export default function Header() {
                 <Link
                   to='/wallet'
                   onClick={() => setMobileMenuOpen(false)}
-                  className='flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-money py-1'
+                  className='flex items-center gap-2 font-display text-sm uppercase tracking-wider text-gold py-1'
                 >
                   <Wallet size={14} aria-hidden='true' />
                   Mi billetera
@@ -225,7 +218,7 @@ export default function Header() {
                       setMobileMenuOpen(false);
                       openAuth('login');
                     }}
-                    className='border border-obsidian-border bg-obsidian-void py-2 text-center text-xs font-bold uppercase text-white'
+                    className='btn btn-ghost btn-sm'
                   >
                     Iniciar Sesión
                   </button>
@@ -235,7 +228,7 @@ export default function Header() {
                       setMobileMenuOpen(false);
                       openAuth('register');
                     }}
-                    className='bg-crimson py-2 text-center text-xs font-bold uppercase text-white'
+                    className='btn btn-primary btn-sm'
                   >
                     Registro
                   </button>
@@ -247,7 +240,7 @@ export default function Header() {
                     handleLogout();
                     setMobileMenuOpen(false);
                   }}
-                  className='border border-crimson/50 text-crimson py-1.5 text-center text-xs font-bold uppercase'
+                  className='btn btn-danger btn-sm'
                 >
                   Cerrar Sesión ({user.username})
                 </button>

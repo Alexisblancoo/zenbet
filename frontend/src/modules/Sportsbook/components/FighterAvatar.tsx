@@ -23,7 +23,7 @@ const SIZE_CLASSES: Record<AvatarSize, string> = {
 
 const FRAME_CLASSES: Record<FighterCorner, string> = {
   red: 'bg-linear-to-br from-crimson/90 via-white/20 to-crimson/35 shadow-[0_0_30px_-10px_rgb(239_68_68_/_0.85)]',
-  blue: 'bg-linear-to-br from-electric/90 via-white/20 to-electric/35 shadow-[0_0_30px_-10px_rgb(56_189_248_/_0.8)]',
+  blue: 'bg-linear-to-br from-sage/90 via-white/20 to-sage/35 shadow-[0_0_30px_-10px_rgb(56_189_248_/_0.8)]',
 };
 
 function initialsFor(name: string): string {

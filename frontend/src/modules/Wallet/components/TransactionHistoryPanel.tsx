@@ -47,7 +47,7 @@ const TRANSACTION_ICONS: Record<WalletTransactionType, LucideIcon> = {
 
 const TRANSACTION_ICON_TONES: Record<WalletTransactionType, string> = {
   deposit: 'border-odds-up/25 bg-odds-up/5 text-odds-up',
-  withdrawal: 'border-electric/25 bg-electric/5 text-electric-soft',
+  withdrawal: 'border-sage/25 bg-sage/5 text-sage',
   bet: 'border-metallic-slate/25 bg-metallic-slate/5 text-metallic-platinum',
   settlement: 'border-odds-up/25 bg-odds-up/5 text-odds-up',
   cancellation: 'border-metallic-slate/25 bg-metallic-slate/5 text-metallic-platinum',
@@ -137,7 +137,7 @@ export function TransactionHistoryPanel({
               {isDemo ? (
                 <span
                   title='Historial de demostración; las consultas ampliadas estarán disponibles próximamente.'
-                  className='inline-flex items-center gap-1.5 rounded-sm border border-electric/25 bg-electric/5 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-brutal text-electric-soft'
+                  className='inline-flex items-center gap-1.5 rounded-sm border border-sage/25 bg-sage/5 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-brutal text-sage'
                 >
                   <FlaskConical size={9} aria-hidden='true' />
                   Demo

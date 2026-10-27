@@ -133,7 +133,7 @@ export function BetHistoryPanel({ bets, isDemo, className = '' }: BetHistoryPane
               {isDemo ? (
                 <span
                   title='Historial de demostración; las consultas ampliadas estarán disponibles próximamente.'
-                  className='inline-flex items-center gap-1.5 rounded-sm border border-electric/25 bg-electric/5 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-brutal text-electric-soft'
+                  className='inline-flex items-center gap-1.5 rounded-sm border border-sage/25 bg-sage/5 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-brutal text-sage'
                 >
                   <FlaskConical size={9} aria-hidden='true' />
                   Demo

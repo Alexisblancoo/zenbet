@@ -99,6 +99,15 @@ export default {
           DEFAULT: token('--zb-electric-500'),
           soft: token('--zb-electric-400'),
         },
+        /* Paleta de apoyo. */
+        cream: token('--zb-cream'),
+        plum: token('--zb-plum'),
+        burgundy: { DEFAULT: token('--zb-burgundy'), hi: token('--zb-burgundy-hi') },
+        teal: { DEFAULT: token('--zb-teal'), hi: token('--zb-teal-hi') },
+        sage: token('--zb-sage'),
+        gold: { DEFAULT: token('--zb-money-500'), bright: token('--zb-money-400') },
+        paper: { DEFAULT: token('--zb-paper'), ink: token('--zb-ink-paper') },
+
         /* Verde lima de acción: registro, secciones, configuración y CTAs. */
         lime: {
           DEFAULT: token('--zb-lime-400'),
@@ -119,11 +128,12 @@ export default {
 
       fontFamily: {
         /* El nombre canónico vive en tokens.css (--font-display / --font-sans);
-           Playfair Display para titulares editoriales, Arimo para lectura. */
-        display: ['"Playfair Display"', 'Playfair', 'Georgia', 'Times New Roman', 'serif'],
+           Anton para titulares y botones, Playfair solo editorial, Arimo para lectura. */
+        display: ['Anton', 'Oswald', '"Arial Narrow"', 'Impact', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Georgia', '"Times New Roman"', 'serif'],
         sans: ['Arimo', '"Helvetica Neue"', 'Arial', '"Segoe UI"', 'sans-serif'],
         mono: ['JetBrains Mono', '"IBM Plex Mono"', '"SFMono-Regular"', 'monospace'],
-        odds: ['"Space Grotesk"', 'Arimo', 'sans-serif'],
+        odds: ['JetBrains Mono', '"IBM Plex Mono"', '"SFMono-Regular"', 'monospace'],
         technical: ['JetBrains Mono', '"IBM Plex Mono"', 'monospace'],
       },
 

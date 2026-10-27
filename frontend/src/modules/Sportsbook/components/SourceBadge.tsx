@@ -31,11 +31,11 @@ export default function SourceBadge({
   const content = (
     <>
       <span className='relative flex h-1.5 w-1.5 shrink-0' aria-hidden='true'>
-        <span className='absolute inset-0 rounded-full bg-electric/50 blur-[2px]' />
-        <span className='relative h-1.5 w-1.5 rounded-full bg-electric' />
+        <span className='absolute inset-0 rounded-full bg-sage/50 blur-[2px]' />
+        <span className='relative h-1.5 w-1.5 rounded-full bg-sage' />
       </span>
-      <Radio size={10} className='shrink-0 text-electric-soft' aria-hidden='true' />
-      <span className='truncate font-mono text-[9px] font-bold uppercase tracking-wide text-electric-soft'>
+      <Radio size={10} className='shrink-0 text-sage' aria-hidden='true' />
+      <span className='truncate font-mono text-[9px] font-bold uppercase tracking-wide text-sage'>
         {label}
       </span>
       {observedAt && !compact && (
@@ -46,7 +46,7 @@ export default function SourceBadge({
       {source?.url && (
         <ExternalLink
           size={9}
-          className='shrink-0 text-metallic-slate transition-colors group-hover:text-electric-soft'
+          className='shrink-0 text-metallic-slate transition-colors group-hover:text-sage'
           aria-hidden='true'
         />
       )}
@@ -63,7 +63,7 @@ export default function SourceBadge({
         rel='noreferrer noopener'
         title={title}
         aria-label={`${label}. Abrir fuente en una pestaña nueva. ${source.note ?? ''}`}
-        className={`${baseClass} transition-colors hover:border-electric/55 hover:bg-electric/[0.1]`}
+        className={`${baseClass} transition-colors hover:border-sage/55 hover:bg-sage/[0.1]`}
       >
         {content}
       </a>

@@ -16,14 +16,14 @@ const STATUS_PRESENTATION: Record<OddsHubStatus, StatusPresentation> = {
   },
   connecting: {
     label: 'Conectando',
-    tone: 'border-electric/45 text-electric-soft',
-    dot: 'bg-electric',
+    tone: 'border-sage/45 text-sage',
+    dot: 'bg-sage',
     pulsing: true,
   },
   reconnecting: {
     label: 'Reconectando',
-    tone: 'border-electric/45 text-electric-soft',
-    dot: 'bg-electric',
+    tone: 'border-sage/45 text-sage',
+    dot: 'bg-sage',
     pulsing: true,
   },
   disconnected: {

@@ -112,7 +112,7 @@ export default function WalletPage() {
             {isDemo ? (
               <span
                 title='Historial de demostración; las consultas ampliadas estarán disponibles próximamente.'
-                className='inline-flex items-center gap-1.5 rounded-sm border border-electric/25 bg-electric/5 px-2 py-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-electric-soft'
+                className='inline-flex items-center gap-1.5 rounded-sm border border-sage/25 bg-sage/5 px-2 py-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-sage'
               >
                 <FlaskConical size={11} aria-hidden='true' />
                 Modo demo

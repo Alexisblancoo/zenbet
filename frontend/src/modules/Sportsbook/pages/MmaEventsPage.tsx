@@ -74,7 +74,7 @@ const EMPTY_EVENTS: readonly UfcEvent[] = [];
 
 const MARKET_TICKS: Readonly<Record<string, string>> = {
   moneyline: 'bg-crimson',
-  method_of_victory: 'bg-electric',
+  method_of_victory: 'bg-sage',
   total_rounds: 'bg-white/70',
   go_to_decision: 'bg-metallic-titanium',
 };
@@ -201,12 +201,12 @@ function HeroPick({
       data-selected={isSelected}
       data-trend={quote?.trend ?? 'unchanged'}
       data-closed={closed}
-      className={`hero-pick group relative flex min-h-[68px] min-w-0 flex-col justify-between gap-2 overflow-hidden rounded-lg border p-3 text-left transition duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric ${
+      className={`hero-pick group relative flex min-h-[68px] min-w-0 flex-col justify-between gap-2 overflow-hidden rounded-lg border p-3 text-left transition duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage ${
         closed
           ? 'cursor-not-allowed border-white/[0.05] bg-[#050505] opacity-55 grayscale'
           : isRed
             ? 'border-crimson/25 bg-crimson/[0.05] hover:border-crimson/50 hover:bg-crimson/[0.09]'
-            : 'border-electric/25 bg-electric/[0.05] hover:border-electric/50 hover:bg-electric/[0.09]'
+            : 'border-sage/25 bg-sage/[0.05] hover:border-sage/50 hover:bg-sage/[0.09]'
       } ${
         closed
           ? ''
@@ -333,7 +333,7 @@ function StatChip({
       {label}
       <span
         className={`font-odds text-sm font-bold tabular-nums ${
-          accent ? 'text-electric-soft' : 'text-white'
+          accent ? 'text-sage' : 'text-white'
         }`}
       >
         {value}
@@ -427,7 +427,7 @@ function MainEventHero({
           <span className='inline-flex items-center border border-crimson/40 bg-crimson/[0.08] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-crimson'>
             {event.competition ?? 'UFC'}
           </span>
-          <span className='inline-flex items-center gap-1 border border-electric/30 bg-electric/[0.08] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-electric-soft'>
+          <span className='inline-flex items-center gap-1 border border-sage/30 bg-sage/[0.08] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-sage'>
             <ShieldCheck size={9} aria-hidden='true' />
             {source
               ? source.kind === 'model'

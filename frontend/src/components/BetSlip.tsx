@@ -357,10 +357,10 @@ export default function BetSlip({
     hubStatus === 'connected'
       ? { label: 'En vivo', dot: 'bg-crimson', ping: true }
       : hubStatus === 'connecting'
-        ? { label: 'Conectando', dot: 'bg-electric', ping: false }
+        ? { label: 'Conectando', dot: 'bg-sage', ping: false }
         : hubStatus === 'reconnecting'
-          ? { label: 'Reconectando', dot: 'bg-electric', ping: false }
-          : { label: 'Snapshot', dot: 'bg-electric', ping: false };
+          ? { label: 'Reconectando', dot: 'bg-sage', ping: false }
+          : { label: 'Snapshot', dot: 'bg-sage', ping: false };
 
   const promoSection = (
     <section
@@ -398,7 +398,7 @@ export default function BetSlip({
             onClick={() => setPromoOpen((current) => !current)}
             aria-expanded={promoOpen}
             aria-controls={`${baseId}-promo`}
-            className='flex w-full items-center justify-between gap-2 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric'
+            className='flex w-full items-center justify-between gap-2 text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage'
           >
             <span className='inline-flex items-center gap-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-metallic-slate'>
               <Tag size={12} aria-hidden='true' />
@@ -560,7 +560,7 @@ export default function BetSlip({
               type='button'
               onClick={onClose}
               aria-label='Cerrar boleto'
-              className='border border-transparent p-1.5 text-metallic-slate transition-colors duration-150 hover:border-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric'
+              className='border border-transparent p-1.5 text-metallic-slate transition-colors duration-150 hover:border-white/20 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage'
             >
               <X size={14} aria-hidden='true' />
             </button>
@@ -679,14 +679,14 @@ export default function BetSlip({
                 clearReceipt();
                 setIsCollapsed(false);
               }}
-              className='flex items-center justify-center gap-2 border border-crimson/60 bg-crimson/10 px-3 py-3 font-display text-[11px] font-bold uppercase tracking-wide text-crimson transition-colors duration-150 hover:bg-crimson/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-crimson/70'
+              className='btn btn-secondary'
             >
               <Plus size={14} aria-hidden='true' />
               Nueva
             </button>
             <Link
               to='/wallet'
-              className='flex items-center justify-center gap-2 border border-obsidian-border bg-obsidian-surface/60 px-3 py-3 font-display text-[11px] font-bold uppercase tracking-wide text-metallic-platinum transition-colors duration-150 hover:border-electric/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/60'
+              className='btn btn-ghost'
             >
               <Wallet size={14} aria-hidden='true' />
               Billetera
@@ -1100,7 +1100,7 @@ export default function BetSlip({
                           className={`w-full border bg-obsidian-void py-2.5 pl-12 pr-3 font-mono text-base font-bold tabular-nums text-white placeholder:text-metallic-slate focus:outline-none focus:ring-1 disabled:cursor-not-allowed disabled:opacity-60 ${
                             stakeError
                               ? 'border-crimson focus:ring-crimson'
-                              : 'border-obsidian-border focus:border-electric focus:ring-electric/60'
+                              : 'border-obsidian-border focus:border-sage focus:ring-sage/60'
                           }`}
                         />
                       </div>
@@ -1112,7 +1112,7 @@ export default function BetSlip({
                             type='button'
                             onClick={() => handleIncrement(increment)}
                             disabled={isPlacingBet}
-                            className='border border-obsidian-border px-2 py-1 font-mono text-[10px] font-bold tabular-nums text-metallic-titanium transition-colors duration-150 hover:border-money/50 hover:text-money focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric disabled:cursor-not-allowed disabled:opacity-40'
+                            className='border border-obsidian-border px-2 py-1 font-mono text-[10px] font-bold tabular-nums text-metallic-titanium transition-colors duration-150 hover:border-money/50 hover:text-money focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage disabled:cursor-not-allowed disabled:opacity-40'
                           >
                             +{formatCompact(increment)}
                           </button>
@@ -1121,7 +1121,7 @@ export default function BetSlip({
                           type='button'
                           onClick={handleMax}
                           disabled={isPlacingBet}
-                          className='border border-obsidian-border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-metallic-titanium transition-colors duration-150 hover:border-money/50 hover:text-money focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric disabled:cursor-not-allowed disabled:opacity-40'
+                          className='border border-obsidian-border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wide text-metallic-titanium transition-colors duration-150 hover:border-money/50 hover:text-money focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage disabled:cursor-not-allowed disabled:opacity-40'
                         >
                           Max
                         </button>
@@ -1216,7 +1216,7 @@ export default function BetSlip({
                           <button
                             type='button'
                             onClick={() => handleTabChange('single')}
-                            className='mt-2 inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-brutal text-odds-live transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-electric'
+                            className='mt-2 inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-brutal text-odds-live transition-colors duration-150 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage'
                           >
                             Elegir una simple
                             <ArrowRight size={11} aria-hidden='true' />
@@ -1235,7 +1235,7 @@ export default function BetSlip({
                               disabled={isPlacingBet}
                               aria-required='true'
                               aria-labelledby={`${consentId}-text`}
-                              className='mt-0.5 h-3.5 w-3.5 cursor-pointer border-obsidian-border bg-obsidian-void text-crimson focus:ring-crimson disabled:cursor-not-allowed disabled:opacity-40'
+                              className='mt-0.5 h-3.5 w-3.5 cursor-pointer border-obsidian-border bg-obsidian-void accent-lime-400 focus:ring-lime-400 disabled:cursor-not-allowed disabled:opacity-40'
                             />
                             <p
                               id={`${consentId}-text`}
@@ -1276,12 +1276,12 @@ export default function BetSlip({
                           disabled={primaryDisabled}
                           aria-disabled={primaryDisabled}
                           aria-busy={isPlacingBet}
-                          className={`mt-3.5 flex min-h-12 w-full items-center justify-center gap-2 px-4 py-3.5 font-display text-xs font-bold uppercase tracking-wide transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400/70 ${
+                          className={`btn btn-lg mt-3.5 w-full ${
                             isPlacingBet
-                              ? 'cursor-wait bg-lime-500 text-[#0D0D0D] shadow-glow-lime'
+                              ? 'btn-primary cursor-wait'
                               : primaryDisabled
-                                ? 'cursor-not-allowed border border-obsidian-border bg-obsidian-elevated text-metallic-slate'
-                                : 'bg-lime-400 text-[#0D0D0D] shadow-glow-lime hover:bg-lime-500 active:translate-y-[1px]'
+                                ? 'cursor-not-allowed border-obsidian-border bg-obsidian-elevated text-sage'
+                                : 'btn-primary'
                           }`}
                         >
                           {isPlacingBet ? (
@@ -1318,7 +1318,7 @@ export default function BetSlip({
 
                         <p
                           className={`mt-2.5 text-center font-mono text-[9px] uppercase tracking-wide ${
-                            !isAuthenticated ? 'text-electric/80' : 'text-metallic-slate'
+                            !isAuthenticated ? 'text-cream/80' : 'text-sage'
                           }`}
                         >
                           {hasClosedSelections

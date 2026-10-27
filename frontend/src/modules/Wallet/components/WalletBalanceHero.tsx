@@ -35,7 +35,7 @@ export function WalletBalanceHero({
     >
       <div aria-hidden='true' className='pointer-events-none absolute inset-0'>
         <div className='absolute -right-20 -top-28 h-64 w-64 rounded-full bg-money/10 blur-3xl' />
-        <div className='absolute -bottom-28 left-1/4 h-64 w-64 rounded-full bg-electric/10 blur-3xl' />
+        <div className='absolute -bottom-28 left-1/4 h-64 w-64 rounded-full bg-sage/10 blur-3xl' />
         <div className='absolute inset-0 bg-grid-hairline opacity-[0.12] [mask-image:radial-gradient(ellipse_at_top,black,transparent_72%)]' />
       </div>
 
@@ -91,7 +91,7 @@ export function WalletBalanceHero({
             <span className='h-3 w-px bg-obsidian-border' aria-hidden='true' />
             {user.walletId ? (
               <span className='inline-flex items-center gap-1.5'>
-                <Wallet size={11} className='text-electric-soft' aria-hidden='true' />
+                <Wallet size={11} className='text-sage' aria-hidden='true' />
                 {formatWalletId(user.walletId)}
               </span>
             ) : (

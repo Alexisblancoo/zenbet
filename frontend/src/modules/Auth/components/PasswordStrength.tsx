@@ -4,7 +4,7 @@ interface PasswordStrengthProps {
 
 const LEVELS = [
   { label: 'Débil', textClass: 'text-crimson', barClass: 'bg-crimson' },
-  { label: 'Media', textClass: 'text-electric', barClass: 'bg-electric' },
+  { label: 'Media', textClass: 'text-sage', barClass: 'bg-sage' },
   { label: 'Fuerte', textClass: 'text-money', barClass: 'bg-money' },
 ] as const;
 

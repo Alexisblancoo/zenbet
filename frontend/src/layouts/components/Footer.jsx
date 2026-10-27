@@ -95,7 +95,7 @@ export default function Footer() {
             </h3>
             <div className='mt-3 space-y-2.5 font-sans text-xs'>
               <div className='flex items-center gap-2'>
-                <Lock size={14} className='text-electric-soft' />
+                <Lock size={14} className='text-sage' />
                 <span>Sesión protegida</span>
               </div>
               <div className='flex items-center gap-2'>

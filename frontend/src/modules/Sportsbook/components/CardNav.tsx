@@ -113,7 +113,7 @@ export default function CardNav({
             {marketCount} mercados
           </span>
           <span className='h-3 w-px bg-white/10' aria-hidden='true' />
-          <span className='font-mono text-[9px] uppercase tracking-wide text-electric-soft'>
+          <span className='font-mono text-[9px] uppercase tracking-wide text-sage'>
             {snapshot ? `${sourceName ?? 'Fuente'} · ${snapshot}` : sourceName ?? 'Sin marca de tiempo'}
           </span>
         </div>
