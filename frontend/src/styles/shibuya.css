@@ -613,15 +613,16 @@
 
 /* ==========================================================================
    PUNTILLISMO HERMES · duotono lima #D4FF3F sobre negro
-   Trama de semitono en CSS puro: la imagen se lleva a escala de grises, se
-   multiplica por una malla de puntos y un contraste extremo la convierte en
-   puntos de tamaño variable (más grandes donde hay luz). Una capa lima con
-   multiply tiñe los puntos; el resto queda negro.
+   Semitono CSS: imagen en grises x malla de puntos + contraste moderado
+   (puntos más grandes donde hay luz) sobre una base tenue de la misma imagen
+   para que la obra siga siendo reconocible. Una capa lima con multiply tiñe
+   todo; --zb-stipple-gain se ajusta por obra (más bajo = obra más clara).
    ========================================================================== */
 .zb-stipple {
   --zb-stipple-color: #D4FF3F;
-  --zb-stipple-cell: 4px;
-  --zb-stipple-gain: 3;
+  --zb-stipple-cell: 3px;
+  --zb-stipple-gain: 1.9;
+  --zb-stipple-boost: 1;
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -630,20 +631,30 @@
   pointer-events: none;
 }
 
-.zb-stipple__tone {
-  position: absolute;
-  inset: 0;
-  isolation: isolate;
-  filter: contrast(10);
-}
-
+.zb-stipple__base,
 .zb-stipple__img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(1) brightness(var(--zb-stipple-gain)) contrast(1.1);
+}
+
+.zb-stipple__base {
+  opacity: 0.35;
+  filter: grayscale(1) brightness(calc(var(--zb-stipple-gain) * 0.45)) contrast(1.25);
+}
+
+.zb-stipple__tone {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  filter: contrast(6);
+  mix-blend-mode: screen;
+}
+
+.zb-stipple__img {
+  filter: grayscale(1) brightness(calc(var(--zb-stipple-gain) * var(--zb-stipple-boost))) contrast(1.1);
   transition:
     transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
     filter 500ms ease-out;
@@ -669,14 +680,14 @@
   mix-blend-mode: multiply;
 }
 
-/* Hover/activo: más luz = puntos más densos, la imagen "se enciende". */
-.group:hover .zb-stipple__img,
-.group[data-active='true'] .zb-stipple__img {
-  --zb-stipple-gain: 3.8;
+/* Hover/activo: algo más de luz y un zoom leve. */
+.group:hover .zb-stipple,
+.group[data-active='true'] .zb-stipple {
+  --zb-stipple-boost: 1.2;
 }
 
 .group:hover .zb-stipple__img {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 @media (prefers-reduced-motion: reduce) {

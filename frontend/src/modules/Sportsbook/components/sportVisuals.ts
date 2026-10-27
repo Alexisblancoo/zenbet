@@ -30,6 +30,8 @@ export interface SportClassicalArt {
   readonly medium: string;
   readonly code: string;
   readonly image: string;
+  /** Intensidad del puntillismo: más bajo para obras claras, más alto para oscuras. */
+  readonly stippleGain?: number;
   readonly alt: string;
 }
 
@@ -101,6 +103,7 @@ export const SPORT_CLASSICAL_ART: Readonly<Record<SportsbookSportId, SportClassi
     medium: 'Óleo sobre lienzo',
     code: 'APO-06',
     image: `${BASE_URL}art/tennis.jpg`,
+    stippleGain: 0.9,
     alt: 'Atletas clásicos en el patio de esferisterio de Apolo',
   },
   baseball: {

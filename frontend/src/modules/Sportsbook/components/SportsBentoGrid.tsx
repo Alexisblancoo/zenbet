@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { ArrowUpRight } from 'lucide-react';
 
 import {
@@ -198,7 +199,13 @@ export default function SportsBentoGrid({
               <div
                 aria-hidden='true'
                 className={`zb-stipple ${active ? 'opacity-100' : sport.available ? 'opacity-80' : 'opacity-55'} transition-opacity duration-500 group-hover:opacity-100`}
+                style={
+                  art.stippleGain
+                    ? ({ '--zb-stipple-gain': art.stippleGain } as CSSProperties)
+                    : undefined
+                }
               >
+                <img src={art.image} alt='' loading='lazy' decoding='async' className='zb-stipple__base' />
                 <div className='zb-stipple__tone'>
                   <img
                     src={art.image}
