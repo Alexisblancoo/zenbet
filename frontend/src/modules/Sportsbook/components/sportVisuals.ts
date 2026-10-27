@@ -124,4 +124,49 @@ export const SPORT_CLASSICAL_ART: Readonly<Record<SportsbookSportId, SportClassi
   },
 };
 
+export interface HomeArt {
+  readonly title: string;
+  readonly subtitle: string;
+  readonly epoch: string;
+  readonly image: string;
+  readonly alt: string;
+  /** object-position CSS para encuadrar la obra dentro de su marco. */
+  readonly focus: string;
+}
+
+/** Obras del inicio (hero y "Cómo funciona"), con el mismo tramado lima. */
+export const HOME_ART = {
+  cardsharps: {
+    title: 'Los tahúres',
+    subtitle: 'Caravaggio',
+    epoch: 'Roma · c. 1594',
+    image: `${BASE_URL}art/home-cardsharps.png`,
+    alt: 'Un joven mira sus cartas mientras un tahúr espía por encima de su hombro y otro esconde un naipe en la espalda',
+    focus: '40% 30%',
+  },
+  hercules: {
+    title: 'Hércules y Aqueloo',
+    subtitle: 'Guido Reni',
+    epoch: 'Bolonia · 1620–21',
+    image: `${BASE_URL}art/home-hercules.png`,
+    alt: 'Hércules somete en la lucha al dios-río Aqueloo',
+    focus: 'center 14%',
+  },
+  prudence: {
+    title: 'Alegoría de la prudencia',
+    subtitle: 'Tiziano y taller',
+    epoch: 'Venecia · c. 1550–65',
+    image: `${BASE_URL}art/home-prudence.png`,
+    alt: 'Tres rostros —anciano, adulto y joven— sobre las cabezas de un lobo, un león y un perro',
+    focus: 'center 40%',
+  },
+  moneylender: {
+    title: 'El prestamista y su esposa',
+    subtitle: 'Quentin Massys',
+    epoch: 'Amberes · 1514',
+    image: `${BASE_URL}art/home-moneylender.png`,
+    alt: 'Un prestamista pesa monedas de oro mientras su esposa hojea un libro de horas',
+    focus: 'center 55%',
+  },
+} as const satisfies Record<string, HomeArt>;
 

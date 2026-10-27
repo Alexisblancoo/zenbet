@@ -13,7 +13,7 @@ import {
 } from '@/domain/ufc';
 import { useUfcEvents } from '@/hooks/useUfcEvents';
 import SportsBentoGrid from '@/modules/Sportsbook/components/SportsBentoGrid';
-import { SPORT_CLASSICAL_ART } from '@/modules/Sportsbook/components/sportVisuals';
+import { HOME_ART, SPORT_CLASSICAL_ART } from '@/modules/Sportsbook/components/sportVisuals';
 
 const STEPS = [
   {
@@ -21,21 +21,21 @@ const STEPS = [
     kind: 'Elige',
     title: 'Disciplina y cartelera',
     text: 'Entra por deporte y abre la cartelera con sus combates y mercados.',
-    art: SPORT_CLASSICAL_ART.tennis,
+    art: HOME_ART.hercules,
   },
   {
     code: '#2',
     kind: 'Revisa',
     title: 'Cuota con procedencia',
     text: 'Cada mercado indica su proveedor y la hora en que se observó la cuota.',
-    art: SPORT_CLASSICAL_ART.esports,
+    art: HOME_ART.prudence,
   },
   {
     code: '#3',
     kind: 'Confirma',
     title: 'Boleto claro',
     text: 'Ves monto, cuota total y ganancia antes de enviar. Sin duplicados.',
-    art: SPORT_CLASSICAL_ART.boxing,
+    art: HOME_ART.moneylender,
   },
 ] as const;
 
@@ -143,27 +143,39 @@ export default function Home() {
             </p>
           </div>
 
-          <figure className='relative overflow-hidden border border-white/10 bg-[#0A0A0A]'>
-            <img
-              src={hero.image}
-              alt={hero.alt}
-              decoding='async'
-              className='aspect-[4/3] w-full object-cover'
-              style={{ objectPosition: hero.focus }}
-            />
-            <div
-              aria-hidden='true'
-              className='pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#0A0A0A]/90 to-transparent'
-            />
-            <figcaption className='absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2'>
-              <span className='rounded-[3px] bg-cream px-1.5 py-[3px] font-mono text-[10px] font-semibold uppercase leading-none tracking-wider text-plum'>
-                {hero.title} · {hero.subtitle}
-              </span>
-              <span className='font-mono text-[10px] uppercase tracking-wider text-lime-400'>
-                #1 UFC / MMA
-              </span>
-            </figcaption>
-          </figure>
+          <div className='grid grid-cols-2 items-start gap-3 sm:gap-4'>
+            {[
+              { art: HOME_ART.cardsharps, className: 'sm:mt-12', tag: '' },
+              { art: { ...hero, focus: '30% 62%' }, className: '', tag: '#1 UFC / MMA' },
+            ].map(({ art, className, tag }) => (
+              <figure
+                key={art.title}
+                className={`relative overflow-hidden border border-white/10 bg-[#0A0A0A] ${className}`}
+              >
+                <img
+                  src={art.image}
+                  alt={art.alt}
+                  decoding='async'
+                  className='aspect-[3/4] w-full object-cover'
+                  style={{ objectPosition: art.focus }}
+                />
+                <div
+                  aria-hidden='true'
+                  className='pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-[#0A0A0A]/90 to-transparent'
+                />
+                <figcaption className='absolute inset-x-2 bottom-2 flex flex-col items-start gap-1'>
+                  <span className='max-w-full truncate rounded-[3px] bg-cream px-1.5 py-[3px] font-mono text-[9px] font-semibold uppercase leading-none tracking-wider text-plum'>
+                    {art.title} · {art.subtitle}
+                  </span>
+                  {tag && (
+                    <span className='font-mono text-[10px] uppercase tracking-wider text-lime-400'>
+                      {tag}
+                    </span>
+                  )}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
         </section>
 
         {/* ------------------------------------------------------------ */}
@@ -305,14 +317,19 @@ export default function Home() {
                 key={step.code}
                 className='flex flex-col border border-white/10 bg-obsidian-card'
               >
-                <img
-                  src={step.art.image}
-                  alt=''
-                  loading='lazy'
-                  decoding='async'
-                  className='aspect-[16/10] w-full object-cover opacity-90'
-                  style={{ objectPosition: step.art.focus }}
-                />
+                <div className='relative'>
+                  <img
+                    src={step.art.image}
+                    alt={step.art.alt}
+                    loading='lazy'
+                    decoding='async'
+                    className='aspect-[16/10] w-full object-cover'
+                    style={{ objectPosition: step.art.focus }}
+                  />
+                  <span className='absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate rounded-[3px] bg-cream px-1.5 py-[3px] font-mono text-[9px] font-semibold uppercase leading-none tracking-wider text-plum'>
+                    {step.art.title} · {step.art.subtitle}
+                  </span>
+                </div>
                 <div className='flex flex-1 flex-col gap-2 p-5'>
                   <p className='font-mono text-[11px] font-semibold uppercase tracking-[0.14em]'>
                     <span className='text-lime-400'>{step.code}</span>{' '}
