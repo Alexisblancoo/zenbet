@@ -64,8 +64,8 @@ function SportsbookHeroBanner({
               Cada cuota, <em className='text-[color:var(--hx-accent)]'>con su procedencia.</em>
             </h1>
             <p className='m-0 max-w-[520px] text-[15px] leading-relaxed text-[#B9B9B9]'>
-              Cada mercado muestra su fuente y la hora del último dato. Si el canal en vivo se
-              interrumpe, se conserva el último precio recibido hasta que vuelva.
+              Mira de dónde sale cada cuota y a qué hora se actualizó por última vez. Si se corta
+              la conexión en vivo, te dejamos el último precio que recibimos hasta que vuelva.
             </p>
 
             <div className='flex flex-wrap gap-3'>

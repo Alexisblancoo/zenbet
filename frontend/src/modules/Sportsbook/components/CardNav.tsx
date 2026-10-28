@@ -1,4 +1,4 @@
-import { formatSnapshotAt } from '@/domain/ufc';
+import { displaySourceName, formatSnapshotAt } from '@/domain/ufc';
 
 export type CardSectionKey = 'all' | 'main' | 'prelims' | 'early_prelims';
 
@@ -114,7 +114,7 @@ export default function CardNav({
           </span>
           <span className='h-3 w-px bg-white/10' aria-hidden='true' />
           <span className='font-mono text-[9px] uppercase tracking-wide text-sage'>
-            {snapshot ? `${sourceName ?? 'Fuente'} · ${snapshot}` : sourceName ?? 'Sin marca de tiempo'}
+            {snapshot ? `${displaySourceName(sourceName) || 'Fuente'} · ${snapshot}` : displaySourceName(sourceName) || 'Sin marca de tiempo'}
           </span>
         </div>
       </div>

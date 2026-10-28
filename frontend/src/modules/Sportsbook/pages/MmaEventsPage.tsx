@@ -48,6 +48,7 @@ import {
   ufcCardNumber,
   UFC_BILLING_SECTIONS,
   UFC_MARKET_FAMILIES,
+  displaySourceName,
   formatFightDay,
   shortFighterName,
   type UfcEvent,
@@ -442,16 +443,6 @@ const MainEventHero = memo(function MainEventHero({
           <span className='h-px w-4 bg-crimson/50' aria-hidden='true' />
           <span className='inline-flex items-center border border-crimson/40 bg-crimson/[0.08] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-crimson'>
             {event.competition ?? 'UFC'}
-          </span>
-          <span className='inline-flex items-center gap-1 border border-sage/30 bg-sage/[0.08] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-sage'>
-            <ShieldCheck size={9} aria-hidden='true' />
-            {source
-              ? source.kind === 'model'
-                ? 'Línea de referencia'
-                : event.status === 'live'
-                  ? 'Mercado en vivo'
-                  : 'Snapshot verificado'
-              : 'Sin fuente'}
           </span>
         </div>
 
@@ -1021,7 +1012,7 @@ export default function MmaEventsPage() {
                   kicker='Ligas'
                   title='Ligas con'
                   titleAccent='partidos publicados'
-                  description='Solo aparecen las ligas que hoy tienen partidos en la API.'
+                  description='Aquí ves las ligas que tienen partidos disponibles ahora mismo.'
                   items={footballVenueItems}
                   selectedId={selectedFootballCompetitionId}
                   onSelect={handleSelectFootballCompetition}
@@ -1110,7 +1101,7 @@ export default function MmaEventsPage() {
               kicker='Sedes'
               title='Carteleras'
               titleAccent='por sede'
-              description='Cada tarjeta es una cartelera real de la API; el animal representa el lugar donde se pelea.'
+              description='Escoge una cartelera y entra directo a sus combates y cuotas.'
               items={mmaVenueItems}
               selectedId={activeKey}
               onSelect={handleSelectCard}
@@ -1291,7 +1282,7 @@ export default function MmaEventsPage() {
                     <SourceBadge source={globalSource} />
                     <span className='font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
                       {globalSource
-                        ? `${globalSource.name} · ${
+                        ? `${displaySourceName(globalSource.name)} · ${
                             globalSource.kind === 'model' ? 'modelo de referencia' : 'promedio de casas'
                           } · snapshot`
                         : 'Procedencia no declarada'}
@@ -1299,7 +1290,7 @@ export default function MmaEventsPage() {
                   </div>
                   <p className='max-w-3xl text-[10px] leading-relaxed text-metallic-slate'>
                     Las cuatro familias (Moneyline, método de victoria, total de asaltos y decisión)
-                    se actualizan por mercado en tiempo real desde {globalSource?.name ?? 'la fuente declarada'}.
+                    se actualizan por mercado en tiempo real desde {displaySourceName(globalSource?.name) || 'la fuente declarada'}.
                     El estado del combate y el reloj llegan por el canal de combates; si el canal se
                     interrumpe, se conserva el último precio recibido. Verifica la cuota antes de
                     confirmar tu apuesta.

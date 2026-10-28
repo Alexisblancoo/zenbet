@@ -1080,13 +1080,19 @@ export function findSelectionByCode(
   return market?.selections.find((selection) => selection.code === code);
 }
 
+/** Nombre de la fuente tal como se muestra; «Zenbet Reference» va en árabe libanés. */
+export function displaySourceName(name: string | null | undefined): string {
+  if (!name) return '';
+  return /^zenbet\s+reference$/i.test(name.trim()) ? 'مرجع زنبت' : name;
+}
+
 export function marketSourceLabel(source: UfcMarketSource | null): string {
   if (!source) return 'Cuota de referencia';
-  if (source.kind === 'aggregator') return `Consenso ${source.name}`;
-  if (source.kind === 'exchange') return `Exchange ${source.name}`;
-  if (source.kind === 'model') return `Modelo ${source.name}`;
-  if (source.kind === 'bookmaker') return source.name;
-  return source.name;
+  const name = displaySourceName(source.name);
+  if (source.kind === 'aggregator') return `Consenso ${name}`;
+  if (source.kind === 'exchange') return `Exchange ${name}`;
+  if (source.kind === 'model') return `Modelo ${name}`;
+  return name;
 }
 
 export function formatSnapshotAt(value: string | null, locale = 'es-MX'): string | null {
