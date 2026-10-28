@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Zap, Lock } from 'lucide-react';
 
+import { buildUfcCards, formatFightDay, ufcCardNumber } from '@/domain/ufc';
+import { useUfcEvents } from '@/hooks/useUfcEvents';
+
 export default function Footer() {
+  const { events, isLoading } = useUfcEvents();
+  const cards = buildUfcCards(events).slice(0, 4);
+
   return (
     <footer className='w-full border-t border-white/[0.08] bg-canvas text-metallic-titanium'>
       <div className='mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8'>
@@ -36,26 +42,24 @@ export default function Footer() {
               Carteleras
             </h3>
             <ul className='mt-3 space-y-2 font-sans text-xs'>
-              <li>
-                <Link to='/sportsbook?card=2026-10-24' className='hover:text-crimson transition-colors'>
-                  UFC 333 · 24 de octubre
-                </Link>
-              </li>
-              <li>
-                <Link to='/sportsbook?card=2026-10-31' className='hover:text-crimson transition-colors'>
-                  UFC Fight Night · 31 de octubre
-                </Link>
-              </li>
-              <li>
-                <Link to='/sportsbook?card=2026-11-07' className='hover:text-crimson transition-colors'>
-                  UFC Fight Night · 7 de noviembre
-                </Link>
-              </li>
-              <li>
-                <Link to='/sportsbook?card=2026-11-14' className='hover:text-crimson transition-colors'>
-                  UFC 334 · 14 de noviembre
-                </Link>
-              </li>
+              {cards.map((card) => {
+                const number = ufcCardNumber(card.competition);
+                return (
+                  <li key={card.key}>
+                    <Link
+                      to={`/sportsbook?card=${card.key}`}
+                      className='hover:text-crimson transition-colors'
+                    >
+                      {number ? `UFC ${number}` : 'UFC Fight Night'} · {formatFightDay(card.startTime)}
+                    </Link>
+                  </li>
+                );
+              })}
+              {cards.length === 0 && (
+                <li className='text-metallic-slate'>
+                  {isLoading ? 'Cargando carteleras…' : 'Sin carteleras publicadas'}
+                </li>
+              )}
             </ul>
           </div>
 

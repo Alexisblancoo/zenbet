@@ -71,7 +71,6 @@ const SPORTS_CATEGORIES = [
 const TOOL_LINKS = [
   { label: 'Mi billetera', path: '/wallet', icon: Wallet, tone: 'text-gold' },
   { label: 'Boleto rápido', path: '/sportsbook', icon: Ticket, tone: 'text-sage' },
-  { label: 'Estadísticas', path: '/example', icon: Activity, tone: 'text-sage' },
 ];
 
 export default function Sidebar() {
@@ -95,10 +94,6 @@ export default function Sidebar() {
       <div className='px-3 pb-3 pt-4'>
         <div className='flex items-center justify-between'>
           <span className='shibuya-kicker text-metallic-slate'>Sportsbook</span>
-          <span className='inline-flex items-center gap-1 border border-sage/30 bg-sage/[0.07] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-sage'>
-            <span className='h-1 w-1 bg-sage' aria-hidden='true' />
-            24H
-          </span>
         </div>
 
         <div className='mt-3 flex items-center gap-2.5 border border-white/[0.06] bg-white/[0.02] p-2'>

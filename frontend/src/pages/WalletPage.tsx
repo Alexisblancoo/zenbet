@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
-  FlaskConical,
   Info,
   RefreshCw,
   ShieldCheck,
@@ -71,7 +70,6 @@ export default function WalletPage() {
   const balance = snapshot?.balance ?? user.walletBalance;
   const isInitialLoading =
     !snapshot && (status === 'loading' || status === 'refreshing');
-  const isDemo = snapshot?.mode === 'demo';
 
   return (
     <div className='relative isolate min-h-full overflow-hidden bg-canvas'>
@@ -109,15 +107,7 @@ export default function WalletPage() {
           </div>
 
           <div className='flex flex-wrap items-center gap-2'>
-            {isDemo ? (
-              <span
-                title='Historial de demostración; las consultas ampliadas estarán disponibles próximamente.'
-                className='inline-flex items-center gap-1.5 rounded-sm border border-sage/25 bg-sage/5 px-2 py-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-sage'
-              >
-                <FlaskConical size={11} aria-hidden='true' />
-                Modo demo
-              </span>
-            ) : snapshot ? (
+            {snapshot ? (
               <span className='inline-flex items-center gap-1.5 rounded-sm border border-crimson/30 bg-crimson/[0.07] px-2 py-1.5 font-mono text-[9px] font-bold uppercase tracking-brutal text-crimson'>
                 <span className='h-1.5 w-1.5 rounded-full bg-crimson' aria-hidden='true' />
                 Datos en vivo
@@ -214,12 +204,10 @@ export default function WalletPage() {
             <div className='mt-6 flex flex-col gap-6'>
               <BetHistoryPanel
                 bets={snapshot.bets}
-                isDemo={isDemo}
                 className='reveal-up stagger-3'
               />
               <TransactionHistoryPanel
                 transactions={snapshot.transactions}
-                isDemo={isDemo}
                 className='reveal-up stagger-4'
               />
             </div>
@@ -231,9 +219,7 @@ export default function WalletPage() {
                 aria-hidden='true'
               />
               <p className='text-[10px] leading-relaxed text-metallic-slate'>
-                {isDemo
-                  ? 'Saldo sincronizado con tu sesión. El historial ampliado estará disponible próximamente; las apuestas confirmadas en esta sesión ya se reflejan al instante.'
-                  : 'Saldo e historial sincronizados con la billetera de Zenbet.'}
+                {'Saldo e historial sincronizados con la billetera de Zenbet.'}
               </p>
             </div>
           </>

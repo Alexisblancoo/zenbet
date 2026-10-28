@@ -378,7 +378,6 @@ export default function ProfilePage() {
         <div id='profile-wallet-transactions' className='mt-6 scroll-mt-24'>
           <TransactionHistoryPanel
             transactions={transactions}
-            isDemo={false}
             className='reveal-up stagger-2'
           />
         </div>

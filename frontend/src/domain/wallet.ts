@@ -11,7 +11,7 @@ import { roundMoney, type BetReceipt } from './bets';
 export type WalletBetStatus = 'pending' | 'won' | 'lost' | 'cancelled';
 export type WalletBetType = 'single' | 'combined';
 export type WalletBetFilter = 'all' | WalletBetStatus;
-export type WalletActivitySource = 'demo' | 'session' | 'live';
+export type WalletActivitySource = 'session' | 'live';
 
 export type WalletTransactionType =
   | 'deposit'
@@ -60,7 +60,7 @@ export interface WalletTransaction {
 }
 
 export interface WalletSnapshot {
-  readonly mode: 'demo' | 'live';
+  readonly mode: 'live';
   readonly currency: WalletCurrency;
   /** Saldo de respaldo. La UI prioriza el saldo vivo de AuthContext. */
   readonly balance: number;

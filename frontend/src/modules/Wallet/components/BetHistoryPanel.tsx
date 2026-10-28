@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, FlaskConical, Info, Ticket } from 'lucide-react';
+import { CalendarDays, Info, Ticket } from 'lucide-react';
 
 import {
   WALLET_BET_FILTERS,
@@ -22,7 +22,6 @@ import { BetStatusBadge } from './WalletStatusBadge';
 
 interface BetHistoryPanelProps {
   readonly bets: readonly WalletBet[];
-  readonly isDemo: boolean;
   readonly className?: string;
 }
 
@@ -62,7 +61,7 @@ function describeReturn(bet: WalletBet): ReturnPresentation {
   }
 }
 
-export function BetHistoryPanel({ bets, isDemo, className = '' }: BetHistoryPanelProps) {
+export function BetHistoryPanel({ bets, className = '' }: BetHistoryPanelProps) {
   const [filter, setFilter] = useState<WalletBetFilter>('all');
   const [period, setPeriod] = useState<WalletHistoryPeriod>('30d');
 
@@ -130,15 +129,6 @@ export function BetHistoryPanel({ bets, isDemo, className = '' }: BetHistoryPane
               <span className='font-mono text-[9px] font-bold uppercase tracking-ultra text-metallic-slate'>
                 Historial
               </span>
-              {isDemo ? (
-                <span
-                  title='Historial de demostración; las consultas ampliadas estarán disponibles próximamente.'
-                  className='inline-flex items-center gap-1.5 rounded-sm border border-sage/25 bg-sage/5 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-brutal text-sage'
-                >
-                  <FlaskConical size={9} aria-hidden='true' />
-                  Demo
-                </span>
-              ) : null}
             </div>
             <h2
               id='wallet-bets-title'
@@ -380,9 +370,7 @@ export function BetHistoryPanel({ bets, isDemo, className = '' }: BetHistoryPane
       <div className='flex items-start gap-2 border-t border-obsidian-border/60 bg-obsidian-void/30 px-5 py-3 sm:px-6'>
         <Info size={11} className='mt-0.5 shrink-0 text-metallic-slate' aria-hidden='true' />
         <p className='text-[10px] leading-relaxed text-metallic-slate'>
-          {isDemo
-            ? 'Los registros históricos son de demostración. Las apuestas confirmadas en esta sesión se añaden al instante.'
-            : 'Historial sincronizado con la billetera de Zenbet.'}
+          {'Historial sincronizado con la billetera de Zenbet.'}
         </p>
       </div>
     </section>

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { CheckCircle2, ShieldCheck, Ticket, Wallet } from 'lucide-react';
 
 import type { AuthMode } from '@/context/authModalState';
+import { useUfcEvents } from '@/hooks/useUfcEvents';
 
 interface AuthPageLayoutProps {
   readonly mode: AuthMode;
@@ -11,8 +12,8 @@ interface AuthPageLayoutProps {
 const BENEFITS = [
   {
     icon: Wallet,
-    title: 'Empieza en $0.00',
-    description: 'Recarga saldo desde tu billetera cuando quieras apostar.',
+    title: 'Billetera propia',
+    description: 'Recarga y revisa tus movimientos cuando quieras apostar.',
     accent: 'text-money',
     border: 'border-money/25 bg-money/[0.035]',
   },
@@ -34,6 +35,13 @@ const BENEFITS = [
 
 export default function AuthPageLayout({ mode, children }: AuthPageLayoutProps) {
   const isRegister = mode === 'register';
+  const { events, isLoading } = useUfcEvents();
+  const fmt = (n: number) => (isLoading || events.length === 0 ? '—' : String(n));
+  const marketCount = events.reduce((sum, e) => sum + e.markets.length, 0);
+  const oddsCount = events.reduce(
+    (sum, e) => sum + e.markets.reduce((acc, m) => acc + m.selections.length, 0),
+    0,
+  );
 
   return (
     <div className='relative isolate min-h-[calc(100vh-4rem)] overflow-hidden bg-[#0D0D0D]'>
@@ -63,25 +71,25 @@ export default function AuthPageLayout({ mode, children }: AuthPageLayoutProps) 
 
           <p className='mt-5 max-w-[44ch] text-sm leading-relaxed text-metallic-titanium'>
             {isRegister
-              ? 'Abre tu cuenta y entra a las próximas carteleras UFC: 50 combates, 200 mercados y 600 cuotas de referencia con la procedencia siempre visible.'
+              ? 'Abre tu cuenta y entra a las próximas carteleras UFC con la procedencia de cada cuota siempre visible.'
               : 'Tu billetera, tus selecciones y el pulso de las próximas carteleras UFC te esperan. Entra para continuar donde lo dejaste.'}
           </p>
 
           <div className='mt-7 grid grid-cols-3 divide-x divide-white/[0.08] border-y border-white/[0.08]'>
             <div className='pr-4'>
-              <p className='font-display text-xl font-bold tabular-nums text-white'>50</p>
+              <p className='font-display text-xl font-bold tabular-nums text-white'>{fmt(events.length)}</p>
               <p className='mt-1 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
                 Combates
               </p>
             </div>
             <div className='px-4'>
-              <p className='font-display text-xl font-bold tabular-nums text-white'>200</p>
+              <p className='font-display text-xl font-bold tabular-nums text-white'>{fmt(marketCount)}</p>
               <p className='mt-1 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
                 Mercados
               </p>
             </div>
             <div className='pl-4'>
-              <p className='font-display text-xl font-bold tabular-nums text-money'>600</p>
+              <p className='font-display text-xl font-bold tabular-nums text-money'>{fmt(oddsCount)}</p>
               <p className='mt-1 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
                 Cuotas
               </p>

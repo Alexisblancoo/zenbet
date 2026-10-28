@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   ArrowDownLeft,
   ArrowUpRight,
-  FlaskConical,
   Gift,
   Info,
   RotateCcw,
@@ -31,7 +30,6 @@ import { TransactionStatusBadge } from './WalletStatusBadge';
 
 interface TransactionHistoryPanelProps {
   readonly transactions: readonly WalletTransaction[];
-  readonly isDemo: boolean;
   readonly className?: string;
 }
 
@@ -64,7 +62,6 @@ function amountTone(transaction: WalletTransaction): string {
 
 export function TransactionHistoryPanel({
   transactions,
-  isDemo,
   className = '',
 }: TransactionHistoryPanelProps) {
   const [filter, setFilter] = useState<WalletTransactionFilter>('all');
@@ -134,15 +131,6 @@ export function TransactionHistoryPanel({
               <span className='font-mono text-[9px] font-bold uppercase tracking-ultra text-metallic-slate'>
                 Movimientos
               </span>
-              {isDemo ? (
-                <span
-                  title='Historial de demostración; las consultas ampliadas estarán disponibles próximamente.'
-                  className='inline-flex items-center gap-1.5 rounded-sm border border-sage/25 bg-sage/5 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-brutal text-sage'
-                >
-                  <FlaskConical size={9} aria-hidden='true' />
-                  Demo
-                </span>
-              ) : null}
             </div>
             <h2
               id='wallet-transactions-title'
@@ -347,9 +335,7 @@ export function TransactionHistoryPanel({
       <div className='flex items-start gap-2 border-t border-obsidian-border/60 bg-obsidian-void/30 px-5 py-3 sm:px-6'>
         <Info size={11} className='mt-0.5 shrink-0 text-metallic-slate' aria-hidden='true' />
         <p className='text-[10px] leading-relaxed text-metallic-slate'>
-          {isDemo
-            ? 'Los movimientos históricos son de demostración. Las apuestas confirmadas en esta sesión se registran al instante.'
-            : 'Las liquidaciones automáticas se acreditan al resolverse el mercado.'}
+          {'Las liquidaciones automáticas se acreditan al resolverse el mercado.'}
         </p>
       </div>
     </section>

@@ -215,16 +215,6 @@ export default function RegisterModal({
       }
     >
       <form onSubmit={handleSubmit} noValidate className='space-y-4'>
-        <div className='flex items-center justify-between gap-3 border border-money/25 bg-money/[0.04] px-3.5 py-2.5'>
-          <div className='flex items-center gap-2'>
-            <span className='h-1.5 w-1.5 bg-money' aria-hidden='true' />
-            <span className='text-[11px] font-medium text-metallic-titanium'>
-              Saldo inicial
-            </span>
-          </div>
-          <span className='font-odds text-base font-bold tabular-nums text-money'>$0.00</span>
-        </div>
-
         <AuthErrorAlert message={formError} />
 
         <AuthField
