@@ -131,6 +131,8 @@ export default {
            Playfair Display para titulares, Arimo para lectura. */
         display: ['"Playfair Display"', 'Playfair', 'Georgia', '"Times New Roman"', 'serif'],
         serif: ['"Playfair Display"', 'Georgia', '"Times New Roman"', 'serif'],
+        /* Ballet Regular: solo para bajadas editoriales cortas (hero). */
+        script: ['Ballet', '"Brush Script MT"', 'cursive'],
         sans: ['Arimo', '"Helvetica Neue"', 'Arial', '"Segoe UI"', 'sans-serif'],
         mono: ['JetBrains Mono', '"IBM Plex Mono"', '"SFMono-Regular"', 'monospace'],
         odds: ['"Space Grotesk"', 'Arimo', 'sans-serif'],

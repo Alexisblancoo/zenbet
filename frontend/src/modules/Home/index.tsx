@@ -118,7 +118,7 @@ export default function Home() {
               <span className='text-lime-400'>Revisa cada cuota.</span>
             </h1>
 
-            <p className='max-w-xl font-serif text-base italic leading-relaxed text-cream/75 sm:text-lg'>
+            <p className="max-w-xl font-script text-[1.7rem] leading-normal text-cream [font-variation-settings:'opsz'_16] sm:text-[2rem]">
               Carteleras con cuotas de referencia, procedencia declarada y un boleto claro antes de
               confirmar.
             </p>
