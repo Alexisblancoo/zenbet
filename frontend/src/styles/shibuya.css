@@ -178,6 +178,8 @@
   }
 
   .fight-card {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 340px;
     background:
       linear-gradient(180deg, rgb(18 18 18 / 0.96) 0%, rgb(9 9 9 / 0.99) 100%);
     box-shadow:
@@ -649,4 +651,56 @@
 @media (prefers-reduced-motion: reduce) {
   .zb-stipple__img { transition: none; }
   .group:hover .zb-stipple__img { transform: none; }
+}
+
+/* ==========================================================================
+   SALDO EN VIVO - destello verde al acreditar un deposito (SaldoActualizado)
+   Se aplica sobre el numero de saldo (Header y hero de billetera) cuando el
+   hub privado de wallet empuja el nuevo saldo.
+   ========================================================================== */
+.zb-saldo-flash {
+  animation: zb-saldo-flash 1.9s cubic-bezier(0.22, 1, 0.36, 1) 1;
+}
+
+@keyframes zb-saldo-flash {
+  0% {
+    color: rgb(var(--zb-money-500));
+    text-shadow: 0 0 0 rgb(var(--zb-money-500) / 0);
+    filter: brightness(1);
+  }
+  16% {
+    color: rgb(var(--zb-money-400));
+    text-shadow: 0 0 26px rgb(var(--zb-money-400) / 0.85);
+    filter: brightness(1.28);
+  }
+  100% {
+    color: rgb(var(--zb-money-500));
+    text-shadow: 0 0 0 rgb(var(--zb-money-500) / 0);
+    filter: brightness(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zb-saldo-flash {
+    /* Sin destello: el cambio de valor sigue siendo visible en el texto. */
+    animation: none;
+    filter: none;
+  }
+}
+
+
+.zb-odds-lime-flash {
+  animation: zb-odds-lime-flash 1.2s cubic-bezier(0.22, 1, 0.36, 1) 1;
+}
+
+@keyframes zb-odds-lime-flash {
+  0% {
+    background-color: rgba(212, 255, 63, 0.35) !important;
+    border-color: #D4FF3F !important;
+    box-shadow: 0 0 24px rgba(212, 255, 63, 0.8), inset 0 0 12px rgba(212, 255, 63, 0.4) !important;
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

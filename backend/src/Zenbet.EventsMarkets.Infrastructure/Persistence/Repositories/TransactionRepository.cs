@@ -46,6 +46,42 @@ public sealed class TransactionRepository : ITransactionRepository
                 cancellationToken);
     }
 
+    public async Task<Transaction?> GetDepositByReferenceAsync(
+        WalletId walletId,
+        string referenceId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Transactions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                transaction => transaction.WalletId == walletId
+                    && transaction.ReferenceId == referenceId
+                    && transaction.Type == Zenbet.EventsMarkets.Domain.Enums.TransactionType.Deposit,
+                cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Transaction>> ListPendingDepositTransactionsAsync(
+        WalletId? walletId,
+        int limit = 100,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Transactions
+            .AsNoTracking()
+            .Where(t => t.Type == Zenbet.EventsMarkets.Domain.Enums.TransactionType.Deposit
+                && t.Status == Zenbet.EventsMarkets.Domain.Enums.TransactionStatus.Pending);
+
+        if (walletId is not null)
+        {
+            var filter = walletId.Value;
+            query = query.Where(t => t.WalletId == filter);
+        }
+
+        return await query
+            .OrderBy(t => t.CreatedAt)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Transaction>> GetByWalletIdAsync(WalletId walletId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Transactions

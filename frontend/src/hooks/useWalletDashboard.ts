@@ -11,7 +11,8 @@ import {
   type WalletMetrics,
   type WalletSnapshot,
 } from '@/domain/wallet';
-import { walletService } from '@/services/walletService';
+import { getCachedWalletSnapshot, walletService } from '@/services/walletService';
+import { WALLET_REFRESH_EVENT } from '@/context/authState';
 
 export type WalletDashboardStatus = 'loading' | 'ready' | 'refreshing' | 'error';
 
@@ -37,8 +38,9 @@ export function useWalletDashboard(): WalletDashboardValue {
   const { user } = useAuth();
   const { receipts } = useBetSlip();
 
-  const [baseSnapshot, setBaseSnapshot] = useState<WalletSnapshot | null>(null);
-  const [status, setStatus] = useState<WalletDashboardStatus>('loading');
+  const cached = getCachedWalletSnapshot();
+  const [baseSnapshot, setBaseSnapshot] = useState<WalletSnapshot | null>(() => cached);
+  const [status, setStatus] = useState<WalletDashboardStatus>(() => (cached ? 'ready' : 'loading'));
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -90,6 +92,13 @@ export function useWalletDashboard(): WalletDashboardValue {
     setStatus('refreshing');
     setReloadToken((value) => value + 1);
   }, [status]);
+
+  // El hub de wallet empujó un SaldoActualizado: refresca el snapshot para
+  // mostrar la transacción acreditada sin esperar la próxima recarga.
+  useEffect(() => {
+    window.addEventListener(WALLET_REFRESH_EVENT, refresh);
+    return () => window.removeEventListener(WALLET_REFRESH_EVENT, refresh);
+  }, [refresh]);
 
   return {
     snapshot,

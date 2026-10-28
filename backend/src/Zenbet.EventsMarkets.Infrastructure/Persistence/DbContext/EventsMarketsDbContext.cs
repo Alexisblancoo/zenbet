@@ -3,6 +3,7 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Zenbet.EventsMarkets.Domain.Aggregates;
+using Zenbet.EventsMarkets.Domain.Football;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 using Zenbet.EventsMarkets.Domain.Enums;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Configurations;
@@ -24,6 +25,11 @@ public sealed class EventsMarketsDbContext : DbContext
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
     public DbSet<DeadLetterEntry> DeadLetters => Set<DeadLetterEntry>();
     public DbSet<UfcSeedState> UfcSeedStates => Set<UfcSeedState>();
+    public DbSet<FootballLeague> FootballLeagues => Set<FootballLeague>();
+    public DbSet<FootballTeam> FootballTeams => Set<FootballTeam>();
+    public DbSet<FootballMatch> FootballMatches => Set<FootballMatch>();
+    public DbSet<FootballMarket> FootballMarkets => Set<FootballMarket>();
+    public DbSet<FootballSelection> FootballSelections => Set<FootballSelection>();
 
     public EventsMarketsDbContext(DbContextOptions<EventsMarketsDbContext> options)
         : base(options) { }
@@ -42,6 +48,11 @@ public sealed class EventsMarketsDbContext : DbContext
         modelBuilder.ApplyConfiguration(new InboxMessageConfiguration());
         modelBuilder.ApplyConfiguration(new DeadLetterConfiguration());
         modelBuilder.ApplyConfiguration(new UfcSeedStateConfiguration());
+        modelBuilder.ApplyConfiguration(new FootballLeagueConfiguration());
+        modelBuilder.ApplyConfiguration(new FootballTeamConfiguration());
+        modelBuilder.ApplyConfiguration(new FootballMatchConfiguration());
+        modelBuilder.ApplyConfiguration(new FootballMarketConfiguration());
+        modelBuilder.ApplyConfiguration(new FootballSelectionConfiguration());
 
         base.OnModelCreating(modelBuilder);
     }

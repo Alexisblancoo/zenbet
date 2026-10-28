@@ -1,7 +1,8 @@
-import { useMemo, type ReactNode } from 'react';
-import { ArrowDownRight, ArrowUpRight, Check, Minus } from 'lucide-react';
+import { memo, useDeferredValue, useMemo, useState, type ReactNode } from 'react';
+import { ArrowDownRight, ArrowUpRight, Check, Minus, Search, X } from 'lucide-react';
 
 import { formatDecimalOdds, type OddsQuote } from '@/domain/odds';
+import { getCountryFlagEmoji } from '@/utils/countryFlags';
 import {
   findMarket,
   findSelectionByCode,
@@ -15,40 +16,47 @@ import {
   type UfcSelection,
 } from '@/domain/ufc';
 
-interface MarketMatrixProps {
+export interface MarketMatrixProps {
   readonly event: UfcEvent;
   readonly selectedIds: readonly string[];
   readonly oddsMap: Readonly<Record<string, OddsQuote>>;
   readonly onToggle: (market: UfcMarket, selection: UfcSelection) => void;
+  readonly defaultTab?: MarketTabKey;
 }
+
+export type MarketTabKey = 'all' | 'main' | 'rounds' | 'method' | 'decision';
 
 const MARKET_ACCENT: Record<
   UfcMarketTypeKey,
-  { tick: string; text: string; border: string; bg: string }
+  { tick: string; text: string; border: string; bg: string; cyrillic: string }
 > = {
   moneyline: {
     tick: 'bg-crimson',
     text: 'text-crimson-200',
     border: 'border-crimson/30',
     bg: 'bg-crimson/[0.06]',
+    cyrillic: 'ИСХОД',
   },
   method_of_victory: {
     tick: 'bg-sage',
     text: 'text-sage',
     border: 'border-sage/30',
     bg: 'bg-sage/[0.07]',
+    cyrillic: 'МЕТОД',
   },
   total_rounds: {
     tick: 'bg-white/80',
     text: 'text-metallic-platinum',
     border: 'border-white/20',
     bg: 'bg-white/[0.04]',
+    cyrillic: 'ТОТАЛ',
   },
   go_to_decision: {
     tick: 'bg-metallic-titanium',
     text: 'text-metallic-titanium',
     border: 'border-white/15',
     bg: 'bg-white/[0.03]',
+    cyrillic: 'РЕШЕНИЕ',
   },
 };
 
@@ -79,7 +87,7 @@ interface MarketTileProps {
   readonly closed?: boolean;
 }
 
-function MarketTile({
+export const MarketTile = memo(function MarketTile({
   market,
   selection,
   isSelected,
@@ -112,31 +120,40 @@ function MarketTile({
       data-selected={selected}
       data-trend={trend}
       data-closed={closed}
-      className={`market-tile group min-w-0 ${method ? 'market-tile--method' : ''} ${
+      className={`market-tile group relative min-w-0 transition-all duration-150 ${method ? 'market-tile--method' : ''} ${
         closed
           ? 'cursor-not-allowed border-white/[0.045] bg-[#050505] opacity-55 grayscale'
           : disabled
             ? 'cursor-not-allowed opacity-40'
-            : ''
+            : selected
+              ? 'border-lime-400 bg-lime-400/[0.08] shadow-[0_0_20px_-8px_rgba(212,255,63,0.7)]'
+              : 'border-white/[0.09] bg-[#0E0E0E] hover:border-lime-400/40 hover:bg-[#141414]'
       }`}
     >
       {method ? (
         <>
-          <span className='flex w-full min-w-0 items-center justify-between gap-1'>
-            <span className='truncate font-sans text-[9px] font-semibold uppercase tracking-wide text-metallic-titanium'>
+          <div className='flex w-full min-w-0 items-center justify-between gap-1'>
+            <span className='truncate font-mono text-[9px] font-semibold uppercase tracking-wide text-metallic-titanium'>
               {label}
             </span>
             {isSelected && (
               <Check size={10} strokeWidth={3} className='shrink-0 text-lime-400' aria-hidden='true' />
             )}
-          </span>
-          <span
-            key={quote?.sequence ?? 'snapshot'}
-            className='odds-number text-[12px] text-white'
-          >
-            {formatDecimalOdds(liveOdds)}
-          </span>
-          <span className={`truncate font-mono text-[8px] font-semibold ${trendTone}`}>
+          </div>
+          <div className='flex w-full items-baseline justify-between gap-1'>
+            <span className='font-mono text-[7px] font-bold text-metallic-slate/35 tracking-wider'>
+              КОЭФ
+            </span>
+            <span
+              key={quote?.sequence ?? 'snapshot'}
+              className={`odds-number font-odds text-[12px] font-bold tabular-nums ${
+                selected ? 'text-lime-400' : 'text-white'
+              }`}
+            >
+              {formatDecimalOdds(liveOdds)}
+            </span>
+          </div>
+          <span className={`self-end truncate font-mono text-[7px] font-semibold ${trendTone}`}>
             {formatAmericanOdds(liveOdds)}
           </span>
         </>
@@ -145,10 +162,10 @@ function MarketTile({
           <span className='flex min-w-0 items-center gap-1.5'>
             {corner && (
               <span
-                className={`grid h-3.5 w-3.5 shrink-0 place-items-center border font-mono text-[7px] font-bold ${
+                className={`grid h-4 w-4 shrink-0 place-items-center border font-mono text-[7px] font-bold ${
                   corner === 'red'
-                    ? 'border-crimson/45 bg-crimson/10 text-crimson'
-                    : 'border-sage/45 bg-sage/10 text-sage'
+                    ? 'border-crimson/50 bg-crimson/15 text-crimson'
+                    : 'border-sage/50 bg-sage/15 text-sage'
                 }`}
                 aria-hidden='true'
               >
@@ -159,7 +176,7 @@ function MarketTile({
               <Check size={11} strokeWidth={3} className='shrink-0 text-lime-400' aria-hidden='true' />
             )}
             <span className='min-w-0'>
-              <span className='block truncate font-display text-[10px] font-semibold uppercase tracking-normal text-white sm:text-[11px]'>
+              <span className='block truncate font-display text-[10px] font-bold uppercase tracking-normal text-white sm:text-[11px]'>
                 {label}
               </span>
               {hint && (
@@ -171,8 +188,16 @@ function MarketTile({
           </span>
           <span className='flex shrink-0 flex-col items-end gap-0.5'>
             <span className='flex items-baseline gap-1'>
+              <span className='font-mono text-[7px] font-bold text-metallic-slate/35 tracking-wider'>
+                КОЭФ
+              </span>
               <span className={trendTone}>{trendIcon(trend)}</span>
-              <span key={quote?.sequence ?? 'snapshot'} className='odds-number text-[14px] text-white'>
+              <span
+                key={quote?.sequence ?? 'snapshot'}
+                className={`odds-number font-odds text-[13px] font-bold tabular-nums sm:text-[14px] ${
+                  selected ? 'text-lime-400' : 'text-white'
+                }`}
+              >
                 {formatDecimalOdds(liveOdds)}
               </span>
             </span>
@@ -184,7 +209,7 @@ function MarketTile({
       )}
     </button>
   );
-}
+});
 
 interface MarketColumnProps {
   readonly family: (typeof UFC_MARKET_FAMILIES)[number];
@@ -201,36 +226,31 @@ function MarketColumn({ family, index, market, children }: MarketColumnProps) {
     <section
       aria-label={family.caption}
       data-family={family.key}
-      className='market-panel flex min-w-0 flex-col bg-[#0A0A0A]'
+      className='market-panel flex min-w-0 flex-col border border-white/[0.07] bg-[#0A0A0A]'
     >
-      <header className='flex min-w-0 items-start justify-between gap-2 border-b border-white/[0.055] px-2.5 py-2'>
+      <header className='flex min-w-0 items-start justify-between gap-2 border-b border-white/[0.06] bg-[#0E0E0E] px-2.5 py-1.5'>
         <div className='flex min-w-0 items-center gap-2'>
           <span
-            className={`grid h-5 w-5 shrink-0 place-items-center border font-mono text-[8px] font-bold tabular-nums ${accent.border} ${accent.bg} ${accent.text}`}
+            className={`grid h-4 w-4 shrink-0 place-items-center border font-mono text-[8px] font-bold tabular-nums ${accent.border} ${accent.bg} ${accent.text}`}
           >
             {String(index + 1).padStart(2, '0')}
           </span>
           <div className='min-w-0'>
             <div className='flex items-center gap-1.5'>
               <span className={`h-1 w-1 shrink-0 ${accent.tick}`} aria-hidden='true' />
-              <h4 className='truncate font-display text-[11px] font-bold uppercase tracking-wide text-white'>
+              <h4 className='truncate font-display text-[10px] font-bold uppercase tracking-wide text-white'>
                 {family.label}
               </h4>
+              <span className='font-mono text-[7px] uppercase tracking-wider text-metallic-slate/35'>
+                {accent.cyrillic}
+              </span>
             </div>
-            <p className='mt-0.5 hidden truncate font-mono text-[8px] uppercase tracking-wide text-metallic-slate sm:block'>
-              {family.caption}
-            </p>
           </div>
         </div>
         {line !== null ? (
-          <>
-            <span className='shrink-0 font-mono text-[8px] tabular-nums text-metallic-slate min-[1440px]:hidden'>
-              {market?.selections.length ?? 0}
-            </span>
-            <span className='hidden shrink-0 border border-sage/25 bg-sage/[0.07] px-1 py-0.5 font-mono text-[8px] font-bold tabular-nums text-sage min-[1440px]:inline'>
-              L {line.toFixed(1)}
-            </span>
-          </>
+          <span className='shrink-0 border border-sage/25 bg-sage/[0.07] px-1 py-0.5 font-mono text-[8px] font-bold tabular-nums text-sage'>
+            L {line.toFixed(1)}
+          </span>
         ) : (
           <span className='shrink-0 font-mono text-[8px] tabular-nums text-metallic-slate'>
             {market?.selections.length ?? 0}
@@ -238,15 +258,15 @@ function MarketColumn({ family, index, market, children }: MarketColumnProps) {
         )}
       </header>
 
-      <div className='flex min-h-[112px] flex-1 flex-col p-2'>{children}</div>
+      <div className='flex min-h-[100px] flex-1 flex-col p-2'>{children}</div>
     </section>
   );
 }
 
 function EmptyMarket({ label }: { label: string }) {
   return (
-    <div className='flex min-h-[92px] flex-col items-center justify-center gap-1.5 border border-dashed border-white/[0.1] px-2 text-center'>
-      <Minus size={12} className='text-metallic-slate' aria-hidden='true' />
+    <div className='flex min-h-[84px] flex-col items-center justify-center gap-1.5 border border-dashed border-white/[0.08] px-2 text-center'>
+      <Minus size={11} className='text-metallic-slate' aria-hidden='true' />
       <p className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
         {label} no publicado
       </p>
@@ -256,25 +276,39 @@ function EmptyMarket({ label }: { label: string }) {
 
 function MarketNote({ children }: { children: ReactNode }) {
   return (
-    <p className='mt-auto pt-2 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
+    <p className='mt-auto pt-2 font-mono text-[7px] uppercase tracking-wide text-metallic-slate/70'>
       {children}
     </p>
   );
 }
 
+const TABS: readonly { key: MarketTabKey; label: string; cyrillic: string }[] = [
+  { key: 'all', label: 'Todos', cyrillic: 'ВСЕ' },
+  { key: 'main', label: 'Principales', cyrillic: 'ИСХОД' },
+  { key: 'rounds', label: 'Asaltos', cyrillic: 'ТОТАЛ' },
+  { key: 'method', label: 'Método', cyrillic: 'МЕТОД' },
+  { key: 'decision', label: 'Decisión', cyrillic: 'РЕШЕНИЕ' },
+];
+
 /**
- * Matriz de cuatro familias. No hay pestañas: el usuario ve Moneyline, método,
- * total de asaltos y decisión en la misma retícula para comparar de un vistazo.
+ * Matriz Brutalista de Mercados con Pestañas Internas y Buscador Rápido.
+ * Proporciona exploración instantánea sin saturar la tarjeta.
  */
-export default function MarketMatrix({
+function MarketMatrix({
   event,
   selectedIds,
   oddsMap,
   onToggle,
+  defaultTab = 'all',
 }: MarketMatrixProps) {
+  const [activeTab, setActiveTab] = useState<MarketTabKey>(defaultTab);
+  const [searchTerm, setSearchTerm] = useState('');
+  const deferredSearch = useDeferredValue(searchTerm);
+  const query = deferredSearch.toLowerCase().trim();
+
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
-  const closed =
-    event.isExpired || isTerminalEventStatus(event.status) || !event.isBettingOpen;
+  const closed = event.isExpired || isTerminalEventStatus(event.status) || !event.isBettingOpen;
+
   const markets = useMemo(
     () =>
       UFC_MARKET_FAMILIES.map((family) => ({
@@ -289,6 +323,8 @@ export default function MarketMatrix({
   const roundsMarket = markets[2]?.market;
   const decisionMarket = markets[3]?.market;
 
+  const { bout } = event;
+
   const redMoneyline = findSelectionByCode(moneyline, 'red');
   const blueMoneyline = findSelectionByCode(moneyline, 'blue');
   const over = findSelectionByCode(roundsMarket, 'over');
@@ -301,186 +337,317 @@ export default function MarketMatrix({
       findSelectionByCode(methodMarket, `${corner}_${suffix}`),
     ).filter((selection): selection is UfcSelection => Boolean(selection));
 
-  const { bout } = event;
+  // Filtro por búsqueda
+  const matchesQuery = (text: string) => !query || text.toLowerCase().includes(query);
+
+  const showMoneyline = (activeTab === 'all' || activeTab === 'main') &&
+    (matchesQuery('ganador') || matchesQuery('moneyline') || matchesQuery(bout.red.name) || matchesQuery(bout.blue.name));
+
+  const showMethod = (activeTab === 'all' || activeTab === 'method') &&
+    (matchesQuery('metodo') || matchesQuery('ko') || matchesQuery('tko') || matchesQuery('sumision') || matchesQuery('sub') || matchesQuery('decision') || matchesQuery(bout.red.name) || matchesQuery(bout.blue.name));
+
+  const showRounds = (activeTab === 'all' || activeTab === 'rounds') &&
+    (matchesQuery('asaltos') || matchesQuery('rounds') || matchesQuery('over') || matchesQuery('under') || matchesQuery('total') || matchesQuery(String(roundsMarket?.line ?? '')));
+
+  const showDecision = (activeTab === 'all' || activeTab === 'decision') &&
+    (matchesQuery('decision') || matchesQuery('tarjetas') || matchesQuery('distancia') || matchesQuery('si') || matchesQuery('no'));
+
+  const filteredMethodSelections = (corner: 'red' | 'blue') => {
+    const list = methodSelections(corner);
+    if (!query) return list;
+    return list.filter((s) => {
+      const code = s.code?.toLowerCase() ?? '';
+      const name = s.name.toLowerCase();
+      return code.includes(query) || name.includes(query) || (query === 'ko' && code.includes('ko'));
+    });
+  };
+
+  const activeColumnsCount = [showMoneyline, showMethod, showRounds, showDecision].filter(Boolean).length;
 
   return (
     <div
       role='group'
-      aria-label={`Mercados de ${bout.red.name} vs ${bout.blue.name}`}
+      aria-label={`Mercados y cuotas de ${bout.red.name} vs ${bout.blue.name}`}
       data-closed={closed}
-      className='market-matrix grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/[0.07] bg-white/[0.06] md:grid-cols-4'
+      className='flex flex-col gap-2.5 bg-[#080808] p-2.5 sm:p-3'
     >
-      <MarketColumn family={markets[0].family} index={0} market={moneyline}>
-        {redMoneyline || blueMoneyline ? (
-          <div className='flex flex-1 flex-col gap-1.5'>
-            {redMoneyline && (
-              <MarketTile
-                market={moneyline!}
-                selection={redMoneyline}
-                isSelected={selectedSet.has(redMoneyline.id)}
-                quote={oddsMap[redMoneyline.id]}
-                onToggle={onToggle}
-                closed={closed}
-                label={shortFighterName(bout.red.name)}
-                hint={`${bout.red.record} · ${bout.red.countryCode || '—'}`}
-                corner='red'
-              />
-            )}
-            {blueMoneyline && (
-              <MarketTile
-                market={moneyline!}
-                selection={blueMoneyline}
-                isSelected={selectedSet.has(blueMoneyline.id)}
-                quote={oddsMap[blueMoneyline.id]}
-                onToggle={onToggle}
-                closed={closed}
-                label={shortFighterName(bout.blue.name)}
-                hint={`${bout.blue.record} · ${bout.blue.countryCode || '—'}`}
-                corner='blue'
-              />
-            )}
-            <MarketNote>Ganador · 2 vías</MarketNote>
-          </div>
-        ) : (
-          <EmptyMarket label='Moneyline' />
-        )}
-      </MarketColumn>
+      {/* Barra de Filtros: Pestañas + Buscador Brutalista */}
+      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-white/[0.06] pb-2.5'>
+        {/* Pestañas Neo-Brutalistas */}
+        <div className='flex flex-wrap items-center gap-1 font-mono text-[8px] uppercase tracking-wider'>
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type='button'
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-1 border px-2 py-1 transition-all duration-150 ${
+                  isActive
+                    ? 'border-lime-400 bg-lime-400 text-[#0D0D0D] font-bold shadow-[0_0_12px_-4px_rgba(212,255,63,0.8)]'
+                    : 'border-white/10 bg-white/[0.02] text-metallic-slate hover:border-white/25 hover:text-white'
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span className={`text-[6px] ${isActive ? 'text-[#0D0D0D]/60' : 'text-metallic-slate/40'}`}>
+                  {tab.cyrillic}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-      <MarketColumn family={markets[1].family} index={1} market={methodMarket}>
-        {methodMarket ? (
-          <div className='flex flex-1 flex-col gap-2'>
-            {(
-              [
-                ['red', bout.red],
-                ['blue', bout.blue],
-              ] as const
-            ).map(([corner, fighter]) => {
-              const selections = methodSelections(corner);
-              if (selections.length === 0) return null;
+        {/* Buscador de Cuotas con debounce */}
+        <div className='relative min-w-[180px] sm:w-56'>
+          <Search size={11} className='pointer-events-none absolute left-2 top-2 text-metallic-slate' aria-hidden='true' />
+          <input
+            type='text'
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder='Filtrar cuotas (KO, +2.5...)'
+            aria-label='Buscar en mercados de este combate'
+            className='h-7 w-full border border-white/10 bg-[#0E0E0E] pl-6 pr-6 font-mono text-[9px] uppercase text-white placeholder:text-metallic-slate/50 focus:border-lime-400/60 focus:bg-[#121212] focus:outline-none'
+          />
+          {searchTerm && (
+            <button
+              type='button'
+              onClick={() => setSearchTerm('')}
+              aria-label='Limpiar búsqueda'
+              className='absolute right-2 top-2 text-metallic-slate hover:text-white'
+            >
+              <X size={10} aria-hidden='true' />
+            </button>
+          )}
+        </div>
+      </div>
 
-              return (
-                <div key={corner} className='min-w-0'>
-                  <div className='mb-1 flex min-w-0 items-center gap-1.5'>
-                    <span
-                      className={`h-1 w-1 shrink-0 ${corner === 'red' ? 'bg-crimson' : 'bg-electric'}`}
-                      aria-hidden='true'
+      {/* Grid de Mercados Filtrados */}
+      {activeColumnsCount === 0 ? (
+        <div className='flex h-20 items-center justify-center border border-dashed border-white/10 text-center font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
+          [ 0 COINCIDENCIAS PARA &quot;{query}&quot; ]
+        </div>
+      ) : (
+        <div
+          className={`grid gap-2 ${
+            activeColumnsCount === 1
+              ? 'grid-cols-1'
+              : activeColumnsCount === 2
+                ? 'grid-cols-1 sm:grid-cols-2'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+          }`}
+        >
+          {showMoneyline && (
+            <MarketColumn family={markets[0].family} index={0} market={moneyline}>
+              {redMoneyline || blueMoneyline ? (
+                <div className='flex flex-1 flex-col gap-1.5'>
+                  {redMoneyline && (
+                    <MarketTile
+                      market={moneyline!}
+                      selection={redMoneyline}
+                      isSelected={selectedSet.has(redMoneyline.id)}
+                      quote={oddsMap[redMoneyline.id]}
+                      onToggle={onToggle}
+                      closed={closed}
+                      label={shortFighterName(bout.red.name)}
+                      hint={`${bout.red.record} · ${getCountryFlagEmoji(bout.red.countryCode) ? `${getCountryFlagEmoji(bout.red.countryCode)} ` : ''}${bout.red.countryCode || '—'}`}
+                      corner='red'
                     />
-                    <span className='truncate font-mono text-[8px] font-bold uppercase tracking-wide text-metallic-titanium'>
-                      {shortFighterName(fighter.name)}
+                  )}
+                  {blueMoneyline && (
+                    <MarketTile
+                      market={moneyline!}
+                      selection={blueMoneyline}
+                      isSelected={selectedSet.has(blueMoneyline.id)}
+                      quote={oddsMap[blueMoneyline.id]}
+                      onToggle={onToggle}
+                      closed={closed}
+                      label={shortFighterName(bout.blue.name)}
+                      hint={`${bout.blue.record} · ${getCountryFlagEmoji(bout.blue.countryCode) ? `${getCountryFlagEmoji(bout.blue.countryCode)} ` : ''}${bout.blue.countryCode || '—'}`}
+                      corner='blue'
+                    />
+                  )}
+                  <MarketNote>Ganador · 2 vías · ПРЯМАЯ ЛИНИЯ</MarketNote>
+                </div>
+              ) : (
+                <EmptyMarket label='Moneyline' />
+              )}
+            </MarketColumn>
+          )}
+
+          {showMethod && (
+            <MarketColumn family={markets[1].family} index={1} market={methodMarket}>
+              {methodMarket ? (
+                <div className='flex flex-1 flex-col gap-2'>
+                  {(
+                    [
+                      ['red', bout.red],
+                      ['blue', bout.blue],
+                    ] as const
+                  ).map(([corner, fighter]) => {
+                    const selections = filteredMethodSelections(corner);
+                    if (selections.length === 0) return null;
+
+                    return (
+                      <div key={corner} className='min-w-0'>
+                        <div className='mb-1 flex min-w-0 items-center gap-1.5'>
+                          <span
+                            className={`h-1 w-1 shrink-0 ${corner === 'red' ? 'bg-crimson' : 'bg-electric'}`}
+                            aria-hidden='true'
+                          />
+                          <span className='truncate font-mono text-[8px] font-bold uppercase tracking-wide text-metallic-titanium'>
+                            {shortFighterName(fighter.name)}
+                          </span>
+                        </div>
+                        <div className='grid min-w-0 grid-cols-3 gap-1'>
+                          {selections.map((selection) => {
+                            const suffix = selection.code?.split('_')[1] ?? '';
+
+                            return (
+                              <MarketTile
+                                key={selection.id}
+                                market={methodMarket}
+                                selection={selection}
+                                isSelected={selectedSet.has(selection.id)}
+                                quote={oddsMap[selection.id]}
+                                onToggle={onToggle}
+                                closed={closed}
+                                label={METHOD_LABEL[suffix] ?? selection.code ?? '-'}
+                                method
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <MarketNote>6 vías · sin empate · СПОСОБ ПОБЕДЫ</MarketNote>
+                </div>
+              ) : (
+                <EmptyMarket label='Método' />
+              )}
+            </MarketColumn>
+          )}
+
+          {showRounds && (
+            <MarketColumn family={markets[2].family} index={2} market={roundsMarket}>
+              {roundsMarket && (over || under) ? (
+                <div className='flex flex-1 flex-col gap-1.5'>
+                  <div className='mb-0.5 flex items-center justify-between border border-white/[0.08] bg-white/[0.02] px-1.5 py-1'>
+                    <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
+                      Línea
+                    </span>
+                    <span className='font-odds text-sm font-bold tabular-nums text-odds-neutral'>
+                      {roundsMarket.line !== null ? roundsMarket.line.toFixed(1) : '—'}
                     </span>
                   </div>
-                  <div className='grid min-w-0 grid-cols-3 gap-1'>
-                    {selections.map((selection) => {
-                      const suffix = selection.code?.split('_')[1] ?? '';
-
-                      return (
-                        <MarketTile
-                          key={selection.id}
-                          market={methodMarket}
-                          selection={selection}
-                          isSelected={selectedSet.has(selection.id)}
-                          quote={oddsMap[selection.id]}
-                          onToggle={onToggle}
-                          closed={closed}
-                          label={METHOD_LABEL[suffix] ?? selection.code ?? '-'}
-                          method
-                        />
-                      );
-                    })}
-                  </div>
+                  {over && (
+                    <MarketTile
+                      market={roundsMarket}
+                      selection={over}
+                      isSelected={selectedSet.has(over.id)}
+                      quote={oddsMap[over.id]}
+                      onToggle={onToggle}
+                      closed={closed}
+                      label={`Más de ${roundsMarket.line ?? ''}`}
+                      hint='Over · БОЛЬШЕ'
+                    />
+                  )}
+                  {under && (
+                    <MarketTile
+                      market={roundsMarket}
+                      selection={under}
+                      isSelected={selectedSet.has(under.id)}
+                      quote={oddsMap[under.id]}
+                      onToggle={onToggle}
+                      closed={closed}
+                      label={`Menos de ${roundsMarket.line ?? ''}`}
+                      hint='Under · МЕНЬШЕ'
+                    />
+                  )}
+                  <MarketNote>Asaltos completados · ТОТАЛ РАУНДОВ</MarketNote>
                 </div>
-              );
-            })}
-            <MarketNote>6 vías · sin empate</MarketNote>
-          </div>
-        ) : (
-          <EmptyMarket label='Método' />
-        )}
-      </MarketColumn>
+              ) : (
+                <EmptyMarket label='Total de asaltos' />
+              )}
+            </MarketColumn>
+          )}
 
-      <MarketColumn family={markets[2].family} index={2} market={roundsMarket}>
-        {roundsMarket && (over || under) ? (
-          <div className='flex flex-1 flex-col gap-1.5'>
-            <div className='mb-0.5 flex items-center justify-between border border-white/[0.08] bg-white/[0.025] px-1.5 py-1'>
-              <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
-                Línea
-              </span>
-              <span className='font-odds text-sm font-bold tabular-nums text-odds-neutral'>
-                {roundsMarket.line !== null ? roundsMarket.line.toFixed(1) : '—'}
-              </span>
-            </div>
-            {over && (
-              <MarketTile
-                market={roundsMarket}
-                selection={over}
-                isSelected={selectedSet.has(over.id)}
-                quote={oddsMap[over.id]}
-                onToggle={onToggle}
-                closed={closed}
-                label={`Más de ${roundsMarket.line ?? ''}`}
-                hint='Over'
-              />
-            )}
-            {under && (
-              <MarketTile
-                market={roundsMarket}
-                selection={under}
-                isSelected={selectedSet.has(under.id)}
-                quote={oddsMap[under.id]}
-                onToggle={onToggle}
-                closed={closed}
-                label={`Menos de ${roundsMarket.line ?? ''}`}
-                hint='Under'
-              />
-            )}
-            <MarketNote>Asaltos completados</MarketNote>
-          </div>
-        ) : (
-          <EmptyMarket label='Total de asaltos' />
-        )}
-      </MarketColumn>
-
-      <MarketColumn family={markets[3].family} index={3} market={decisionMarket}>
-        {decisionMarket && (yes || no) ? (
-          <div className='flex flex-1 flex-col gap-1.5'>
-            <div className='mb-0.5 flex items-center justify-between border border-white/[0.08] bg-white/[0.025] px-1.5 py-1'>
-              <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
-                Distancia
-              </span>
-              <span className='font-mono text-[8px] font-bold uppercase text-sage'>
-                {bout.scheduledRounds} RDS
-              </span>
-            </div>
-            {yes && (
-              <MarketTile
-                market={decisionMarket}
-                selection={yes}
-                isSelected={selectedSet.has(yes.id)}
-                quote={oddsMap[yes.id]}
-                onToggle={onToggle}
-                closed={closed}
-                label='Sí'
-                hint='Llega a decisión'
-              />
-            )}
-            {no && (
-              <MarketTile
-                market={decisionMarket}
-                selection={no}
-                isSelected={selectedSet.has(no.id)}
-                quote={oddsMap[no.id]}
-                onToggle={onToggle}
-                closed={closed}
-                label='No'
-                hint='Termina antes'
-              />
-            )}
-            <MarketNote>Tarjetas · 2 vías</MarketNote>
-          </div>
-        ) : (
-          <EmptyMarket label='Decisión' />
-        )}
-      </MarketColumn>
+          {showDecision && (
+            <MarketColumn family={markets[3].family} index={3} market={decisionMarket}>
+              {decisionMarket && (yes || no) ? (
+                <div className='flex flex-1 flex-col gap-1.5'>
+                  <div className='mb-0.5 flex items-center justify-between border border-white/[0.08] bg-white/[0.02] px-1.5 py-1'>
+                    <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
+                      Distancia
+                    </span>
+                    <span className='font-mono text-[8px] font-bold uppercase text-sage'>
+                      {bout.scheduledRounds} RDS
+                    </span>
+                  </div>
+                  {yes && (
+                    <MarketTile
+                      market={decisionMarket}
+                      selection={yes}
+                      isSelected={selectedSet.has(yes.id)}
+                      quote={oddsMap[yes.id]}
+                      onToggle={onToggle}
+                      closed={closed}
+                      label='Sí'
+                      hint='Llega a decisión · ДА'
+                    />
+                  )}
+                  {no && (
+                    <MarketTile
+                      market={decisionMarket}
+                      selection={no}
+                      isSelected={selectedSet.has(no.id)}
+                      quote={oddsMap[no.id]}
+                      onToggle={onToggle}
+                      closed={closed}
+                      label='No'
+                      hint='Termina antes · НЕТ'
+                    />
+                  )}
+                  <MarketNote>Tarjetas · 2 vías · ДОЙДЕТ ДО РЕШЕНИЯ</MarketNote>
+                </div>
+              ) : (
+                <EmptyMarket label='Decisión' />
+              )}
+            </MarketColumn>
+          )}
+        </div>
+      )}
     </div>
   );
 }
+
+function areMarketMatrixPropsEqual(prev: MarketMatrixProps, next: MarketMatrixProps): boolean {
+  if (prev.event !== next.event) return false;
+  if (prev.onToggle !== next.onToggle) return false;
+  if (prev.defaultTab !== next.defaultTab) return false;
+
+  for (const market of prev.event.markets) {
+    for (const sel of market.selections) {
+      const prevSel = prev.selectedIds.includes(sel.id);
+      const nextSel = next.selectedIds.includes(sel.id);
+      if (prevSel !== nextSel) return false;
+
+      const prevQuote = prev.oddsMap[sel.id];
+      const nextQuote = next.oddsMap[sel.id];
+      if (prevQuote !== nextQuote) {
+        if (!prevQuote || !nextQuote) return false;
+        if (
+          prevQuote.odds !== nextQuote.odds ||
+          prevQuote.trend !== nextQuote.trend ||
+          prevQuote.sequence !== nextQuote.sequence
+        ) {
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+export default memo(MarketMatrix, areMarketMatrixPropsEqual);

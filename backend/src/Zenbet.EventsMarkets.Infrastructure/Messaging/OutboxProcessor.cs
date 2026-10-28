@@ -155,6 +155,22 @@ public sealed class OutboxProcessor : BackgroundService
                             cancellationToken);
                     }
                     break;
+
+                case nameof(WalletDepositedDomainEvent):
+                    var depositEvent = JsonSerializer.Deserialize<WalletDepositedDomainEvent>(message.Payload, JsonOptions);
+                    if (depositEvent != null)
+                    {
+                        // Empuje en tiempo real del nuevo saldo al dueño de la
+                        // billetera (depósito aprobado por administración).
+                        await notificationService.NotifyWalletBalanceUpdatedAsync(
+                            depositEvent.WalletId.Value,
+                            depositEvent.UserId.Value,
+                            depositEvent.Amount.Amount,
+                            depositEvent.NewBalance.Amount,
+                            depositEvent.TransactionId.Value,
+                            cancellationToken);
+                    }
+                    break;
             }
         }
         catch (JsonException ex)

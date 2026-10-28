@@ -42,7 +42,7 @@ export const SPORTSBOOK_SPORTS: readonly SportsbookSportDefinition[] = [
     shortLabel: 'Fútbol',
     kicker: 'Ligas y copas',
     description: 'Goles, hándicaps y mercados de partido.',
-    available: false,
+    available: true,
     eventSportKeys: ['football', 'soccer'],
   },
   {

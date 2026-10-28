@@ -1,3 +1,4 @@
+import { formatLocalFightDateTime } from '@/utils/localTimezone';
 /**
  * Contrato de lectura de la cartelera UFC.
  *
@@ -10,6 +11,7 @@
 export interface UfcFighter {
   readonly id: string;
   readonly name: string;
+  readonly nickname?: string | null;
   readonly countryCode: string;
   readonly country: string;
   readonly record: string;
@@ -38,6 +40,7 @@ export interface UfcBout {
   readonly billingOrder: number;
   readonly venue: string;
   readonly location: string;
+  readonly posterUrl?: string | null;
   readonly fighter1ImageUrl: string | null;
   readonly fighter2ImageUrl: string | null;
   readonly red: UfcFighter;
@@ -92,6 +95,8 @@ export interface UfcEvent {
   readonly result: UfcFightResult | null;
   readonly clock: UfcFightClock | null;
   readonly competition: string | null;
+  readonly posterUrl?: string | null;
+  readonly promotionLogoUrl?: string | null;
   readonly bout: UfcBout;
   readonly markets: readonly UfcMarket[];
   readonly oddsUpdatedAt: string | null;
@@ -577,6 +582,7 @@ function normalizeFighter(value: unknown): UfcFighter | null {
   return {
     id,
     name,
+    nickname: readString(raw.nickname),
     countryCode: readString(raw.countryCode) ?? '',
     country: readString(raw.country) ?? '',
     record,
@@ -617,6 +623,7 @@ function normalizeBout(value: unknown): UfcBout | null {
     billingOrder: readNumber(raw.billingOrder) ?? 99,
     venue: readString(raw.venue) ?? '',
     location: readString(raw.location) ?? '',
+    posterUrl: readString(raw.posterUrl),
     fighter1ImageUrl,
     fighter2ImageUrl,
     red: { ...red, imageUrl: fighter1ImageUrl },
@@ -737,6 +744,8 @@ function normalizeEvent(value: unknown): UfcEvent | null {
     result: normalizeFightResult(raw.result),
     clock: null,
     competition: readString(raw.competition),
+    posterUrl: readString(raw.posterUrl) ?? bout.posterUrl,
+    promotionLogoUrl: readString(raw.promotionLogoUrl),
     bout,
     markets,
     oddsUpdatedAt: readString(raw.oddsUpdatedAt),
@@ -827,6 +836,14 @@ export function eventsForBilling(
  * editorial que publica la UFC para estas carteleras.
  */
 export function cardKeyForEvent(event: UfcEvent): string {
+  const comp = (event.competition ?? '').trim();
+  if (comp) {
+    const slug = comp
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+    if (slug) return slug;
+  }
   return event.startTime.slice(0, 10);
 }
 

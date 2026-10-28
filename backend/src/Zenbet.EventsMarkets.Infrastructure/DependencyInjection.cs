@@ -32,6 +32,7 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(typeof(EventsMarketsDbContext).Assembly.FullName);
+                npgsqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
 
                 // PlaceBet y SettleMarket abren transacciones manuales mediante
                 // IUnitOfWork. Una execution strategy con reintentos no permite
@@ -54,6 +55,8 @@ public static class DependencyInjection
         services.AddScoped<IWalletRepository, WalletRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<IWalletReadRepository, WalletReadRepository>();
+        services.AddScoped<IAdminDepositReadRepository, AdminDepositReadRepository>();
+        services.AddScoped<IFootballRepository, FootballRepository>();
 
         // Outbox / Inbox
         services.AddScoped<IOutboxWriter, OutboxWriter>();
@@ -99,6 +102,10 @@ public static class DependencyInjection
         // Idempotent UFC card seed, configurable per environment.
         services.Configure<UfcSeedOptions>(configuration.GetSection("Seeding:Ufc"));
         services.AddHostedService<UfcCardSeeder>();
+
+        // Datos oficiales y ciclo de vida de Fútbol (SignalR FootballHub / OddsHub).
+        services.AddHostedService<FootballDataSeeder>();
+        services.AddHostedService<FootballLiveWorker>();
 
         return services;
     }

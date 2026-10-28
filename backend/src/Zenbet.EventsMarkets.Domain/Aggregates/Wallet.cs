@@ -59,6 +59,9 @@ public sealed class Wallet : AggregateRoot<WalletId>
         if (transaction.WalletId != Id)
             throw new InvalidOperationException("La transacción no pertenece a esta billetera.");
 
+        if (transaction.UserId != UserId)
+            throw new InvalidOperationException("El usuario de la transacción no coincide con la billetera.");
+
         if (transaction.Type != TransactionType.Deposit)
             throw new InvalidOperationException("Solo un depósito puede acreditarse.");
 

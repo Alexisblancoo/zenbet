@@ -50,6 +50,36 @@ public static class EventsEndpoints
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status429TooManyRequests);
 
+        // Alias oficial para consumo de carteleras de MMA
+        app.MapGet("/api/v1/mma/events", async (
+            string? status,
+            DateTimeOffset? from,
+            DateTimeOffset? to,
+            string? competition,
+            int? page,
+            int? pageSize,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await mediator.Send(
+                new GetEventsQuery(
+                    "mma",
+                    status,
+                    from,
+                    to,
+                    competition,
+                    page ?? 1,
+                    pageSize ?? 50),
+                cancellationToken);
+
+            return Results.Ok(result);
+        })
+        .WithTags("Events")
+        .WithName("GetMmaEvents")
+        .Produces<EventPageDto>(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status429TooManyRequests);
+
         group.MapGet("/{eventId:guid}", async (
             Guid eventId,
             IMediator mediator,

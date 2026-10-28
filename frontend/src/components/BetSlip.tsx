@@ -47,6 +47,7 @@ import {
 import { formatDecimalOdds } from '@/domain/odds';
 
 import BetSlipTour from './onboarding/BetSlipTour';
+import BetHistorySection from '@/modules/Sportsbook/components/BetHistorySection';
 
 /**
  * BetSlip — panel de apuestas de Zenbet.
@@ -113,6 +114,7 @@ export default function BetSlip({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [preferredTab, setPreferredTab] = useState<BetSlipTab | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [panelView, setPanelView] = useState<'slip' | 'active' | 'settled'>('slip');
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState<PromoCodeDefinition | null>(null);
@@ -567,6 +569,53 @@ export default function BetSlip({
           ) : null}
         </div>
       </header>
+      {/* Pestañas de modo: Boleto actual / Activas / Historial Liquidado */}
+      <nav aria-label='Pestañas del panel de apuestas' className='grid grid-cols-3 border-y border-white/[0.08] bg-[#0A0A0A]'>
+        <button
+          type='button'
+          onClick={() => { setPanelView('slip'); setIsCollapsed(false); }}
+          className={`flex items-center justify-center gap-1.5 py-2 font-mono text-[9px] font-bold uppercase transition-colors ${
+            panelView === 'slip'
+              ? 'border-b-2 border-[#D4FF3F] bg-white/[0.04] text-[#D4FF3F]'
+              : 'text-metallic-slate hover:text-white'
+          }`}
+        >
+          <span>Boleto</span>
+          <span className={`px-1 rounded text-[8px] ${selections.length > 0 ? 'bg-[#D4FF3F]/20 text-[#D4FF3F]' : 'opacity-40'}`}>
+            {selections.length}
+          </span>
+        </button>
+
+        <button
+          type='button'
+          onClick={() => { setPanelView('active'); setIsCollapsed(false); }}
+          className={`flex items-center justify-center gap-1.5 py-2 font-mono text-[9px] font-bold uppercase transition-colors ${
+            panelView === 'active'
+              ? 'border-b-2 border-[#D4FF3F] bg-white/[0.04] text-[#D4FF3F]'
+              : 'text-metallic-slate hover:text-white'
+          }`}
+        >
+          <span>Activas</span>
+          <span className='h-1.5 w-1.5 rounded-full bg-[#D4FF3F] animate-pulse' />
+        </button>
+
+        <button
+          type='button'
+          onClick={() => { setPanelView('settled'); setIsCollapsed(false); }}
+          className={`flex items-center justify-center gap-1.5 py-2 font-mono text-[9px] font-bold uppercase transition-colors ${
+            panelView === 'settled'
+              ? 'border-b-2 border-[#D4FF3F] bg-white/[0.04] text-[#D4FF3F]'
+              : 'text-metallic-slate hover:text-white'
+          }`}
+        >
+          <span>Historial</span>
+        </button>
+      </nav>
+
+      {panelView !== 'slip' && !isCollapsed ? (
+        <BetHistorySection defaultTab={panelView} />
+      ) : null}
+
 
       {variant === 'floating' && hasSelections && !receipt && !isCollapsed ? (
         <div className='flex shrink-0 items-center justify-between gap-3 border-y border-obsidian-border/60 bg-white/[0.018] px-4 py-2'>

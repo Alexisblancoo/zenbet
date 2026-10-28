@@ -44,6 +44,23 @@ public sealed record WalletBetDto(
 public sealed record WalletDashboardDto(
     string Currency,
     decimal Balance,
+    decimal AtRiskBalance,
     IReadOnlyList<WalletBetDto> Bets,
     IReadOnlyList<WalletTransactionDto> Transactions,
     DateTimeOffset UpdatedAt);
+
+public sealed record WalletBalancesDto(
+    decimal Balance,
+    decimal AtRiskBalance);
+
+public sealed record PendingDepositDto(
+    Guid Id,
+    Guid WalletId,
+    Guid UserId,
+    string Username,
+    string Email,
+    decimal Amount,
+    string Method,
+    string Reference,
+    string Status,
+    DateTimeOffset CreatedAt);

@@ -9,13 +9,19 @@ public sealed class SignalRNotificationService : INotificationService
 {
     private readonly IHubContext<OddsHub> _oddsHubContext;
     private readonly IHubContext<FightHub> _fightHubContext;
+    private readonly IHubContext<WalletHub> _walletHubContext;
+    private readonly IHubContext<FootballHub> _footballHubContext;
 
     public SignalRNotificationService(
         IHubContext<OddsHub> oddsHubContext,
-        IHubContext<FightHub> fightHubContext)
+        IHubContext<FightHub> fightHubContext,
+        IHubContext<WalletHub> walletHubContext,
+        IHubContext<FootballHub> footballHubContext)
     {
         _oddsHubContext = oddsHubContext;
         _fightHubContext = fightHubContext;
+        _walletHubContext = walletHubContext;
+        _footballHubContext = footballHubContext;
     }
 
     public async Task NotifyOddsUpdateAsync(MarketId marketId, object oddsUpdate, CancellationToken cancellationToken = default)
@@ -59,5 +65,68 @@ public sealed class SignalRNotificationService : INotificationService
         await _fightHubContext.Clients
             .Group($"card-{cardKey}")
             .SendAsync("ReceiveCardUpdate", cardUpdate, cancellationToken);
+    }
+
+    public async Task NotifyWalletBalanceUpdatedAsync(
+        Guid walletId,
+        Guid userId,
+        decimal amount,
+        decimal newBalance,
+        Guid transactionId,
+        CancellationToken cancellationToken = default)
+    {
+        // Envío dirigido: el IUserIdProvider mapea la conexión al claim
+        // wallet_id del token, así que solo el dueño recibe el empuje.
+        await _walletHubContext.Clients.User(walletId.ToString()).SendAsync("SaldoActualizado", new
+        {
+            walletId,
+            userId,
+            amount,
+            newBalance,
+            transactionId,
+            timestamp = DateTimeOffset.UtcNow
+        }, cancellationToken);
+    }
+
+    public async Task NotifyFootballScoreUpdateAsync(
+        string matchId,
+        int homeScore,
+        int awayScore,
+        int minute,
+        string period,
+        CancellationToken cancellationToken = default)
+    {
+        var payload = new
+        {
+            matchId,
+            homeScore,
+            awayScore,
+            minute,
+            period
+        };
+
+        await _footballHubContext.Clients.All.SendAsync("ReceiveMatchScoreUpdate", payload, cancellationToken);
+        await _oddsHubContext.Clients.All.SendAsync("ReceiveMatchScoreUpdate", payload, cancellationToken);
+    }
+
+    public async Task NotifyFootballOddsUpdateAsync(
+        string matchId,
+        string marketId,
+        string selectionId,
+        decimal odds,
+        string? trend,
+        CancellationToken cancellationToken = default)
+    {
+        var payload = new
+        {
+            matchId,
+            marketId,
+            selectionId,
+            odds,
+            trend = trend ?? "unchanged"
+        };
+
+        await _footballHubContext.Clients.All.SendAsync("ReceiveFootballOddsUpdate", payload, cancellationToken);
+        await _oddsHubContext.Clients.All.SendAsync("ReceiveFootballOddsUpdate", payload, cancellationToken);
     }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { CalendarDays, ChevronRight, MapPin } from 'lucide-react';
 
 import {
@@ -16,9 +16,9 @@ interface CardSelectorProps {
 }
 
 /**
- * Selector editorial de sábados. En móvil se desplaza horizontalmente dentro
+ * Selector editorial de carteleras. En móvil se desplaza horizontalmente dentro
  * de su propio contenedor; en tablet y escritorio muestra las carteleras en
- * rejilla, sin afectar el ancho de la página.
+ * rejilla, permitiendo navegar entre UFC, OKTAGON, ONE y PFL de forma 100% fluida.
  */
 export default function CardSelector({ cards, activeKey, onSelect }: CardSelectorProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -49,11 +49,11 @@ export default function CardSelector({ cards, activeKey, onSelect }: CardSelecto
             id='upcoming-cards-title'
             className='font-display text-[11px] font-bold uppercase tracking-wide text-white'
           >
-            Sábados UFC
+            Carteleras Oficiales · UFC · OKTAGON · ONE · PFL
           </h2>
         </div>
         <span className='font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
-          {cards.length} fechas · {cards.reduce((sum, card) => sum + card.events.length, 0)} combates
+          {cards.length} eventos · {cards.reduce((sum, card) => sum + card.events.length, 0)} combates
         </span>
       </div>
 
@@ -63,7 +63,30 @@ export default function CardSelector({ cards, activeKey, onSelect }: CardSelecto
       >
         {cards.map((card) => {
           const active = card.key === activeKey;
+          const compUpper = card.competition.toUpperCase();
+          const isOktagon = compUpper.includes('OKTAGON');
+          const isOne = compUpper.includes('ONE');
+          const isPfl = compUpper.includes('PFL');
           const number = ufcCardNumber(card.competition);
+
+          const badgeLabel = isOktagon
+            ? 'OKTAGON'
+            : isOne
+              ? 'ONE FC'
+              : isPfl
+                ? 'PFL'
+                : number
+                  ? `UFC ${number}`
+                  : 'UFC FN';
+
+          const accentBorder = isOktagon
+            ? 'border-amber-500/55 bg-amber-500/[0.08]'
+            : isOne
+              ? 'border-yellow-500/55 bg-yellow-500/[0.08]'
+              : isPfl
+                ? 'border-blue-500/55 bg-blue-500/[0.08]'
+                : 'border-crimson/55 bg-crimson/[0.08]';
+
           const statusLabel = card.isFinished
             ? 'Finalizado'
             : card.status === 'live'
@@ -82,7 +105,7 @@ export default function CardSelector({ cards, activeKey, onSelect }: CardSelecto
               aria-label={`Ver ${card.competition}, ${formatCardDayBadge(card.startTime)}`}
               className={`group relative flex min-w-[236px] max-w-[288px] flex-1 snap-start flex-col overflow-hidden border px-3 py-2.5 text-left transition duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-crimson md:min-w-0 md:max-w-none ${
                 active
-                  ? 'border-crimson/55 bg-crimson/[0.08] shadow-[0_0_0_1px_rgb(239_68_68_/_0.08),0_16px_40px_-34px_rgb(239_68_68_/_0.8)]'
+                  ? `${accentBorder} shadow-[0_0_0_1px_rgba(212,255,63,0.1),0_16px_40px_-34px_rgba(0,0,0,0.9)]`
                   : 'border-white/[0.07] bg-white/[0.018] hover:border-white/20 hover:bg-white/[0.035]'
               }`}
             >
@@ -90,24 +113,24 @@ export default function CardSelector({ cards, activeKey, onSelect }: CardSelecto
                 aria-hidden='true'
                 className={`absolute inset-x-0 top-0 h-px ${
                   active
-                    ? 'bg-linear-to-r from-transparent via-crimson to-transparent'
+                    ? 'bg-linear-to-r from-transparent via-lime-400 to-transparent'
                     : 'bg-linear-to-r from-transparent via-white/15 to-transparent'
                 }`}
               />
 
               <span className='flex items-center justify-between gap-2'>
                 <span className='inline-flex items-center gap-1.5 font-mono text-[9px] font-bold uppercase tracking-wide text-metallic-titanium'>
-                  <CalendarDays size={10} className={active ? 'text-crimson' : 'text-metallic-slate'} aria-hidden='true' />
+                  <CalendarDays size={10} className={active ? 'text-lime-400' : 'text-metallic-slate'} aria-hidden='true' />
                   {formatCardDayBadge(card.startTime)}
                 </span>
                 <span
                   className={`border px-1 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide ${
                     active
-                      ? 'border-crimson/40 bg-crimson/10 text-crimson'
+                      ? 'border-lime-400/50 bg-lime-400/10 text-lime-400'
                       : 'border-white/[0.07] bg-white/[0.02] text-metallic-slate'
                   }`}
                 >
-                  {number ? `UFC ${number}` : 'FN'}
+                  {badgeLabel}
                 </span>
               </span>
 
@@ -140,13 +163,9 @@ export default function CardSelector({ cards, activeKey, onSelect }: CardSelecto
                   <MapPin size={9} className='shrink-0' aria-hidden='true' />
                   <span className='truncate'>{cardCity(card.location)}</span>
                 </span>
-                <span className='inline-flex shrink-0 items-center gap-1 font-mono text-[8px] font-bold uppercase tracking-wide text-metallic-titanium'>
-                  {card.events.length} combates
-                  <ChevronRight
-                    size={10}
-                    className={active ? 'text-crimson' : 'text-metallic-slate'}
-                    aria-hidden='true'
-                  />
+                <span className='inline-flex items-center gap-0.5 font-mono text-[8px] uppercase tracking-wide text-metallic-slate transition-colors group-hover:text-white'>
+                  <span>{card.events.length} peleas</span>
+                  <ChevronRight size={10} aria-hidden='true' />
                 </span>
               </span>
             </button>

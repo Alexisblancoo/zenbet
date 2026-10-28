@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Countdown from '@/components/Countdown';
 import { CalendarClock, MapPin, ShieldCheck } from 'lucide-react';
 
@@ -5,13 +6,14 @@ import {
   fightResultLabel,
   fightStatusLabel,
   formatFightClock,
-  formatFightDay,
   formatRank,
   formatWeightDivision,
   isTerminalEventStatus,
   type UfcEvent,
   type UfcFighter,
 } from '@/domain/ufc';
+import { formatLocalFightDateTime } from '@/utils/localTimezone';
+import { getCountryFlagEmoji } from '@/utils/countryFlags';
 
 import FighterAvatar from './FighterAvatar';
 
@@ -39,24 +41,34 @@ function ArenaCorner({
   readonly corner: Corner;
 }) {
   const isRed = corner === 'red';
+  const flagEmoji = getCountryFlagEmoji(fighter.countryCode);
 
   return (
     <div
-      className={`flex min-w-0 items-center gap-2.5 ${
+      className={`flex min-w-0 items-center gap-2 sm:gap-2.5 ${
         isRed ? '' : 'flex-row-reverse text-right'
       }`}
     >
-      <FighterAvatar fighter={fighter} corner={corner} size='md' className='max-sm:hidden' />
+      <div className='shrink-0'>
+        <FighterAvatar fighter={fighter} corner={corner} size='sm' className='sm:hidden' />
+        <FighterAvatar fighter={fighter} corner={corner} size='md' className='hidden sm:inline-grid' />
+      </div>
       <div className='min-w-0'>
-        <span
-          className={`font-mono text-[8px] font-bold uppercase tracking-ultra ${
-            isRed ? 'text-crimson' : 'text-electric-soft'
-          }`}
-        >
-          {isRed ? 'Esquina roja' : 'Esquina azul'}
-        </span>
+        <div className={`flex items-center gap-1 font-mono text-[8px] font-bold uppercase tracking-ultra ${
+          isRed ? 'text-crimson' : 'text-electric-soft'
+        }`}>
+          <span>{isRed ? 'Esquina roja' : 'Esquina azul'}</span>
+          <span className='text-[7px] opacity-35'>
+            {isRed ? 'КРАС' : 'СИН'}
+          </span>
+        </div>
         <p className='mt-0.5 break-words font-display text-[11px] font-bold uppercase leading-[1.05] tracking-tight text-white sm:text-[13px]'>
           {fighter.name}
+          {fighter.nickname ? (
+            <span className='ml-1 font-mono text-[8px] font-normal text-metallic-slate lowercase tracking-normal opacity-75'>
+              "{fighter.nickname}"
+            </span>
+          ) : null}
         </p>
         <p className='mt-1 flex flex-wrap items-center gap-x-1.5 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
           <span className='text-metallic-titanium'>{fighter.record}</span>
@@ -65,7 +77,10 @@ function ArenaCorner({
           {fighter.countryCode ? (
             <>
               <span className='h-2 w-px bg-white/10' aria-hidden='true' />
-              <span>{fighter.countryCode}</span>
+              <span className='inline-flex items-center gap-1'>
+                {flagEmoji ? <span className='text-[10px] leading-none' aria-hidden='true'>{flagEmoji}</span> : null}
+                <span>{fighter.countryCode}</span>
+              </span>
             </>
           ) : null}
         </p>
@@ -75,11 +90,10 @@ function ArenaCorner({
 }
 
 /**
- * Cabecera de combate en formato arena/versus. Las dos esquinas comparten
- * jerarquía y el centro concentra la lectura rápida del combate; la matriz de
- * mercados queda inmediatamente debajo sin competir con la identidad.
+ * Cabecera de combate estilo Neo-Brutalista con horario local del cliente
+ * y micro-detalles tipográficos estilo bookie europea/rusa.
  */
-export default function FightHeader({
+function FightHeader({
   event,
   headingId,
   selectedInEvent,
@@ -97,6 +111,8 @@ export default function FightHeader({
       : 'SUSPENDIDO'
     : clockLabel ?? statusLabel;
 
+  const localTime = formatLocalFightDateTime(event.startTime);
+
   return (
     <header
       className={`relative overflow-hidden ${isClosed ? 'bg-[#050505]' : ''}`}
@@ -111,8 +127,9 @@ export default function FightHeader({
 
       <div className='relative flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.055] px-3 py-2 sm:px-4'>
         <div className='flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[8px] uppercase tracking-wide'>
-          <span className='border border-white/[0.08] bg-white/[0.025] px-1.5 py-0.5 font-bold text-metallic-titanium'>
-            {billingCode(bout.billing)} {String(bout.billingOrder).padStart(2, '0')}
+          <span className='inline-flex items-center gap-1 border border-white/[0.08] bg-white/[0.025] px-1.5 py-0.5 font-bold text-metallic-titanium'>
+            <span>{billingCode(bout.billing)} {String(bout.billingOrder).padStart(2, '0')}</span>
+            <span className='text-[7px] text-metallic-slate/35'>ЛИНИЯ</span>
           </span>
           <span className='font-bold text-crimson'>{event.competition ?? 'UFC'}</span>
           <span className='h-px w-3 bg-white/15' aria-hidden='true' />
@@ -120,11 +137,11 @@ export default function FightHeader({
           {bout.isTitleFight && (
             <span className='inline-flex items-center gap-1 border border-crimson/35 bg-crimson/[0.08] px-1 py-0.5 text-crimson'>
               <ShieldCheck size={8} aria-hidden='true' />
-              Título
+              Título · ТИТУЛ
             </span>
           )}
           <span
-            className={`inline-flex items-center gap-1 border px-1 py-0.5 font-bold ${
+            className={`inline-flex items-center gap-1 border px-1.5 py-0.5 font-bold ${
               isClosed
                 ? 'border-white/10 bg-white/[0.03] text-metallic-slate'
                 : event.status === 'live'
@@ -132,6 +149,9 @@ export default function FightHeader({
                   : 'border-white/[0.08] bg-white/[0.025] text-metallic-titanium'
             }`}
           >
+            <span className='font-mono text-[7px] tracking-wider text-metallic-slate/40'>
+              {event.status === 'live' ? 'ПРЯМОЙ ЭФИР' : 'ЛИНИЯ'}
+            </span>
             {!isClosed && event.status === 'live' && (
               <span className='h-1.5 w-1.5 animate-pulse rounded-full bg-lime-400' aria-hidden='true' />
             )}
@@ -178,11 +198,12 @@ export default function FightHeader({
 
       {resultLabel && (
         <div className='relative border-t border-white/[0.055] bg-white/[0.018] px-3 py-1.5 font-mono text-[8px] font-bold uppercase tracking-wide text-metallic-titanium sm:px-4'>
-          <span className='mr-2 text-lime-400/80'>Final</span>{' '}
+          <span className='mr-2 text-lime-400/80'>Final · ИТОГ</span>{' '}
           {resultLabel}
         </div>
       )}
 
+      {/* Horario nativo en la zona horaria del cliente */}
       <div className='relative flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-white/[0.055] px-3 py-1.5 font-mono text-[8px] uppercase tracking-wide text-metallic-slate sm:px-4'>
         <span className='inline-flex min-w-0 items-center gap-1.5'>
           <MapPin size={9} className='shrink-0 text-crimson/70' aria-hidden='true' />
@@ -190,9 +211,17 @@ export default function FightHeader({
         </span>
         <span className='inline-flex items-center gap-1.5'>
           <CalendarClock size={9} aria-hidden='true' />
-          {formatFightDay(event.startTime)}
+          <span className='font-mono text-[7px] font-bold text-metallic-slate/40 tracking-wider'>
+            [{localTime.cyrillicDay}]
+          </span>
+          <span className='text-metallic-platinum'>{localTime.day}</span>
+          <span className='text-metallic-slate/40'>·</span>
+          <span className='text-lime-400 font-bold'>{localTime.time}</span>
+          {localTime.timeZoneAbbr && (
+            <span className='text-metallic-slate/40 text-[7px]'>({localTime.timeZoneAbbr})</span>
+          )}
           {!isFinished && (
-            <Countdown startTime={event.startTime} className='text-lime-400' />
+            <Countdown startTime={event.startTime} className='ml-1 text-lime-400' />
           )}
         </span>
       </div>
@@ -203,3 +232,5 @@ export default function FightHeader({
     </header>
   );
 }
+
+export default memo(FightHeader);

@@ -28,7 +28,7 @@ import {
   type UfcMarket,
   type UfcSelection,
 } from '@/domain/ufc';
-import { compareFighters } from '@/services/ufcService';
+import { compareFighters, getCachedFighterComparison } from '@/services/ufcService';
 
 import FighterAvatar from './FighterAvatar';
 import MarketMatrix from './MarketMatrix';
@@ -259,8 +259,9 @@ export default function FighterComparisonModal({
   const panelRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
-  const [comparison, setComparison] = useState<UfcFighterComparison | null>(null);
-  const [syncState, setSyncState] = useState<SyncState>('loading');
+  const cachedComparison = getCachedFighterComparison(event.id);
+  const [comparison, setComparison] = useState<UfcFighterComparison | null>(() => cachedComparison);
+  const [syncState, setSyncState] = useState<SyncState>(() => (cachedComparison ? 'ready' : 'loading'));
 
   useEffect(() => {
     onCloseRef.current = onClose;

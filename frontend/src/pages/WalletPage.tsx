@@ -197,7 +197,7 @@ export default function WalletPage() {
             />
 
             <WalletDepositPanel
-              onDeposited={() => refresh()}
+              onSubmitted={() => refresh()}
               className='reveal-up mt-4'
             />
 

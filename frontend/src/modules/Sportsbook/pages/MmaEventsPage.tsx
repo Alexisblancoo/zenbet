@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { memo, useCallback, useDeferredValue, useEffect, useId, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -55,6 +55,8 @@ import {
   type UfcSelection,
 } from '@/domain/ufc';
 import { useUfcEvents } from '@/hooks/useUfcEvents';
+import { useFootballEvents } from '@/hooks/useFootballEvents';
+import FootballEventsSection from '../components/FootballEventsSection';
 import CardNav, { type CardSectionKey } from '../components/CardNav';
 import CardSelector from '../components/CardSelector';
 import FighterSearch from '../components/FighterSearch';
@@ -65,6 +67,9 @@ import HubStatusBadge from '../components/HubStatusBadge';
 import SourceBadge from '../components/SourceBadge';
 import SportComingSoon from '../components/SportComingSoon';
 import SportsBentoGrid from '../components/SportsBentoGrid';
+import CompetitionHeroBentoGrid from '../components/CompetitionHeroBentoGrid';
+import SportsbookHeroBanner from '../components/SportsbookHeroBanner';
+import { getCountryFlagEmoji } from '@/utils/countryFlags';
 
 const SECTION_DESCRIPTIONS: Readonly<Record<string, string>> = {
   main: 'La cartelera estelar abre con el combate de título. Cuatro familias por pelea, sin cambiar de pestaña.',
@@ -300,7 +305,14 @@ function ArenaFighter({ fighter, corner }: { readonly fighter: UfcFighter; reado
         {fighter.countryCode ? (
           <>
             <span className='h-2.5 w-px bg-white/10' aria-hidden='true' />
-            <span>{fighter.countryCode}</span>
+            <span className='inline-flex items-center gap-1'>
+              {getCountryFlagEmoji(fighter.countryCode) ? (
+                <span className='text-[10px] leading-none' aria-hidden='true'>
+                  {getCountryFlagEmoji(fighter.countryCode)}
+                </span>
+              ) : null}
+              <span>{fighter.countryCode}</span>
+            </span>
           </>
         ) : null}
       </div>
@@ -355,7 +367,7 @@ interface MainEventHeroProps {
   readonly onRemoveSelection: (selectionId: string) => void;
 }
 
-function MainEventHero({
+const MainEventHero = memo(function MainEventHero({
   event,
   boutCount,
   marketCount,
@@ -425,6 +437,7 @@ function MainEventHero({
       <div className='relative flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] px-4 py-3 sm:px-6'>
         <div className='flex flex-wrap items-center gap-x-3 gap-y-1.5'>
           <span className='shibuya-kicker text-crimson'>Zenbet // Sportsbook</span>
+          <span className='font-mono text-[7px] uppercase tracking-wider text-metallic-slate/35'>ЛИНИЯ</span>
           <span className='h-px w-4 bg-crimson/50' aria-hidden='true' />
           <span className='inline-flex items-center border border-crimson/40 bg-crimson/[0.08] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-crimson'>
             {event.competition ?? 'UFC'}
@@ -566,7 +579,7 @@ function MainEventHero({
       </div>
     </section>
   );
-}
+});
 
 function normalizeSearch(value: string): string {
   return value
@@ -576,20 +589,31 @@ function normalizeSearch(value: string): string {
     .trim();
 }
 
-/** Coincidencia sobre campos reales del payload: peleadores, división, país y nombre del evento. */
+const searchHaystackCache = new WeakMap<UfcEvent, string>();
+
+function getEventHaystack(event: UfcEvent): string {
+  let cached = searchHaystackCache.get(event);
+  if (cached === undefined) {
+    const { red, blue, weightDivisionLabel } = event.bout;
+    cached = [
+      red.name,
+      blue.name,
+      red.country,
+      blue.country,
+      weightDivisionLabel,
+      event.name,
+      event.competition ?? '',
+    ]
+      .map(normalizeSearch)
+      .join(' | ');
+    searchHaystackCache.set(event, cached);
+  }
+  return cached;
+}
+
+/** Coincidencia optimizada con haystack indexado en WeakMap */
 function eventMatches(event: UfcEvent, term: string): boolean {
-  const { red, blue, weightDivisionLabel } = event.bout;
-  const haystack = [
-    red.name,
-    blue.name,
-    red.country,
-    blue.country,
-    weightDivisionLabel,
-    event.name,
-    event.competition ?? '',
-  ]
-    .map(normalizeSearch)
-    .join(' | ');
+  const haystack = getEventHaystack(event);
   return term.split(/\s+/).every((part) => haystack.includes(part));
 }
 
@@ -733,6 +757,45 @@ export default function MmaEventsPage() {
     [searchParams, setSearchParams],
   );
 
+  const [selectedPromotionId, setSelectedPromotionId] = useState<string | null>(null);
+  const [selectedFootballCompetitionId, setSelectedFootballCompetitionId] = useState<string | null>(null);
+
+  const handleSelectPromotion = useCallback(
+    (id: string) => {
+      setSelectedPromotionId(id);
+      const targetQuery =
+        id === 'promotion_oktagon'
+          ? 'OKTAGON'
+          : id === 'promotion_one'
+            ? 'ONE'
+            : id === 'promotion_pfl'
+              ? 'PFL'
+              : id === 'promotion_ufc'
+                ? 'UFC'
+                : null;
+
+      if (!targetQuery) {
+        handleSelectCard('all');
+        return;
+      }
+
+      const matchingCard = cards.find((c) =>
+        c.events.some((e) => (e.competition ?? e.name).toUpperCase().includes(targetQuery)),
+      );
+
+      if (matchingCard) {
+        handleSelectCard(matchingCard.key);
+      } else {
+        handleSelectCard('all');
+      }
+    },
+    [cards, handleSelectCard],
+  );
+
+  const handleSelectFootballCompetition = useCallback((id: string) => {
+    setSelectedFootballCompetitionId(id === 'all' ? null : id);
+  }, []);
+
   const marketIds = useMemo(
     () => [...new Set(activeEvents.flatMap((event) => event.markets.map((market) => market.id)))],
     [activeEvents],
@@ -789,7 +852,8 @@ export default function MmaEventsPage() {
           : 'Combates sin conexión';
 
   const [searchTerm, setSearchTerm] = useState('');
-  const normalizedTerm = normalizeSearch(searchTerm);
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+  const normalizedTerm = useMemo(() => normalizeSearch(deferredSearchTerm), [deferredSearchTerm]);
   const isSearching = normalizedTerm.length >= 2;
   const searchCards = useMemo(() => {
     if (!isSearching) return [];
@@ -871,6 +935,73 @@ export default function MmaEventsPage() {
     };
   }, [isLoading, mmaEvents]);
 
+  const mmaPromotionCounts = useMemo(() => {
+    const counts: Record<string, { eventCount: number; liveCount: number }> = {
+      promotion_ufc: { eventCount: 0, liveCount: 0 },
+      promotion_oktagon: { eventCount: 0, liveCount: 0 },
+      promotion_one: { eventCount: 0, liveCount: 0 },
+      promotion_pfl: { eventCount: 0, liveCount: 0 },
+    };
+
+    for (const event of mmaEvents) {
+      const comp = (event.competition ?? event.name).toUpperCase();
+      let key = 'promotion_ufc';
+      if (comp.includes('OKTAGON')) key = 'promotion_oktagon';
+      else if (comp.includes('ONE')) key = 'promotion_one';
+      else if (comp.includes('PFL')) key = 'promotion_pfl';
+
+      const isLive = event.status === 'live' && !event.isExpired;
+      counts[key].eventCount += 1;
+      if (isLive) counts[key].liveCount += 1;
+    }
+
+    return counts;
+  }, [mmaEvents]);
+
+  const {
+    matches: footballMatches,
+    liveMatches: footballLiveMatches,
+    isLoading: isFootballLoading,
+  } = useFootballEvents();
+
+  const footballCompetitionCounts = useMemo(() => {
+    const counts: Record<string, { eventCount: number; liveCount: number }> = {
+      ucl: { eventCount: 0, liveCount: 0 },
+      premier: { eventCount: 0, liveCount: 0 },
+      laliga: { eventCount: 0, liveCount: 0 },
+      bolivia: { eventCount: 0, liveCount: 0 },
+    };
+
+    for (const match of footballMatches) {
+      const leagueId = match.league.id;
+      if (!counts[leagueId]) {
+        counts[leagueId] = { eventCount: 0, liveCount: 0 };
+      }
+      counts[leagueId].eventCount += 1;
+      if (match.status === 'live' && !match.isExpired) {
+        counts[leagueId].liveCount += 1;
+      }
+    }
+
+    return counts;
+  }, [footballMatches]);
+
+  const footballStats = useMemo(() => {
+    const marketCount = footballMatches.reduce((sum, m) => sum + m.markets.length, 0);
+    const openMarketCount = footballMatches.reduce((sum, m) => {
+      if (m.isExpired || !m.isBettingOpen || m.status === 'finished') return sum;
+      return sum + m.markets.filter((mkt) => mkt.status === 'open').length;
+    }, 0);
+
+    return {
+      eventCount: footballMatches.length,
+      liveCount: footballLiveMatches.length,
+      marketCount,
+      openMarketCount,
+      isLoading: isFootballLoading,
+    };
+  }, [footballMatches, footballLiveMatches, isFootballLoading]);
+
   const betSlipPanel = (
     <div
       id='bet-slip'
@@ -886,6 +1017,45 @@ export default function MmaEventsPage() {
   );
 
   if (!isMma) {
+    if (activeSport === 'soccer') {
+      return (
+        <div className='shibuya-page min-h-full pb-6 min-[1400px]:pb-0'>
+          <div className='mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-4 sm:py-5 lg:px-6'>
+            <div className='grid grid-cols-1 items-start gap-4 min-[1400px]:grid-cols-[minmax(0,1fr)_360px] min-[1400px]:gap-5'>
+              <div className='flex min-w-0 flex-col gap-4'>
+                <SportsbookHeroBanner
+                  activeSport='soccer'
+                  liveCount={footballStats.liveCount}
+                  totalEvents={footballStats.eventCount}
+                />
+                <CompetitionHeroBentoGrid
+                  activeCategory='football'
+                  selectedCompetitionId={selectedFootballCompetitionId}
+                  onSelectCompetition={handleSelectFootballCompetition}
+                  countsById={footballCompetitionCounts}
+                />
+                <SportsBentoGrid
+                  activeSport={activeSport}
+                  onSelectSport={handleSelectSport}
+                  mmaStats={mmaStats}
+                  footballStats={footballStats}
+                />
+                <FootballEventsSection
+                  selectedIds={selectedIds}
+                  onAddSelection={handleAddSelection}
+                  onRemoveSelection={removeSelection}
+                  oddsMap={quotes}
+                  activeLeagueId={selectedFootballCompetitionId}
+                  onSelectLeague={handleSelectFootballCompetition}
+                />
+              </div>
+              {betSlipPanel}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className='shibuya-page min-h-full pb-6 min-[1400px]:pb-0'>
         <div className='mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-4 sm:py-5 lg:px-6'>
@@ -895,6 +1065,7 @@ export default function MmaEventsPage() {
                 activeSport={activeSport}
                 onSelectSport={handleSelectSport}
                 mmaStats={mmaStats}
+                footballStats={footballStats}
               />
               <SportComingSoon
                 sport={activeSportDefinition}
@@ -930,10 +1101,22 @@ export default function MmaEventsPage() {
             data-hero-visible={Boolean(heroEvent)}
             data-hero-event-id={heroEvent?.id ?? undefined}
           >
+            <SportsbookHeroBanner
+              activeSport='mma'
+              liveCount={mmaStats.liveCount}
+              totalEvents={mmaStats.eventCount}
+            />
+            <CompetitionHeroBentoGrid
+              activeCategory='mma'
+              selectedCompetitionId={selectedPromotionId}
+              onSelectCompetition={handleSelectPromotion}
+              countsById={mmaPromotionCounts}
+            />
             <SportsBentoGrid
               activeSport={activeSport}
               onSelectSport={handleSelectSport}
               mmaStats={mmaStats}
+              footballStats={footballStats}
             />
 
             <CardSelector cards={cards} activeKey={activeKey} onSelect={handleSelectCard} />

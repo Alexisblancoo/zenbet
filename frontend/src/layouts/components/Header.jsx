@@ -14,12 +14,14 @@ import {
 
 import { useAuthModal } from '@/context/authModalState';
 import { useAuth } from '@/context/authState';
+import { useSaldoFlash } from '@/hooks/useSaldoFlash';
 import ZenbetLogo from './ZenbetLogo';
 
 export default function Header() {
   const { user, logout } = useAuth();
   const { openAuth } = useAuthModal();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isSaldoFlashing = useSaldoFlash();
 
   const balanceLabel = user ? `$${user.walletBalance.toFixed(2)}` : '$—';
 
@@ -74,7 +76,13 @@ export default function Header() {
               >
                 <Wallet size={13} className='text-money' aria-hidden='true' />
                 <span className='text-metallic-titanium'>SALDO:</span>
-                <span className='font-bold text-money tabular-nums'>{balanceLabel}</span>
+                <span data-saldo-flash-target
+                  className={`font-bold text-money tabular-nums${
+                    isSaldoFlashing ? ' zb-saldo-flash' : ''
+                  }`}
+                >
+                  {balanceLabel}
+                </span>
                 <ChevronRight
                   size={12}
                   className='text-metallic-slate transition-colors group-hover:text-gold'
@@ -138,7 +146,7 @@ export default function Header() {
                 className='flex items-center gap-1.5 border border-white/10 bg-obsidian-surface px-2 py-1.5 font-mono text-[10px] transition-colors hover:border-gold/50 sm:hidden'
               >
                 <Wallet size={12} className='text-money' aria-hidden='true' />
-                <span className='font-bold text-money tabular-nums'>{balanceLabel}</span>
+                <span data-saldo-flash-target className='font-bold text-money tabular-nums'>{balanceLabel}</span>
               </Link>
             ) : (
               <button
@@ -208,7 +216,7 @@ export default function Header() {
             <div className='border-t border-obsidian-border pt-3 flex flex-col gap-2 font-mono text-xs'>
               <div className='flex items-center justify-between text-metallic-titanium'>
                 <span>SALDO DISPONIBLE:</span>
-                <span className='font-bold text-money tabular-nums'>{balanceLabel}</span>
+                <span data-saldo-flash-target className='font-bold text-money tabular-nums'>{balanceLabel}</span>
               </div>
               {!user ? (
                 <div className='grid grid-cols-2 gap-2 pt-2'>

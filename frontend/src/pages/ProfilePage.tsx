@@ -244,7 +244,7 @@ export default function ProfilePage() {
               </div>
 
               <div className='mt-7 flex flex-wrap items-end gap-x-3 gap-y-2'>
-                <span aria-hidden='true' className='inline-flex items-end'>
+                <span aria-hidden='true' data-saldo-flash-target className='inline-flex items-end'>
                   <span className='font-mono text-[2.7rem] font-black leading-none tracking-tightest text-white tabular-nums sm:text-6xl'>
                     {whole}
                   </span>
@@ -370,7 +370,7 @@ export default function ProfilePage() {
 
         <div className='mt-4'>
           <WalletDepositPanel
-            onDeposited={() => refresh()}
+            onSubmitted={() => refresh()}
             className='reveal-up stagger-2'
           />
         </div>

@@ -8,7 +8,7 @@ using Zenbet.EventsMarkets.Application.DTOs;
 /// </summary>
 public interface IWalletReadRepository
 {
-    Task<decimal?> GetBalanceAsync(Guid walletId, CancellationToken cancellationToken = default);
+    Task<WalletBalancesDto?> GetBalancesAsync(Guid walletId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<WalletBetDto>> ListBetsAsync(
         Guid walletId,

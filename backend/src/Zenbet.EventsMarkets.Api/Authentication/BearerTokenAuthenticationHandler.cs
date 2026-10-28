@@ -25,15 +25,13 @@ public sealed class BearerTokenAuthenticationHandler
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var authorization = Request.Headers.Authorization.ToString();
+        var token = ExtractToken();
 
-        if (string.IsNullOrWhiteSpace(authorization) ||
-            !authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(token))
         {
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
-        var token = authorization["Bearer ".Length..].Trim();
         var tokenService = Context.RequestServices.GetRequiredService<IAuthTokenService>();
         var payload = tokenService.Validate(token);
 
@@ -57,5 +55,23 @@ public sealed class BearerTokenAuthenticationHandler
         var ticket = new AuthenticationTicket(principal, SchemeName);
 
         return Task.FromResult(AuthenticateResult.Success(ticket));
+    }
+
+    /// <summary>
+    /// Acepta el token del header estándar o del query string. SignalR no puede
+    /// enviar headers en el handshake WebSocket, así que su cliente viaja con
+    /// <c>?access_token=…</c> (lo inyecta el accessTokenFactory del front).
+    /// </summary>
+    private string? ExtractToken()
+    {
+        var authorization = Request.Headers.Authorization.ToString();
+        if (!string.IsNullOrWhiteSpace(authorization)
+            && authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            return authorization["Bearer ".Length..].Trim();
+        }
+
+        var accessToken = Request.Query["access_token"].ToString();
+        return string.IsNullOrWhiteSpace(accessToken) ? null : accessToken.Trim();
     }
 }

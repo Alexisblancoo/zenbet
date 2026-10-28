@@ -13,8 +13,20 @@ import {
   readStoredAuthUser,
   writeStoredAuthUser,
 } from '@/services/sessionPersistence';
+import {
+  createWalletHubConnection,
+  WALLET_HUB_EVENTS,
+  type WalletBalanceUpdate,
+} from '@/services/realtime/walletHub';
+import { triggerSaldoFlashElements } from '@/hooks/useSaldoFlash';
 
-import { AuthContext, BALANCE_UPDATED_EVENT, type AuthContextValue } from './authState';
+import {
+  AuthContext,
+  BALANCE_UPDATED_EVENT,
+  SALDO_FLASH_EVENT,
+  WALLET_REFRESH_EVENT,
+  type AuthContextValue,
+} from './authState';
 
 /**
  * Hidratación síncrona: localStorage está disponible antes del primer render,
@@ -62,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (nextBalance === null) return;
 
       setUser((previous) => {
-        if (!previous) return previous;
+        if (!previous || previous.walletBalance === nextBalance) return previous;
 
         const updated: AuthUser = { ...previous, walletBalance: nextBalance };
         writeStoredAuthUser(updated);
@@ -80,6 +92,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener(BALANCE_UPDATED_EVENT, handleBalanceUpdate);
     };
   }, []);
+
+  // Canal privado de wallet (SignalR): mientras haya sesión, escucha
+  // `SaldoActualizado` para reflejar el saldo que administración acredita
+  // en vivo (depósitos aprobados), con destello verde y refresco del
+  // dashboard.
+  const isAuthenticated = Boolean(user);
+  useEffect(() => {
+    if (!isAuthenticated || !authToken.has()) return undefined;
+
+    const connection = createWalletHubConnection();
+
+    const applyBalance = (nextBalance: number) => {
+      setUser((previous) => {
+        if (!previous || previous.walletBalance === nextBalance) return previous;
+
+        const updated: AuthUser = { ...previous, walletBalance: nextBalance };
+        writeStoredAuthUser(updated);
+        return updated;
+      });
+    };
+
+    connection.on(WALLET_HUB_EVENTS.saldoActualizado, (update: WalletBalanceUpdate) => {
+      const nextBalance = parseBalance(update?.newBalance);
+      if (nextBalance === null) return;
+
+      triggerSaldoFlashElements();
+      applyBalance(nextBalance);
+      window.dispatchEvent(
+        new CustomEvent(SALDO_FLASH_EVENT, {
+          detail: { amount: update.amount, newBalance: nextBalance },
+        }),
+      );
+      window.dispatchEvent(new CustomEvent(WALLET_REFRESH_EVENT));
+    });
+
+    connection
+      .start()
+      .catch(() => {
+        // Sin conexión en vivo la app sigue funcionando: el saldo se
+        // refresca manualmente o al recargar.
+      });
+
+    return () => {
+      void connection.stop().catch(() => {
+        // El socket puede ya estar cerrado durante el desmontaje.
+      });
+    };
+  }, [isAuthenticated]);
 
   const login = useCallback(async (credentials: LoginCredentials): Promise<AuthUser> => {
     setIsSubmitting(true);

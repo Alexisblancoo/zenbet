@@ -18,8 +18,8 @@ public sealed class GetWalletDashboardQueryHandler
         GetWalletDashboardQuery request,
         CancellationToken cancellationToken)
     {
-        var balance = await _walletReadRepository.GetBalanceAsync(request.WalletId, cancellationToken);
-        if (balance is null) return null;
+        var balances = await _walletReadRepository.GetBalancesAsync(request.WalletId, cancellationToken);
+        if (balances is null) return null;
 
         // Las consultas comparten el DbContext scoped: se ejecutan en serie.
         var bets = await _walletReadRepository.ListBetsAsync(request.WalletId, cancellationToken);
@@ -29,7 +29,8 @@ public sealed class GetWalletDashboardQueryHandler
 
         return new WalletDashboardDto(
             "USD",
-            balance.Value,
+            balances.Balance,
+            balances.AtRiskBalance,
             bets,
             transactions,
             DateTimeOffset.UtcNow);

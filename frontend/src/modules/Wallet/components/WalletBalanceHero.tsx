@@ -6,6 +6,7 @@ import {
   formatWalletMoney,
   formatWalletMoneyParts,
 } from '@/domain/wallet';
+import { useSaldoFlash } from '@/hooks/useSaldoFlash';
 import type { WalletDashboardStatus } from '@/hooks/useWalletDashboard';
 
 interface WalletBalanceHeroProps {
@@ -27,6 +28,7 @@ export function WalletBalanceHero({
 }: WalletBalanceHeroProps) {
   const { whole, fraction } = formatWalletMoneyParts(balance);
   const isRefreshing = status === 'refreshing';
+  const isFlashing = useSaldoFlash();
 
   return (
     <section
@@ -67,7 +69,10 @@ export function WalletBalanceHero({
               aria-hidden='true'
               className='mt-1.5 flex flex-wrap items-end gap-x-2.5 gap-y-1'
             >
-              <span className='inline-flex items-end'>
+              <span
+                data-saldo-flash-target
+                className={`inline-flex items-end${isFlashing ? ' zb-saldo-flash' : ''}`}
+              >
                 <span className='font-mono text-[2.75rem] font-black leading-none tracking-tightest text-money tabular-nums sm:text-6xl'>
                   {whole}
                 </span>

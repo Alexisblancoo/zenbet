@@ -6,7 +6,7 @@
  * dominio (`WalletSnapshot`, `WalletBet`, `WalletTransaction`).
  */
 
-import { apiClient } from '@/api';
+import { apiClient, createIdempotencyKey, IDEMPOTENCY_HEADER } from '@/api';
 import { roundMoney } from '@/domain/bets';
 import {
   sortBetsByDate,
@@ -25,6 +25,9 @@ export const WALLET_ENDPOINTS = {
   transactions: '/wallet/transactions',
   bets: '/bets',
   deposit: '/wallet/deposit',
+  /** Solicitud de depósito con comprobante (queda en revisión). */
+  deposito: '/wallet/deposito',
+  pendingDeposits: '/wallet/depositos/pendientes',
 } as const;
 
 interface WalletBetWire {
@@ -71,9 +74,122 @@ interface DepositFundsWire {
   readonly newBalance: number;
 }
 
+/** Respuesta de `POST /wallet/deposito` (solicitud pendiente). */
+interface RequestDepositWire {
+  readonly success: boolean;
+  readonly transactionId: string;
+  readonly reference: string;
+  readonly amount: number;
+  readonly method: string;
+  readonly status: string;
+  readonly createdAt: string;
+}
+
+/** Item de `GET /wallet/depositos/pendientes`. */
+interface PendingDepositWire {
+  readonly transactionId: string;
+  readonly walletId: string;
+  readonly userId: string;
+  readonly amount: number;
+  readonly method: string;
+  readonly reference: string;
+  readonly createdAt: string;
+}
+
+/** Métodos del formulario de depósito. */
+export type WalletDepositMethod = 'qr_transfer' | 'usdt';
+
+export interface WalletDepositRequestResult {
+  readonly transactionId: string;
+  readonly reference: string;
+  readonly amount: number;
+  readonly method: WalletDepositMethod;
+  readonly createdAt: string;
+}
+
+export interface WalletPendingDeposit {
+  readonly transactionId: string;
+  readonly amount: number;
+  readonly method: string;
+  readonly reference: string;
+  readonly createdAt: string;
+}
+
 export interface WalletDepositResult {
   readonly transactionId: string | null;
   readonly newBalance: number;
+}
+
+
+const SNAPSHOT_CACHE_KEY = 'zenbet_wallet_snapshot_v1';
+const PENDING_DEPOSITS_CACHE_KEY = 'zenbet_wallet_pending_deposits_v1';
+let memorySnapshotCache: { snapshot: WalletSnapshot; timestamp: number } | null = null;
+let memoryPendingCache: { deposits: readonly WalletPendingDeposit[]; timestamp: number } | null = null;
+
+export function getCachedWalletSnapshot(): WalletSnapshot | null {
+  if (memorySnapshotCache && Date.now() - memorySnapshotCache.timestamp < 60_000) {
+    return memorySnapshotCache.snapshot;
+  }
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      const raw = window.sessionStorage.getItem(SNAPSHOT_CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Date.now() - parsed.timestamp < 60_000) {
+          memorySnapshotCache = parsed;
+          return parsed.snapshot;
+        }
+      }
+    } catch {
+      // Ignora error
+    }
+  }
+  return memorySnapshotCache?.snapshot ?? null;
+}
+
+export function getCachedPendingDeposits(): readonly WalletPendingDeposit[] | null {
+  if (memoryPendingCache && Date.now() - memoryPendingCache.timestamp < 60_000) {
+    return memoryPendingCache.deposits;
+  }
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      const raw = window.sessionStorage.getItem(PENDING_DEPOSITS_CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Date.now() - parsed.timestamp < 60_000) {
+          memoryPendingCache = parsed;
+          return parsed.deposits;
+        }
+      }
+    } catch {
+      // Ignora error
+    }
+  }
+  return memoryPendingCache?.deposits ?? null;
+}
+
+function saveSnapshotCache(snapshot: WalletSnapshot): void {
+  const entry = { snapshot, timestamp: Date.now() };
+  memorySnapshotCache = entry;
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      window.sessionStorage.setItem(SNAPSHOT_CACHE_KEY, JSON.stringify(entry));
+    } catch {
+      // Ignora
+    }
+  }
+}
+
+function savePendingCache(deposits: readonly WalletPendingDeposit[]): void {
+  const entry = { deposits, timestamp: Date.now() };
+  memoryPendingCache = entry;
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      window.sessionStorage.setItem(PENDING_DEPOSITS_CACHE_KEY, JSON.stringify(entry));
+    } catch {
+      // Ignora
+    }
+  }
 }
 
 const BET_STATUSES = new Set<WalletBetStatus>(['pending', 'won', 'lost', 'cancelled']);
@@ -194,7 +310,14 @@ export function mapWalletDashboard(wire: WalletDashboardWire): WalletSnapshot {
 
 export interface WalletRepository {
   loadSnapshot(signal?: AbortSignal): Promise<WalletSnapshot>;
-  deposit(amount: number, method?: string): Promise<WalletDepositResult>;
+  deposit(amount: number, method?: string, idempotencyKey?: string): Promise<WalletDepositResult>;
+  requestDeposit(
+    amount: number,
+    method: WalletDepositMethod,
+    reference: string,
+    idempotencyKey?: string,
+  ): Promise<WalletDepositRequestResult>;
+  listPendingDeposits(signal?: AbortSignal): Promise<readonly WalletPendingDeposit[]>;
 }
 
 export const httpWalletRepository: WalletRepository = {
@@ -238,6 +361,39 @@ export const httpWalletRepository: WalletRepository = {
       newBalance: roundMoney(asNumber(wire.newBalance)),
     };
   },
+
+  async requestDeposit(amount, method, reference) {
+    const wire = await apiClient.post<RequestDepositWire>(WALLET_ENDPOINTS.deposito, {
+      amount,
+      method,
+      reference,
+    });
+
+    return {
+      transactionId: asString(wire.transactionId),
+      reference: asString(wire.reference),
+      amount: roundMoney(asNumber(wire.amount)),
+      method: method === 'usdt' ? 'usdt' : 'qr_transfer',
+      createdAt: asIsoString(wire.createdAt),
+    };
+  },
+
+  async listPendingDeposits(signal) {
+    const wire = await apiClient.get<readonly PendingDepositWire[]>(
+      WALLET_ENDPOINTS.pendingDeposits,
+      { signal },
+    );
+
+    return wire
+      .map((item) => ({
+        transactionId: asString(item.transactionId),
+        amount: roundMoney(asNumber(item.amount)),
+        method: asString(item.method, 'qr_transfer'),
+        reference: asString(item.reference),
+        createdAt: asIsoString(item.createdAt),
+      }))
+      .filter((item) => item.transactionId.length > 0);
+  },
 };
 
 export type WalletService = WalletRepository;
@@ -251,6 +407,12 @@ export function createWalletService(
     },
     deposit(amount, method) {
       return repository.deposit(amount, method);
+    },
+    requestDeposit(amount, method, reference) {
+      return repository.requestDeposit(amount, method, reference);
+    },
+    listPendingDeposits(signal) {
+      return repository.listPendingDeposits(signal);
     },
   };
 }

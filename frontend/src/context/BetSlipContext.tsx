@@ -6,6 +6,7 @@ import { useFightHubState } from '@/context/fightHubState';
 import {
   areOddsEqual,
   calculatePromoBonus,
+  calculateTotalOdds,
   countPendingOdds,
   expireSelectionsByTime,
   isSelectionEventClosed,
@@ -22,6 +23,7 @@ import {
 } from '@/domain/bets';
 import { isTerminalEventStatus, type UfcFightClock, type UfcFightUpdate } from '@/domain/ufc';
 import { useOddsHub } from '@/hooks/useOddsHub';
+import { formatDecimalOdds } from '@/domain/odds';
 import {
   betService,
   createBetFailure,
@@ -430,7 +432,7 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
 
       if (!isAuthenticated || !user) return reject(createBetFailure('SESSION_REQUIRED'));
       if (liveSelections.length === 0) return reject(createBetFailure('EMPTY_SLIP'));
-      if (liveSelections.length > 1) return reject(createBetFailure('COMBINED_NOT_SUPPORTED'));
+      // Permite apuestas combinadas / parlays dinámicos
 
       const closedSelection = liveSelections.find((selection) =>
         isSelectionEventClosed(selection),
@@ -452,7 +454,18 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
 
       if (countPendingOdds(liveSelections) > 0) return reject(createBetFailure('ODDS_CHANGED'));
 
-      const selection = liveSelections[0];
+      const isParlay = liveSelections.length > 1;
+      const totalOdds = calculateTotalOdds(liveSelections);
+      const primary = liveSelections[0];
+
+      const selection = isParlay
+        ? {
+            ...primary,
+            odds: totalOdds,
+            selectionName: `Parlay Combinado (${liveSelections.length} selecciones)`,
+            marketLabel: liveSelections.map((s) => s.selectionName).join(' · '),
+          }
+        : primary;
       const normalizedStake = roundMoney(stake);
       const normalizedPromoCode = promoCode?.trim().toUpperCase() || undefined;
 
@@ -489,7 +502,7 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
 
         // La cuota aceptada es la que el usuario vio al confirmar; liveOdds ya
         // coincide porque el envío se bloquea mientras haya cambios pendientes.
-        const odds = selection.odds;
+        const odds = isParlay ? totalOdds : selection.odds;
         const basePayout = roundMoney(normalizedStake * odds);
         const promo = normalizedPromoCode
           ? resolvePromoCode(normalizedPromoCode)
@@ -504,14 +517,14 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
           odds,
           potentialPayout: roundMoney(basePayout + promoBonus),
           newBalance: result.newBalance,
-          selectionCount: 1,
+          selectionCount: liveSelections.length,
           idempotentReplay: result.idempotentReplay,
           placedAt: Date.now(),
           promoCode: promo?.code,
           promoBonus,
-          eventName: selection.eventName,
-          selectionName: selection.selectionName,
-          marketLabel: selection.marketLabel,
+          eventName: isParlay ? `Combinada Parlay (${liveSelections.length} eventos)` : selection.eventName,
+          selectionName: isParlay ? liveSelections.map((s) => `${s.selectionName} @ ${s.liveOdds.toFixed(2)}`).join(" · ") : selection.selectionName,
+          marketLabel: isParlay ? `Cuota Parlay: ${formatDecimalOdds(totalOdds)}x` : selection.marketLabel,
           accountId: String(user.id),
         };
 

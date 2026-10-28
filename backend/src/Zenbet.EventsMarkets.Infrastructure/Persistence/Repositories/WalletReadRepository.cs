@@ -20,19 +20,19 @@ public sealed class WalletReadRepository : IWalletReadRepository
         _dbContext = dbContext;
     }
 
-    public async Task<decimal?> GetBalanceAsync(
+    public async Task<WalletBalancesDto?> GetBalancesAsync(
         Guid walletId,
         CancellationToken cancellationToken = default)
     {
         var id = WalletId.From(walletId);
 
-        var wallet = await _dbContext.Wallets
+        return await _dbContext.Wallets
             .AsNoTracking()
             .Where(candidate => candidate.Id == id)
-            .Select(candidate => new { candidate.Balance })
+            .Select(candidate => new WalletBalancesDto(
+                candidate.Balance.Amount,
+                candidate.AtRiskBalance.Amount))
             .FirstOrDefaultAsync(cancellationToken);
-
-        return wallet?.Balance.Amount;
     }
 
     public async Task<IReadOnlyList<WalletBetDto>> ListBetsAsync(

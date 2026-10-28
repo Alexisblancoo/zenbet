@@ -43,6 +43,17 @@ export function formatDecimalOdds(value: number): string {
   return Number.isFinite(value) && value > 1 ? value.toFixed(2) : '—';
 }
 
+export function formatAmericanOdds(decimalOdds: number): string {
+  if (!Number.isFinite(decimalOdds) || decimalOdds <= 1) return '—';
+
+  const american =
+    decimalOdds >= 2
+      ? Math.round((decimalOdds - 1) * 100)
+      : -Math.round(100 / (decimalOdds - 1));
+
+  return american > 0 ? `+${american}` : String(american);
+}
+
 /** Cuota decimal mínima válida: descarta 0, NaN y valores de prueba. */
 const MIN_VALID_ODDS = 1.0001;
 

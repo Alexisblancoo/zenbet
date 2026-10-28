@@ -29,4 +29,37 @@ public sealed class NoOpNotificationService : INotificationService
     {
         return Task.CompletedTask;
     }
+
+    public Task NotifyWalletBalanceUpdatedAsync(
+        Guid walletId,
+        Guid userId,
+        decimal amount,
+        decimal newBalance,
+        Guid transactionId,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task NotifyFootballScoreUpdateAsync(
+        string matchId,
+        int homeScore,
+        int awayScore,
+        int minute,
+        string period,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
+
+    public Task NotifyFootballOddsUpdateAsync(
+        string matchId,
+        string marketId,
+        string selectionId,
+        decimal odds,
+        string? trend,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 }

@@ -20,6 +20,7 @@ export interface SportsBentoGridProps {
   readonly activeSport: SportsbookSportId;
   readonly onSelectSport: (sport: SportsbookSportId) => void;
   readonly mmaStats: TrendingSportsActivity;
+  readonly footballStats?: TrendingSportsActivity;
   readonly className?: string;
 }
 
@@ -32,7 +33,48 @@ interface SportActivity {
 function activityFor(
   sport: SportsbookSportDefinition,
   stats: TrendingSportsActivity,
+  footballStats?: TrendingSportsActivity,
 ): SportActivity {
+  if (sport.id === 'soccer' && footballStats) {
+    if (footballStats.isLoading && footballStats.eventCount === 0) {
+      return {
+        label: 'Cargando actividad',
+        detail: 'Sincronizando partidos',
+        isLive: false,
+      };
+    }
+
+    if (footballStats.liveCount > 0) {
+      return {
+        label: `${footballStats.liveCount} en vivo`,
+        detail:
+          footballStats.openMarketCount > 0
+            ? `${footballStats.openMarketCount} mercados abiertos`
+            : 'Mercados en actualización',
+        isLive: true,
+      };
+    }
+
+    if (footballStats.eventCount > 0) {
+      return {
+        label: `${footballStats.eventCount} partidos`,
+        detail:
+          footballStats.marketCount === 0
+            ? 'Mercados en preparación'
+            : footballStats.openMarketCount > 0
+              ? `${footballStats.openMarketCount} mercados abiertos`
+              : 'Mercados cerrados',
+        isLive: false,
+      };
+    }
+
+    return {
+      label: 'Sin partidos',
+      detail: 'Nueva jornada pronto',
+      isLive: false,
+    };
+  }
+
   if (sport.id !== 'mma') {
     return {
       label: 'Sin cuotas',
@@ -84,11 +126,17 @@ function sportStatusLabel(
   sport: SportsbookSportDefinition,
   activity: SportActivity,
   stats: TrendingSportsActivity,
+  footballStats?: TrendingSportsActivity,
 ): string {
   if (activity.isLive) return 'En vivo';
   if (sport.id === 'mma') {
     if (stats.eventCount === 0) return 'Sin eventos';
     if (stats.openMarketCount === 0) return 'Cerrado';
+    return 'Abierto';
+  }
+  if (sport.id === 'soccer' && footballStats) {
+    if (footballStats.eventCount === 0) return 'Sin eventos';
+    if (footballStats.openMarketCount === 0) return 'Cerrado';
     return 'Abierto';
   }
   return 'Pronto';
@@ -106,6 +154,7 @@ export default function SportsBentoGrid({
   activeSport,
   onSelectSport,
   mmaStats,
+  footballStats,
   className = '',
 }: SportsBentoGridProps) {
   const liveLabel =
@@ -166,8 +215,8 @@ export default function SportsBentoGrid({
       <div className='mt-3.5 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3'>
         {SPORTSBOOK_SPORTS.map((sport) => {
           const active = sport.id === activeSport;
-          const activity = activityFor(sport, mmaStats);
-          const status = sportStatusLabel(sport, activity, mmaStats);
+          const activity = activityFor(sport, mmaStats, footballStats);
+          const status = sportStatusLabel(sport, activity, mmaStats, footballStats);
           const Icon = SPORT_ICONS[sport.id];
           const art = SPORT_CLASSICAL_ART[sport.id];
 
@@ -241,7 +290,6 @@ export default function SportsBentoGrid({
                   >
                     <Icon size={15} strokeWidth={2} aria-hidden='true' />
                   </span>
-
                 </div>
 
                 {/* Badge de disponibilidad */}

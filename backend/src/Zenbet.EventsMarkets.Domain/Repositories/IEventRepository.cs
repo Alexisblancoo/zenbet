@@ -82,8 +82,23 @@ public interface ITransactionRepository
         WalletId walletId,
         string referenceId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Depósito previo de la billetera con esa referencia (cualquier estado).</summary>
+    Task<Transaction?> GetDepositByReferenceAsync(
+        WalletId walletId,
+        string referenceId,
+        CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Transaction>> GetByWalletIdAsync(WalletId walletId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Transaction>> GetByWalletIdAsync(WalletId walletId, DateTimeOffset fromDate, DateTimeOffset toDate, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Depósitos en revisión. Con <c>walletId</c> filtra una billetera
+    /// (vista del jugador); con <c>null</c> lista todas (cola de administración).
+    /// </summary>
+    Task<IReadOnlyList<Transaction>> ListPendingDepositTransactionsAsync(
+        WalletId? walletId,
+        int limit = 100,
+        CancellationToken cancellationToken = default);
     Task AddAsync(Transaction transaction, CancellationToken cancellationToken = default);
     Task UpdateAsync(Transaction transaction, CancellationToken cancellationToken = default);
 }

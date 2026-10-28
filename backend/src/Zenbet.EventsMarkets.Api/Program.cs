@@ -90,6 +90,10 @@ builder.Services.AddSignalR(options =>
     options.KeepAliveInterval = TimeSpan.FromSeconds(10);
 });
 
+// Direccionamiento privado del hub de wallet: cada conexión se identifica con
+// el claim wallet_id del token para que Clients.User solo alcance al dueño.
+builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, WalletUserIdProvider>();
+
 // Add ProblemDetails for standardized error responses
 builder.Services.AddProblemDetails(options =>
 {
@@ -145,12 +149,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
+else
+{
+    app.UseHttpsRedirection();
+}
 
 // Map SignalR hubs
 app.MapHub<OddsHub>("/odds-hub");
 app.MapHub<FightHub>("/fight-hub");
+app.MapHub<FootballHub>("/football-hub");
+app.MapHub<WalletHub>("/wallet-hub").RequireAuthorization();
 
 // Los grupos de endpoints declaran su propio prefijo y sus políticas. No
 // envolverlos con otro MapGroup: eso duplicaba /api/v1/bets en la ruta real.
@@ -158,6 +166,7 @@ app.MapAuthEndpoints();
 app.MapBetsEndpoints();
 app.MapWalletEndpoints();
 app.MapEventsEndpoints();
+app.MapFootballEndpoints();
 app.MapFightersEndpoints();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
