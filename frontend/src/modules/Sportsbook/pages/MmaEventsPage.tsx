@@ -48,6 +48,7 @@ import {
   ufcCardNumber,
   UFC_BILLING_SECTIONS,
   UFC_MARKET_FAMILIES,
+  formatFightDay,
   type UfcEvent,
   type UfcFighter,
   type UfcMarket,
@@ -56,6 +57,7 @@ import {
 import { useUfcEvents } from '@/hooks/useUfcEvents';
 import CardNav, { type CardSectionKey } from '../components/CardNav';
 import CardSelector from '../components/CardSelector';
+import FighterSearch from '../components/FighterSearch';
 import FightCard from '../components/FightCard';
 import FighterAvatar from '../components/FighterAvatar';
 import FighterComparisonModal from '../components/FighterComparisonModal';
@@ -566,6 +568,31 @@ function MainEventHero({
   );
 }
 
+function normalizeSearch(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+/** Coincidencia sobre campos reales del payload: peleadores, división, país y nombre del evento. */
+function eventMatches(event: UfcEvent, term: string): boolean {
+  const { red, blue, weightDivisionLabel } = event.bout;
+  const haystack = [
+    red.name,
+    blue.name,
+    red.country,
+    blue.country,
+    weightDivisionLabel,
+    event.name,
+    event.competition ?? '',
+  ]
+    .map(normalizeSearch)
+    .join(' | ');
+  return term.split(/\s+/).every((part) => haystack.includes(part));
+}
+
 export default function MmaEventsPage() {
   const { events: sourceEvents, isLoading, error, reload } = useUfcEvents();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -761,6 +788,16 @@ export default function MmaEventsPage() {
           ? 'Reconectando combates'
           : 'Combates sin conexión';
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const normalizedTerm = normalizeSearch(searchTerm);
+  const isSearching = normalizedTerm.length >= 2;
+  const searchCards = useMemo(() => {
+    if (!isSearching) return [];
+    const matches = sportEvents.filter((event) => eventMatches(event, normalizedTerm));
+    return buildUfcCards(matches);
+  }, [isSearching, normalizedTerm, sportEvents]);
+  const searchCount = searchCards.reduce((sum, card) => sum + card.events.length, 0);
+
   const groupedEvents = useMemo(
     () =>
       UFC_BILLING_SECTIONS.map((section) => ({
@@ -901,6 +938,12 @@ export default function MmaEventsPage() {
 
             <CardSelector cards={cards} activeKey={activeKey} onSelect={handleSelectCard} />
 
+            <FighterSearch
+              value={searchTerm}
+              onChange={setSearchTerm}
+              resultCount={isSearching ? searchCount : null}
+            />
+
             {heroEvent && (
               <MainEventHero
                 event={heroEvent}
@@ -981,9 +1024,42 @@ export default function MmaEventsPage() {
 
             {!isLoading && error && <EventsError message={error} onRetry={reload} />}
 
-            {!isLoading && !error && activeEvents.length === 0 && <EventsEmpty />}
+            {isSearching &&
+              searchCards.map((card) => (
+                <section
+                  key={card.key}
+                  aria-label={`Resultados ${card.competition}`}
+                  className='flex min-w-0 flex-col gap-2.5'
+                >
+                  <h3 className='font-mono text-[10px] font-bold uppercase tracking-wide text-lime-400'>
+                    {card.competition} · {formatFightDay(card.startTime)}
+                  </h3>
+                  <div className='flex flex-col gap-3'>
+                    {card.events.map((event) => (
+                      <FightCard
+                        key={event.id}
+                        event={event}
+                        featured={false}
+                        selectedIds={selectedIds}
+                        onAddSelection={handleAddSelection}
+                        onRemoveSelection={removeSelection}
+                        onOpenComparison={handleOpenComparison}
+                        oddsMap={quotes}
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
 
-            {visibleSections.map((section, index) => (
+            {isSearching && searchCards.length === 0 && !isLoading && (
+              <p className='shibuya-glass p-5 text-xs text-metallic-titanium'>
+                Ningún combate coincide con “{searchTerm.trim()}”.
+              </p>
+            )}
+
+            {!isSearching && !isLoading && !error && activeEvents.length === 0 && <EventsEmpty />}
+
+            {(isSearching ? [] : visibleSections).map((section, index) => (
               <section
                 key={section.key}
                 aria-labelledby={`section-${section.key}`}
@@ -1014,7 +1090,7 @@ export default function MmaEventsPage() {
               </section>
             ))}
 
-            {visibleSections.length === 0 && !isLoading && !error && activeEvents.length > 0 && (
+            {!isSearching && visibleSections.length === 0 && !isLoading && !error && activeEvents.length > 0 && (
               <p className='shibuya-glass p-5 text-xs text-metallic-titanium'>
                 No hay combates en esta sección.
               </p>
