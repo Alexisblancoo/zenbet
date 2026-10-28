@@ -67,7 +67,7 @@ import HubStatusBadge from '../components/HubStatusBadge';
 import SourceBadge from '../components/SourceBadge';
 import SportComingSoon from '../components/SportComingSoon';
 import SportsBentoGrid from '../components/SportsBentoGrid';
-import CompetitionHeroBentoGrid from '../components/CompetitionHeroBentoGrid';
+import VenueAnimalGrid, { type VenueCardItem } from '../components/VenueAnimalGrid';
 import SportsbookHeroBanner from '../components/SportsbookHeroBanner';
 import { getCountryFlagEmoji } from '@/utils/countryFlags';
 
@@ -757,40 +757,7 @@ export default function MmaEventsPage() {
     [searchParams, setSearchParams],
   );
 
-  const [selectedPromotionId, setSelectedPromotionId] = useState<string | null>(null);
   const [selectedFootballCompetitionId, setSelectedFootballCompetitionId] = useState<string | null>(null);
-
-  const handleSelectPromotion = useCallback(
-    (id: string) => {
-      setSelectedPromotionId(id);
-      const targetQuery =
-        id === 'promotion_oktagon'
-          ? 'OKTAGON'
-          : id === 'promotion_one'
-            ? 'ONE'
-            : id === 'promotion_pfl'
-              ? 'PFL'
-              : id === 'promotion_ufc'
-                ? 'UFC'
-                : null;
-
-      if (!targetQuery) {
-        handleSelectCard('all');
-        return;
-      }
-
-      const matchingCard = cards.find((c) =>
-        c.events.some((e) => (e.competition ?? e.name).toUpperCase().includes(targetQuery)),
-      );
-
-      if (matchingCard) {
-        handleSelectCard(matchingCard.key);
-      } else {
-        handleSelectCard('all');
-      }
-    },
-    [cards, handleSelectCard],
-  );
 
   const handleSelectFootballCompetition = useCallback((id: string) => {
     setSelectedFootballCompetitionId(id === 'all' ? null : id);
@@ -935,56 +902,57 @@ export default function MmaEventsPage() {
     };
   }, [isLoading, mmaEvents]);
 
-  const mmaPromotionCounts = useMemo(() => {
-    const counts: Record<string, { eventCount: number; liveCount: number }> = {
-      promotion_ufc: { eventCount: 0, liveCount: 0 },
-      promotion_oktagon: { eventCount: 0, liveCount: 0 },
-      promotion_one: { eventCount: 0, liveCount: 0 },
-      promotion_pfl: { eventCount: 0, liveCount: 0 },
-    };
-
-    for (const event of mmaEvents) {
-      const comp = (event.competition ?? event.name).toUpperCase();
-      let key = 'promotion_ufc';
-      if (comp.includes('OKTAGON')) key = 'promotion_oktagon';
-      else if (comp.includes('ONE')) key = 'promotion_one';
-      else if (comp.includes('PFL')) key = 'promotion_pfl';
-
-      const isLive = event.status === 'live' && !event.isExpired;
-      counts[key].eventCount += 1;
-      if (isLive) counts[key].liveCount += 1;
-    }
-
-    return counts;
-  }, [mmaEvents]);
-
   const {
     matches: footballMatches,
     liveMatches: footballLiveMatches,
     isLoading: isFootballLoading,
   } = useFootballEvents();
 
-  const footballCompetitionCounts = useMemo(() => {
-    const counts: Record<string, { eventCount: number; liveCount: number }> = {
-      ucl: { eventCount: 0, liveCount: 0 },
-      premier: { eventCount: 0, liveCount: 0 },
-      laliga: { eventCount: 0, liveCount: 0 },
-      bolivia: { eventCount: 0, liveCount: 0 },
-    };
+  const mmaVenueItems = useMemo<readonly VenueCardItem[]>(
+    () =>
+      cards.map((card) => ({
+        id: card.key,
+        title: ufcCardNumber(card.competition) ? `UFC ${ufcCardNumber(card.competition)}` : card.competition,
+        place: card.location || card.venue,
+        detail: card.venue || undefined,
+        dateLabel: formatCardDayBadge(card.startTime),
+        countLabel: `${card.events.length} ${card.events.length === 1 ? 'combate' : 'combates'}`,
+        liveCount: card.liveCount,
+      })),
+    [cards],
+  );
 
+  const footballVenueItems = useMemo<readonly VenueCardItem[]>(() => {
+    const byLeague = new Map<string, { item: VenueCardItem; count: number; live: number }>();
     for (const match of footballMatches) {
-      const leagueId = match.league.id;
-      if (!counts[leagueId]) {
-        counts[leagueId] = { eventCount: 0, liveCount: 0 };
-      }
-      counts[leagueId].eventCount += 1;
-      if (match.status === 'live' && !match.isExpired) {
-        counts[leagueId].liveCount += 1;
-      }
+      const entry = byLeague.get(match.league.id) ?? {
+        item: {
+          id: match.league.id,
+          title: match.league.name,
+          place: match.league.country,
+          hint: match.league.countryCode,
+          detail: match.league.season,
+          countLabel: '',
+          liveCount: 0,
+        },
+        count: 0,
+        live: 0,
+      };
+      entry.count += 1;
+      if (match.status === 'live' && !match.isExpired) entry.live += 1;
+      byLeague.set(match.league.id, entry);
     }
-
-    return counts;
+    return [...byLeague.values()].map(({ item, count, live }) => ({
+      ...item,
+      countLabel: `${count} ${count === 1 ? 'partido' : 'partidos'}`,
+      liveCount: live,
+    }));
   }, [footballMatches]);
+
+  const nextCard = cards.find((card) => !card.isFinished);
+  const nextFootballMatch = footballMatches
+    .filter((match) => !match.isExpired && match.status !== 'finished')
+    .sort((a, b) => Date.parse(a.startTimeUTC) - Date.parse(b.startTimeUTC))[0];
 
   const footballStats = useMemo(() => {
     const marketCount = footballMatches.reduce((sum, m) => sum + m.markets.length, 0);
@@ -1027,12 +995,26 @@ export default function MmaEventsPage() {
                   activeSport='soccer'
                   liveCount={footballStats.liveCount}
                   totalEvents={footballStats.eventCount}
+                  openMarketCount={footballStats.openMarketCount}
+                  nextStartTime={nextFootballMatch?.startTimeUTC ?? null}
+                  nextPlace={
+                    nextFootballMatch
+                      ? (nextFootballMatch.city ?? nextFootballMatch.league.country)
+                      : null
+                  }
+                  nextCountryCode={nextFootballMatch?.league.countryCode ?? null}
+                  isLoading={isFootballLoading}
                 />
-                <CompetitionHeroBentoGrid
-                  activeCategory='football'
-                  selectedCompetitionId={selectedFootballCompetitionId}
-                  onSelectCompetition={handleSelectFootballCompetition}
-                  countsById={footballCompetitionCounts}
+                <VenueAnimalGrid
+                  kicker='Ligas'
+                  title='Ligas con partidos publicados'
+                  description='Solo aparecen las ligas que hoy tienen partidos en la API.'
+                  items={footballVenueItems}
+                  selectedId={selectedFootballCompetitionId}
+                  onSelect={handleSelectFootballCompetition}
+                  allowClear
+                  emptyMessage='La API no tiene partidos de fútbol publicados por ahora.'
+                  isLoading={isFootballLoading}
                 />
                 <SportsBentoGrid
                   activeSport={activeSport}
@@ -1105,12 +1087,21 @@ export default function MmaEventsPage() {
               activeSport='mma'
               liveCount={mmaStats.liveCount}
               totalEvents={mmaStats.eventCount}
+              openMarketCount={mmaStats.openMarketCount}
+              nextStartTime={nextCard?.startTime ?? null}
+              nextPlace={nextCard ? nextCard.location || nextCard.venue : null}
+              connectionLabel={fightHubLabel}
+              isLoading={isLoading}
             />
-            <CompetitionHeroBentoGrid
-              activeCategory='mma'
-              selectedCompetitionId={selectedPromotionId}
-              onSelectCompetition={handleSelectPromotion}
-              countsById={mmaPromotionCounts}
+            <VenueAnimalGrid
+              kicker='Sedes'
+              title='Carteleras por sede'
+              description='Cada tarjeta es una cartelera real de la API; el animal representa el lugar donde se pelea.'
+              items={mmaVenueItems}
+              selectedId={activeKey}
+              onSelect={handleSelectCard}
+              emptyMessage='No hay carteleras publicadas por ahora.'
+              isLoading={isLoading}
             />
             <SportsBentoGrid
               activeSport={activeSport}

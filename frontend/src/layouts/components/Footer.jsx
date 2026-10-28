@@ -134,6 +134,7 @@ export default function Footer() {
         <div className='flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px] text-metallic-slate'>
           <div className='flex flex-wrap items-center gap-3'>
             <p>© 2026 Zenbet Interactive Ltd. Todos los derechos reservados.</p>
+            <p>Ilustraciones de animales: <a href='https://game-icons.net' target='_blank' rel='noreferrer' className='underline hover:text-white'>game-icons.net</a> (CC BY 3.0).</p>
             <div className='flex items-center gap-2'>
               <Link to='/terms' className='hover:text-white transition-colors'>Términos</Link>
               <span>·</span>

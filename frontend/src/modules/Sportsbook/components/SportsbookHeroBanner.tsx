@@ -1,89 +1,126 @@
 import { memo } from 'react';
-import { Activity, Gauge, Radio, ShieldCheck, Zap } from 'lucide-react';
+
+import Countdown from '@/components/Countdown';
+
+import { animalForPlace } from './placeAnimals';
 
 interface SportsbookHeroBannerProps {
   readonly activeSport?: string;
   readonly liveCount?: number;
   readonly totalEvents?: number;
+  readonly openMarketCount?: number;
+  /** Inicio real del próximo evento (ISO-8601) según la API. */
+  readonly nextStartTime?: string | null;
+  /** Sede real del próximo evento; define el animal de la ilustración. */
+  readonly nextPlace?: string | null;
+  readonly nextCountryCode?: string | null;
+  /** Estado real del canal en vivo (SignalR). */
+  readonly connectionLabel?: string;
+  readonly isLoading?: boolean;
 }
 
 /**
- * Cabecera oficial Neo-Brutalista de ZenBet Sportsbook.
- * Slogan de alta densidad con acentos Shibuya Lime (#D4FF3F).
+ * Cabecera del Sportsbook. Todas las cifras llegan de la API o del canal en
+ * vivo; mientras no hay dato se muestra «—», nunca un número de ejemplo.
  */
 function SportsbookHeroBanner({
   activeSport = 'mma',
   liveCount = 0,
   totalEvents = 0,
+  openMarketCount = 0,
+  nextStartTime = null,
+  nextPlace = null,
+  nextCountryCode = null,
+  connectionLabel,
+  isLoading = false,
 }: SportsbookHeroBannerProps) {
+  const animal = animalForPlace(nextPlace, nextCountryCode);
+  const { Icon } = animal;
+  const hasData = !isLoading && totalEvents > 0;
+  const value = (n: number) => (hasData ? String(n) : '—');
+  const sportLabel = activeSport === 'soccer' ? 'Fútbol' : 'UFC / MMA';
+
   return (
-    <header className='relative overflow-hidden rounded-2xl border border-white/[0.1] bg-[#0A0A0A] p-4 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)]'>
-      {/* Rayas de acento brutalista Shibuya Lime */}
-      <div
+    <header className='relative overflow-hidden rounded-2xl border border-white/[0.1] bg-[#0A0A0A] p-4 sm:p-6'>
+      <span
         aria-hidden='true'
-        className='pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#D4FF3F] to-transparent shadow-[0_0_12px_#D4FF3F]'
+        className='pointer-events-none absolute inset-0 opacity-[0.1] [background-image:radial-gradient(#D4FF3F_1px,transparent_1.3px)] [background-size:8px_8px] [mask-image:linear-gradient(to_left,black,transparent_60%)]'
       />
-      <div
-        aria-hidden='true'
-        className='pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#D4FF3F]/[0.035] blur-3xl'
-      />
+      {nextPlace && (
+        <Icon
+          aria-hidden='true'
+          className='pointer-events-none absolute -right-4 top-1/2 hidden h-56 w-56 -translate-y-1/2 text-lime-400 opacity-80 md:block'
+        />
+      )}
 
-      <div className='relative z-10 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'>
-        <div className='min-w-0 max-w-4xl'>
-          {/* Micro-tags y badges superiores estilo bookie europea de alta densidad */}
-          <div className='flex flex-wrap items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-widest text-metallic-slate'>
-            <span className='inline-flex items-center gap-1.5 rounded-sm border border-[#D4FF3F]/40 bg-[#D4FF3F]/[0.08] px-2 py-0.5 text-[#D4FF3F]'>
-              <span className='h-1.5 w-1.5 animate-pulse rounded-full bg-[#D4FF3F]' aria-hidden='true' />
-              ZENBET // SPORTSBOOK OFICIAL
-            </span>
-            <span className='text-[8px] text-metallic-slate/35'>ВЫСОКАЯ ПЛОТНОСТЬ · ЛИНИЯ</span>
-            <span className='hidden h-3 w-px bg-white/10 sm:block' aria-hidden='true' />
-            <span className='hidden items-center gap-1 text-sage sm:inline-flex'>
-              <Zap size={11} className='text-[#D4FF3F]' aria-hidden='true' />
-              VELOCIDAD SUB-50MS
-            </span>
-          </div>
+      <div className='relative z-10 max-w-2xl'>
+        <p className='font-mono text-[10px] font-bold uppercase tracking-widest text-lime-400'>
+          ZenBet · Sportsbook · {sportLabel}
+        </p>
 
-          {/* Nuevo lema oficial agresivo */}
-          <h1 className='mt-2 font-display text-[clamp(1.25rem,2.8vw,2.15rem)] font-extrabold uppercase leading-[1.08] tracking-tight text-white'>
-            Apuestas de alta densidad.{' '}
-            <span className='text-[#D4FF3F] drop-shadow-[0_0_18px_rgba(212,255,63,0.3)]'>
-              Cuotas en tiempo real, velocidad extrema y control absoluto.
-            </span>
-          </h1>
+        <h1 className='mt-2 font-serif text-[clamp(1.5rem,3.2vw,2.4rem)] font-bold uppercase leading-[1.08] tracking-tight text-cream'>
+          Cada cuota, <span className='text-lime-400'>con su procedencia.</span>
+        </h1>
 
-          <p className='mt-1.5 text-xs text-metallic-slate sm:text-[13px]'>
-            Plataforma brutalista de ejecución instantánea. Líneas oficiales sin intermediarios, cuotas sincronizadas por microsegundo y retornos garantizados.
+        <p className='mt-2 max-w-xl text-xs leading-relaxed text-metallic-titanium sm:text-[13px]'>
+          Cada mercado muestra su fuente y la hora del último dato. Si el canal en vivo se
+          interrumpe, se conserva el último precio recibido hasta que vuelva.
+        </p>
+
+        <dl className='mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap'>
+          <Metric label='En vivo' value={value(liveCount)} accent />
+          <Metric label={activeSport === 'soccer' ? 'Partidos' : 'Combates'} value={value(totalEvents)} />
+          <Metric label='Mercados abiertos' value={value(openMarketCount)} />
+          {nextStartTime && (
+            <div className='rounded-sm border border-white/[0.08] bg-white/[0.02] px-3 py-1.5'>
+              <dt className='font-mono text-[9px] font-bold uppercase tracking-wider text-metallic-titanium'>
+                Próximo inicio
+              </dt>
+              <dd className='font-mono text-sm font-bold text-white tabular-nums'>
+                <Countdown startTime={nextStartTime} className='text-white' />
+              </dd>
+            </div>
+          )}
+          {connectionLabel && (
+            <Metric label='Canal en vivo' value={connectionLabel} small />
+          )}
+        </dl>
+
+        {nextPlace && (
+          <p className='mt-3 font-mono text-[9px] uppercase tracking-wider text-metallic-titanium'>
+            Sede del próximo evento: {nextPlace} · {animal.label}
           </p>
-        </div>
-
-        {/* Métricas y Estado en vivo */}
-        <div className='flex shrink-0 items-center gap-3 border-t border-white/[0.07] pt-3 lg:border-t-0 lg:pt-0'>
-          <div className='grid grid-cols-2 gap-2 text-left sm:flex sm:items-center'>
-            <div className='rounded-sm border border-white/[0.08] bg-white/[0.02] px-3 py-1.5'>
-              <span className='block font-mono text-[8px] font-bold uppercase tracking-wider text-metallic-slate'>
-                EVENTOS EN VIVO
-              </span>
-              <span className='font-mono text-base font-bold text-[#D4FF3F] tabular-nums sm:text-lg'>
-                {liveCount > 0 ? `${liveCount} LIVE` : 'DISPONIBLES'}
-              </span>
-            </div>
-
-            <div className='rounded-sm border border-white/[0.08] bg-white/[0.02] px-3 py-1.5'>
-              <span className='block font-mono text-[8px] font-bold uppercase tracking-wider text-metallic-slate'>
-                LATENCIA SIGNALR
-              </span>
-              <span className='flex items-center gap-1 font-mono text-base font-bold text-white tabular-nums sm:text-lg'>
-                <Gauge size={13} className='text-[#D4FF3F]' aria-hidden='true' />
-                &lt; 35ms
-              </span>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </header>
   );
 }
 
-export default memo(SportsbookHeroBanner);
+function Metric({
+  label,
+  value,
+  accent = false,
+  small = false,
+}: {
+  readonly label: string;
+  readonly value: string;
+  readonly accent?: boolean;
+  readonly small?: boolean;
+}) {
+  return (
+    <div className='rounded-sm border border-white/[0.08] bg-white/[0.02] px-3 py-1.5'>
+      <dt className='font-mono text-[9px] font-bold uppercase tracking-wider text-metallic-titanium'>
+        {label}
+      </dt>
+      <dd
+        className={`font-mono font-bold tabular-nums ${small ? 'text-sm' : 'text-lg'} ${
+          accent ? 'text-lime-400' : 'text-white'
+        }`}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
 
+export default memo(SportsbookHeroBanner);
