@@ -308,7 +308,12 @@
   font-size: 11px;
   line-height: 1.4;
 }
-.hx-serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
+.hx-serif {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.hx-serif em { font-style: normal; }
 .hx-frame { position: relative; border: 1px solid #2C2C2C; background: #0F0F0E; }
 .hx-plus {
   position: absolute;

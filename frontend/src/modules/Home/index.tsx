@@ -6,6 +6,7 @@ import Countdown from '@/components/Countdown';
 import { formatDecimalOdds } from '@/domain/odds';
 import {
   buildUfcCards,
+  displaySourceName,
   findEventSource,
   findMarket,
   formatFightDate,
@@ -43,7 +44,7 @@ const STEPS = [
 const FAQ = [
   {
     q: '¿Las cuotas son ejecutables?',
-    a: 'No. Son cuotas de referencia tomadas de un snapshot declarado. Cada mercado indica su proveedor y su timestamp de observación.',
+    a: 'No. Son cuotas de referencia. Cada mercado indica su proveedor y su timestamp de observación.',
   },
   {
     q: '¿Qué deportes puedo ver hoy?',
@@ -139,7 +140,7 @@ export default function Home() {
                 ? 'Consultando carteleras…'
                 : error
                   ? 'Cartelera no disponible'
-                  : `${events.length} combates · ${marketCount} mercados · snapshot declarado`}
+                  : `${events.length} combates · ${marketCount} mercados`}
             </p>
           </div>
 
@@ -271,8 +272,8 @@ export default function Home() {
                     </div>
                     {updatedAt && (
                       <p className='font-mono text-[10px] uppercase tracking-wide text-sage'>
-                        Cuotas actualizadas {updatedAt} · Fuente:{' '}
-                        {source?.name ?? 'snapshot declarado'}
+                        Cuotas actualizadas {updatedAt}
+                        {source?.name ? ` · Fuente: ${displaySourceName(source.name)}` : ''}
                       </p>
                     )}
                   </div>

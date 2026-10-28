@@ -60,7 +60,6 @@ import { useUfcEvents } from '@/hooks/useUfcEvents';
 import { useFootballEvents } from '@/hooks/useFootballEvents';
 import FootballEventsSection from '../components/FootballEventsSection';
 import CardNav, { type CardSectionKey } from '../components/CardNav';
-import CardSelector from '../components/CardSelector';
 import FighterSearch from '../components/FighterSearch';
 import FightCard from '../components/FightCard';
 import FighterAvatar from '../components/FighterAvatar';
@@ -1114,8 +1113,6 @@ export default function MmaEventsPage() {
               mmaStats={mmaStats}
               footballStats={footballStats}
             />
-
-            <CardSelector cards={cards} activeKey={activeKey} onSelect={handleSelectCard} />
 
             <FighterSearch
               value={searchTerm}
