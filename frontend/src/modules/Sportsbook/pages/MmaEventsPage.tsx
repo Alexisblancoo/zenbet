@@ -1007,7 +1007,8 @@ export default function MmaEventsPage() {
                 />
                 <VenueAnimalGrid
                   kicker='Ligas'
-                  title='Ligas con partidos publicados'
+                  title='Ligas con'
+                  titleAccent='partidos publicados'
                   description='Solo aparecen las ligas que hoy tienen partidos en la API.'
                   items={footballVenueItems}
                   selectedId={selectedFootballCompetitionId}
@@ -1095,7 +1096,8 @@ export default function MmaEventsPage() {
             />
             <VenueAnimalGrid
               kicker='Sedes'
-              title='Carteleras por sede'
+              title='Carteleras'
+              titleAccent='por sede'
               description='Cada tarjeta es una cartelera real de la API; el animal representa el lugar donde se pelea.'
               items={mmaVenueItems}
               selectedId={activeKey}

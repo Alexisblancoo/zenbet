@@ -292,3 +292,95 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ───────── Hermes ink · Sportsbook (contenedores de sedes y cabecera) ─────────
+   Mismos colores, fuentes y efectos del diseño «ZenBet Sportsbook — Hermes ink». */
+.hx { --hx-accent: #D4FF3F; font-family: 'Inter', system-ui, sans-serif; color: #F3E5AB; }
+.hx-bg {
+  background-color: #0B0B0A;
+  background-image: radial-gradient(rgba(243, 229, 171, 0.07) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+.hx-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.hx-serif { font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; }
+.hx-frame { position: relative; border: 1px solid #2C2C2C; background: #0F0F0E; }
+.hx-plus {
+  position: absolute;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--hx-accent);
+  background: #0B0B0A;
+  padding: 2px;
+}
+.hx-plus.tl { top: -10px; left: -8px; }
+.hx-plus.tr { top: -10px; right: -8px; }
+.hx-plus.bl { bottom: -10px; left: -8px; }
+.hx-plus.br { bottom: -10px; right: -8px; }
+
+/* Tinta: la silueta (alfa del WebP) se pinta con el acento y se tramada con puntos. */
+.hx-art { position: relative; overflow: hidden; background: #0B0B0A; isolation: isolate; }
+.hx-ink {
+  position: absolute;
+  inset: 8%;
+  background: var(--ac, #D4FF3F);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  transition: transform 0.5s ease;
+}
+.hx-art::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background-image: radial-gradient(rgba(11, 11, 10, 0.7) 1px, transparent 1.3px);
+  background-size: 4px 4px;
+  pointer-events: none;
+}
+.hx-card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  color: inherit;
+  border: 1px solid #2C2C2C;
+  background: #0F0F0E;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.hx-card:hover,
+.hx-card:focus-visible { border-color: var(--hx-accent); transform: translateY(-3px); outline: none; }
+.hx-card:hover .hx-ink { transform: scale(1.06); }
+.hx-card:hover .hx-go { color: var(--hx-accent); }
+.hx-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  box-sizing: border-box;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid var(--hx-accent);
+  transition: background 0.2s, color 0.2s;
+}
+.hx-btn.solid { background: var(--hx-accent); color: #0D0D0D; }
+.hx-btn.solid:hover { background: #F3E5AB; border-color: #F3E5AB; }
+.hx-btn.ghost { color: var(--hx-accent); background: transparent; }
+.hx-btn.ghost:hover { background: var(--hx-accent); color: #0D0D0D; }
+@media (prefers-reduced-motion: reduce) {
+  .hx-card, .hx-ink { transition: none; }
+  .hx-card:hover { transform: none; }
+  .hx-card:hover .hx-ink { transform: none; }
+}

@@ -1,7 +1,6 @@
 import { memo } from 'react';
-import { ArrowUpRight } from 'lucide-react';
 
-import { animalForPlace } from './placeAnimals';
+import { animalForPlace, AnimalInk } from './placeAnimals';
 
 export interface VenueCardItem {
   readonly id: string;
@@ -12,13 +11,15 @@ export interface VenueCardItem {
   readonly dateLabel?: string;
   readonly countLabel: string;
   readonly liveCount: number;
-  /** Texto extra que decide el animal (código de país, estadio…). */
+  /** Código de país (ISO-2) para elegir el animal cuando el nombre no basta. */
   readonly hint?: string;
 }
 
 interface VenueAnimalGridProps {
   readonly kicker: string;
   readonly title: string;
+  /** Parte del título que va en el color de acento. */
+  readonly titleAccent: string;
   readonly description: string;
   readonly items: readonly VenueCardItem[];
   readonly selectedId: string | null;
@@ -29,13 +30,18 @@ interface VenueAnimalGridProps {
   readonly allowClear?: boolean;
 }
 
+/** Acentos del diseño «Hermes ink», rotados por tarjeta. */
+const ACCENTS = ['#D4FF3F', '#F3E5AB', '#FF2A55', '#B07CFF', '#A8B5A2'] as const;
+const ACCENT_TEXT: Readonly<Record<string, string>> = { '#FF2A55': '#FF6B88' };
+
 /**
- * Rejilla de sedes. Cada tarjeta nace de un evento o una liga reales de la API;
- * el animal es solo la ilustración del lugar. Sin cifras ni textos inventados.
+ * Sedes en estilo «Hermes ink». Cada tarjeta nace de una cartelera o liga real
+ * de la API; el animal solo ilustra el lugar. Sin cifras ni textos inventados.
  */
 function VenueAnimalGrid({
   kicker,
   title,
+  titleAccent,
   description,
   items,
   selectedId,
@@ -46,41 +52,37 @@ function VenueAnimalGrid({
 }: VenueAnimalGridProps) {
   return (
     <section
+      id='sedes'
       aria-labelledby='venue-grid-title'
-      className='relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0A0A0A] p-3.5 sm:p-5'
+      className='hx hx-bg flex scroll-mt-20 flex-col gap-8 rounded-sm px-4 pb-10 pt-6 sm:px-6'
     >
-      <div className='flex flex-wrap items-end justify-between gap-3 border-b border-white/[0.06] pb-3.5'>
-        <div>
-          <span className='font-mono text-[10px] font-bold uppercase tracking-widest text-lime-400'>
-            / {kicker}
-          </span>
+      <div className='flex flex-wrap items-end justify-between gap-5 border-t border-[#2C2C2C] pt-5'>
+        <div className='flex max-w-2xl flex-col gap-3.5'>
+          <span className='hx-mono text-[color:var(--hx-accent)]'>/ {kicker}</span>
           <h2
             id='venue-grid-title'
-            className='mt-1 font-serif text-xl font-bold uppercase tracking-tight text-cream sm:text-2xl'
+            className='hx-serif m-0 text-[clamp(34px,4.4vw,52px)] leading-none tracking-[-0.015em] text-[#F3E5AB]'
           >
-            {title}
+            {title} <em className='text-[color:var(--hx-accent)]'>{titleAccent}</em>
           </h2>
-          <p className='mt-0.5 max-w-xl text-xs leading-relaxed text-metallic-titanium'>
-            {description}
-          </p>
+          <p className='m-0 text-[15px] leading-relaxed text-[#B9B9B9]'>{description}</p>
         </div>
         {allowClear && selectedId && (
-          <button type='button' onClick={() => onSelect('all')} className='btn btn-secondary btn-sm'>
+          <button type='button' onClick={() => onSelect('all')} className='hx-btn ghost'>
             Ver todas ({items.length})
           </button>
         )}
       </div>
 
       {items.length === 0 ? (
-        <p className='mt-4 text-xs text-metallic-titanium'>
-          {isLoading ? 'Cargando…' : emptyMessage}
-        </p>
+        <p className='hx-mono text-[#9C9C9C]'>{isLoading ? 'Cargando…' : emptyMessage}</p>
       ) : (
-        <div className='mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
-          {items.map((item) => {
+        <div className='grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4'>
+          {items.map((item, index) => {
             const selected = selectedId === item.id;
+            const accent = ACCENTS[index % ACCENTS.length];
+            const accentText = ACCENT_TEXT[accent] ?? accent;
             const animal = animalForPlace(item.place, item.hint);
-            const { Icon } = animal;
 
             return (
               <button
@@ -88,56 +90,48 @@ function VenueAnimalGrid({
                 type='button'
                 onClick={() => onSelect(item.id)}
                 aria-pressed={selected}
-                className={`group relative flex min-h-[236px] flex-col justify-between overflow-hidden rounded-xl border p-4 text-left transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400 ${
-                  selected
-                    ? 'border-lime-400 bg-[#111111]'
-                    : 'border-white/[0.09] bg-[#0E0E0E] hover:border-white/25'
-                }`}
+                className='hx-card cursor-pointer p-0'
+                style={{
+                  ['--hx-accent' as string]: accent,
+                  borderColor: selected ? accent : undefined,
+                }}
               >
-                {/* Tramado de puntos + animal de la sede, en el mismo lima del sitio */}
-                <span
-                  aria-hidden='true'
-                  className='pointer-events-none absolute inset-0 opacity-[0.16] [background-image:radial-gradient(#D4FF3F_1px,transparent_1.3px)] [background-size:7px_7px] [mask-image:linear-gradient(to_bottom_right,black,transparent_70%)]'
-                />
-                <Icon
-                  aria-hidden='true'
-                  className={`pointer-events-none absolute -right-2 -top-1 h-28 w-28 transition-opacity duration-300 ${
-                    selected ? 'text-lime-400 opacity-90' : 'text-lime-400 opacity-45 group-hover:opacity-80'
-                  }`}
-                />
-
-                <div className='relative flex items-start justify-between gap-2'>
-                  {item.liveCount > 0 ? (
-                    <span className='inline-flex items-center gap-1.5 rounded-full border border-lime-400/40 bg-lime-400/15 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-lime-400'>
-                      <span className='h-1.5 w-1.5 rounded-full bg-lime-400 motion-safe:animate-pulse' />
-                      {item.liveCount} en vivo
-                    </span>
-                  ) : (
-                    <span />
-                  )}
+                <div className='hx-art h-[200px] w-full' style={{ ['--ac' as string]: accent }}>
+                  <AnimalInk animal={animal} />
                 </div>
 
-                <div className='relative mt-24'>
-                  <p className='font-mono text-[9px] uppercase tracking-wider text-metallic-titanium'>
-                    {item.place}
-                  </p>
-                  <div className='mt-1 flex items-start justify-between gap-2'>
-                    <h3
-                      className={`font-serif text-lg font-bold uppercase leading-tight ${
-                        selected ? 'text-lime-400' : 'text-cream group-hover:text-lime-400'
-                      }`}
+                <div className='flex flex-1 flex-col gap-3.5 border-t border-[#2C2C2C] p-[18px]'>
+                  <div className='flex items-center justify-between gap-2'>
+                    <span
+                      className='hx-mono px-[9px] py-1 font-bold'
+                      style={
+                        selected
+                          ? { background: accent, color: '#0D0D0D' }
+                          : { border: `1px solid ${accent}`, color: accentText }
+                      }
                     >
-                      {item.title}
-                    </h3>
-                    <ArrowUpRight size={15} className='mt-1 shrink-0 text-metallic-titanium' aria-hidden='true' />
+                      {item.dateLabel ?? animal.label}
+                    </span>
+                    {item.liveCount > 0 ? (
+                      <span className='hx-mono inline-flex items-center gap-1.5 text-[10px] text-[color:var(--hx-accent)]'>
+                        <span className='h-1.5 w-1.5 rounded-full bg-[color:var(--hx-accent)] motion-safe:animate-pulse' />
+                        {item.liveCount} en vivo
+                      </span>
+                    ) : (
+                      <span className='hx-mono text-[10px] text-[#9C9C9C]'>{item.place}</span>
+                    )}
                   </div>
+
+                  <span className='hx-serif text-[30px] leading-[1.02] text-[#F3E5AB]'>{item.title}</span>
+
                   {item.detail && (
-                    <p className='mt-1 line-clamp-1 text-[11px] text-metallic-titanium'>{item.detail}</p>
+                    <span className='text-[13.5px] leading-snug text-[#B9B9B9]'>{item.detail}</span>
                   )}
-                  <div className='mt-2.5 flex items-center justify-between gap-2 border-t border-white/[0.08] pt-2 font-mono text-[9px] uppercase tracking-wider text-metallic-titanium'>
-                    <span>{item.dateLabel ? `${item.dateLabel} · ` : ''}{item.countLabel}</span>
-                    <span className='shrink-0 text-lime-400/80'>{animal.label}</span>
-                  </div>
+
+                  <span className='hx-mono hx-go mt-auto flex justify-between border-t border-[#2C2C2C] pt-3 text-[10px] text-[#9C9C9C]'>
+                    <span>{item.countLabel}</span>
+                    <span>{animal.label} ↗</span>
+                  </span>
                 </div>
               </button>
             );

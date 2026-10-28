@@ -19,23 +19,30 @@ import {
 
 export interface PlaceAnimal {
   readonly key: string;
+  /** Ilustración en tinta (WebP con alfa). Si falta, se usa la silueta de respaldo. */
+  readonly image?: string;
   /** Nombre en español del animal que representa el lugar. */
   readonly label: string;
   readonly Icon: IconType;
 }
 
+const ART_BASE = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const ink = (name: string) => `${ART_BASE}art/animals/${name}.webp`;
+
 const ANIMALS = {
-  eagle: { key: 'eagle', label: 'Águila calva', Icon: GiEagleHead },
+  eagle: { key: 'eagle', image: ink('aguila'), label: 'Águila calva', Icon: GiEagleHead },
   imperialEagle: { key: 'imperialEagle', label: 'Águila imperial', Icon: GiEagleEmblem },
-  lion: { key: 'lion', label: 'León', Icon: GiLion },
+  lion: { key: 'lion', image: ink('leon'), label: 'León', Icon: GiLion },
   bull: { key: 'bull', label: 'Toro', Icon: GiBullHorns },
-  jaguar: { key: 'jaguar', label: 'Jaguar', Icon: GiTigerHead },
+  jaguar: { key: 'jaguar', image: ink('jaguar'), label: 'Jaguar', Icon: GiTigerHead },
   condor: { key: 'condor', label: 'Cóndor', Icon: GiCondorEmblem },
-  camel: { key: 'camel', label: 'Camello', Icon: GiCamelHead },
-  kangaroo: { key: 'kangaroo', label: 'Canguro', Icon: GiKangaroo },
-  bear: { key: 'bear', label: 'Oso', Icon: GiBearHead },
+  camel: { key: 'camel', image: ink('camello'), label: 'Camello', Icon: GiCamelHead },
+  kangaroo: { key: 'kangaroo', image: ink('canguro'), label: 'Canguro', Icon: GiKangaroo },
+  bear: { key: 'bear', image: ink('oso'), label: 'Oso', Icon: GiBearHead },
   rooster: { key: 'rooster', label: 'Gallo', Icon: GiRooster },
-  wolf: { key: 'wolf', label: 'Lobo', Icon: GiWolfHead },
+  wolf: { key: 'wolf', image: ink('lobo'), label: 'Lobo', Icon: GiWolfHead },
   panda: { key: 'panda', label: 'Panda', Icon: GiPanda },
   fox: { key: 'fox', label: 'Zorro', Icon: GiFoxHead },
   elephant: { key: 'elephant', label: 'Elefante', Icon: GiElephantHead },
@@ -119,4 +126,19 @@ export function animalForPlace(
   }
   const byCode = countryCode ? CODE_RULES[countryCode.toUpperCase()] : undefined;
   return byCode ?? ANIMALS.wolf;
+}
+
+/** Pinta el animal del lugar: tinta en el color de acento, o la silueta de respaldo. */
+export function AnimalInk({ animal, className = '' }: { readonly animal: PlaceAnimal; readonly className?: string }) {
+  if (animal.image) {
+    return (
+      <span
+        aria-hidden='true'
+        className={`hx-ink ${className}`}
+        style={{ WebkitMaskImage: `url(${animal.image})`, maskImage: `url(${animal.image})` }}
+      />
+    );
+  }
+  const { Icon } = animal;
+  return <Icon aria-hidden='true' className={`absolute inset-[14%] h-[72%] w-[72%] text-[color:var(--ac,#D4FF3F)] ${className}`} />;
 }
