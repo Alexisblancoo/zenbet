@@ -119,7 +119,16 @@ public enum TransactionStatus
     Pending = 1,
     Completed = 2,
     Failed = 3,
-    Cancelled = 4
+    Cancelled = 4,
+    Approved = 5,
+    Rejected = 6
+}
+
+public enum PaymentMethod
+{
+    Qr = 1,
+    Crypto = 2,
+    Transfer = 3
 }
 
 /// <summary>

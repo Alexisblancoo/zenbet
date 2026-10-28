@@ -238,6 +238,10 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("failure_reason");
 
+                    b.Property<int?>("Method")
+                        .HasColumnType("integer")
+                        .HasColumnName("payment_method");
+
                     b.Property<string>("PromoCode")
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
@@ -262,6 +266,10 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("type");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
                     b.Property<Guid>("WalletId")
                         .HasColumnType("uuid")
                         .HasColumnName("wallet_id");
@@ -280,6 +288,9 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_transactions_status");
 
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_transactions_user_id");
+
                     b.HasIndex("WalletId")
                         .HasDatabaseName("ix_transactions_wallet_id");
 
@@ -288,6 +299,9 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("WalletId", "CreatedAt")
                         .HasDatabaseName("ix_transactions_wallet_id_created_at");
+
+                    b.HasIndex("Type", "Status", "CreatedAt")
+                        .HasDatabaseName("ix_transactions_type_status_created_at");
 
                     b.ToTable("transactions", "events_markets");
                 });
@@ -361,6 +375,11 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<decimal>("AtRiskBalance")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("at_risk_balance");
 
                     b.Property<decimal>("Balance")
                         .HasPrecision(18, 2)

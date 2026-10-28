@@ -36,6 +36,14 @@ public sealed class WalletConfiguration : IEntityTypeConfiguration<Wallet>
             .HasPrecision(18, 2)
             .IsRequired();
 
+        builder.Property(w => w.AtRiskBalance)
+            .HasConversion(
+                money => money.Amount,
+                amount => new Money(amount))
+            .HasColumnName("at_risk_balance")
+            .HasPrecision(18, 2)
+            .IsRequired();
+
         builder.Property(w => w.Version)
             .HasColumnName("version")
             .IsRequired()

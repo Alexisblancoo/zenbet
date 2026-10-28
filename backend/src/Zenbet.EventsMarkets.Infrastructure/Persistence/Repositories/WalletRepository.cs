@@ -22,6 +22,16 @@ public sealed class WalletRepository : IWalletRepository
             .FirstOrDefaultAsync(w => w.Id == id, cancellationToken);
     }
 
+    public async Task<Wallet?> GetByIdForUpdateAsync(WalletId id, CancellationToken cancellationToken = default)
+    {
+        var rows = await _dbContext.Wallets
+            .FromSqlInterpolated($"SELECT * FROM events_markets.wallets WHERE id = {id.Value} FOR UPDATE")
+            .AsTracking()
+            .ToListAsync(cancellationToken);
+
+        return rows.Count == 0 ? null : rows[0];
+    }
+
     public async Task<Wallet?> GetByUserIdAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Wallets

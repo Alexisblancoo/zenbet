@@ -28,6 +28,13 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
             .HasColumnName("wallet_id")
             .IsRequired();
 
+        builder.Property(t => t.UserId)
+            .HasConversion(
+                id => id.Value,
+                guid => UserId.From(guid))
+            .HasColumnName("user_id")
+            .IsRequired();
+
         builder.Property(t => t.Type)
             .HasColumnName("type")
             .HasConversion<int>()
@@ -56,6 +63,10 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
         builder.Property(t => t.ReferenceId)
             .HasColumnName("reference_id")
             .HasMaxLength(100);
+
+        builder.Property(t => t.Method)
+            .HasColumnName("payment_method")
+            .HasConversion<int>();
 
         builder.Property<SelectionId?>("SelectionId")
             .HasConversion(
@@ -93,6 +104,7 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
             .HasMaxLength(500);
 
         builder.HasIndex("WalletId").HasDatabaseName("ix_transactions_wallet_id");
+        builder.HasIndex(t => t.UserId).HasDatabaseName("ix_transactions_user_id");
         builder.HasIndex(t => t.Status).HasDatabaseName("ix_transactions_status");
         builder.HasIndex(t => t.CreatedAt).HasDatabaseName("ix_transactions_created_at");
         builder.HasIndex("WalletId", "CreatedAt").HasDatabaseName("ix_transactions_wallet_id_created_at");
@@ -100,5 +112,7 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
         builder.HasIndex("SelectionId").HasDatabaseName("ix_transactions_selection_id");
         builder.HasIndex(t => new { t.Type, t.BetStatus })
             .HasDatabaseName("ix_transactions_type_bet_status");
+        builder.HasIndex(t => new { t.Type, t.Status, t.CreatedAt })
+            .HasDatabaseName("ix_transactions_type_status_created_at");
     }
 }

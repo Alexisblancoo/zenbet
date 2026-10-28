@@ -66,6 +66,7 @@ public interface ISelectionRepository
 public interface IWalletRepository
 {
     Task<Wallet?> GetByIdAsync(WalletId id, CancellationToken cancellationToken = default);
+    Task<Wallet?> GetByIdForUpdateAsync(WalletId id, CancellationToken cancellationToken = default);
     Task<Wallet?> GetByUserIdAsync(UserId userId, CancellationToken cancellationToken = default);
     Task AddAsync(Wallet wallet, CancellationToken cancellationToken = default);
     Task UpdateAsync(Wallet wallet, uint expectedVersion, CancellationToken cancellationToken = default);
@@ -76,6 +77,7 @@ public interface IWalletRepository
 public interface ITransactionRepository
 {
     Task<Transaction?> GetByIdAsync(TransactionId id, CancellationToken cancellationToken = default);
+    Task<Transaction?> GetByIdForUpdateAsync(TransactionId id, CancellationToken cancellationToken = default);
     Task<Transaction?> GetByReferenceIdAsync(
         WalletId walletId,
         string referenceId,

@@ -19,11 +19,13 @@ public sealed class Wallet : AggregateRoot<WalletId>
     {
         UserId = userId;
         Balance = Money.Zero;
+        AtRiskBalance = Money.Zero;
         Version = 0;
     }
 
     public required UserId UserId { get; init; }
     public Money Balance { get; private set; }
+    public Money AtRiskBalance { get; private set; }
     public uint Version { get; private set; }
     public IReadOnlyCollection<Transaction> Transactions => _transactions.AsReadOnly();
 
@@ -35,6 +37,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
         var transaction = new Transaction(
             TransactionId.New(),
             Id,
+            UserId,
             TransactionType.Deposit,
             amount,
             Balance + amount,
@@ -49,6 +52,27 @@ public sealed class Wallet : AggregateRoot<WalletId>
         return transaction;
     }
 
+    public void CreditDeposit(Transaction transaction)
+    {
+        ArgumentNullException.ThrowIfNull(transaction);
+
+        if (transaction.WalletId != Id)
+            throw new InvalidOperationException("La transacción no pertenece a esta billetera.");
+
+        if (transaction.Type != TransactionType.Deposit)
+            throw new InvalidOperationException("Solo un depósito puede acreditarse.");
+
+        if (transaction.Status != TransactionStatus.Pending)
+            throw new InvalidOperationException($"No se puede acreditar una transacción en estado {transaction.Status}.");
+
+        var newBalance = Balance + transaction.Amount;
+        transaction.Approve(newBalance);
+        Balance = newBalance;
+        Version++;
+
+        AddDomainEvent(new WalletDepositedDomainEvent(Id, UserId, transaction.Amount, Balance, transaction.Id, DateTimeOffset.UtcNow));
+    }
+
     public Transaction Withdraw(Money amount, string? description = null, string? referenceId = null)
     {
         if (amount <= Money.Zero)
@@ -60,6 +84,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
         var transaction = new Transaction(
             TransactionId.New(),
             Id,
+            UserId,
             TransactionType.Withdrawal,
             amount,
             Balance - amount,
@@ -94,15 +119,16 @@ public sealed class Wallet : AggregateRoot<WalletId>
         var transaction = new Transaction(
             TransactionId.New(),
             Id,
+            UserId,
             TransactionType.BetPlacement,
             amount,
             Balance - amount,
             description,
             referenceId,
-            selectionId,
-            acceptedOdds,
-            promoCode,
-            BetStatus.Pending);
+            selectionId: selectionId,
+            acceptedOdds: acceptedOdds,
+            promoCode: promoCode,
+            betStatus: BetStatus.Pending);
 
         _transactions.Add(transaction);
         Balance -= amount;
@@ -127,6 +153,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
         var transaction = new Transaction(
             TransactionId.New(),
             Id,
+            UserId,
             TransactionType.BetSettlement,
             netAmount,
             Balance + netAmount,
@@ -149,6 +176,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
         var transaction = new Transaction(
             TransactionId.New(),
             Id,
+            UserId,
             TransactionType.BetCancellation,
             amount,
             Balance + amount,
@@ -171,6 +199,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
         var transaction = new Transaction(
             TransactionId.New(),
             Id,
+            UserId,
             TransactionType.Bonus,
             amount,
             Balance + amount,
@@ -194,6 +223,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
         var transaction = new Transaction(
             TransactionId.New(),
             Id,
+            UserId,
             TransactionType.Adjustment,
             amount,
             newBalance,
@@ -217,11 +247,13 @@ public sealed class Transaction : Entity<TransactionId>
     public Transaction(
         TransactionId id,
         WalletId walletId,
+        UserId userId,
         TransactionType type,
         Money amount,
         Money balanceAfter,
         string? description = null,
         string? referenceId = null,
+        PaymentMethod? method = null,
         SelectionId? selectionId = null,
         decimal? acceptedOdds = null,
         string? promoCode = null,
@@ -229,11 +261,13 @@ public sealed class Transaction : Entity<TransactionId>
         : base(id)
     {
         WalletId = walletId;
+        UserId = userId;
         Type = type;
         Amount = amount;
         BalanceAfter = balanceAfter;
         Description = description;
         ReferenceId = referenceId;
+        Method = method;
         SelectionId = selectionId;
         AcceptedOdds = acceptedOdds;
         PromoCode = string.IsNullOrWhiteSpace(promoCode) ? null : promoCode.Trim().ToUpperInvariant();
@@ -243,11 +277,13 @@ public sealed class Transaction : Entity<TransactionId>
     }
 
     public required WalletId WalletId { get; init; }
+    public required UserId UserId { get; init; }
     public required TransactionType Type { get; init; }
     public required Money Amount { get; init; }
-    public required Money BalanceAfter { get; init; }
+    public Money BalanceAfter { get; private set; }
     public string? Description { get; init; }
     public string? ReferenceId { get; init; }
+    public PaymentMethod? Method { get; init; }
     public SelectionId? SelectionId { get; init; }
 
     /// <summary>Cuota aceptada al confirmar la apuesta; base del pago real.</summary>
@@ -263,6 +299,61 @@ public sealed class Transaction : Entity<TransactionId>
     public required DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? CompletedAt { get; private set; }
     public string? FailureReason { get; private set; }
+
+    public static Transaction CreatePendingDeposit(
+        WalletId walletId,
+        UserId userId,
+        Money amount,
+        PaymentMethod method,
+        string reference,
+        Money currentBalance)
+    {
+        if (amount <= Money.Zero)
+            throw new InvalidTransactionAmountException("El monto del depósito debe ser mayor a cero.");
+
+        if (string.IsNullOrWhiteSpace(reference))
+            throw new ArgumentException("La referencia del depósito es obligatoria.", nameof(reference));
+
+        var normalizedReference = reference.Trim();
+        if (normalizedReference.Length > 100)
+            throw new ArgumentException("La referencia del depósito no puede superar los 100 caracteres.", nameof(reference));
+
+        return new Transaction(
+            TransactionId.New(),
+            walletId,
+            userId,
+            TransactionType.Deposit,
+            amount,
+            currentBalance,
+            referenceId: normalizedReference,
+            method: method);
+    }
+
+    public void Approve(Money newBalance)
+    {
+        if (Type != TransactionType.Deposit)
+            throw new InvalidOperationException("Solo un depósito puede aprobarse.");
+
+        if (Status != TransactionStatus.Pending)
+            throw new InvalidOperationException($"No se puede aprobar una transacción en estado {Status}.");
+
+        Status = TransactionStatus.Approved;
+        BalanceAfter = newBalance;
+        CompletedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Reject(string reason)
+    {
+        if (Type != TransactionType.Deposit)
+            throw new InvalidOperationException("Solo un depósito puede rechazarse.");
+
+        if (Status != TransactionStatus.Pending)
+            throw new InvalidOperationException($"No se puede rechazar una transacción en estado {Status}.");
+
+        Status = TransactionStatus.Rejected;
+        FailureReason = string.IsNullOrWhiteSpace(reason) ? "Rechazado por administración" : reason.Trim();
+        CompletedAt = DateTimeOffset.UtcNow;
+    }
 
     /// <summary>
     /// Marca la apuesta como ganadora, perdedora o anulada. El movimiento de
