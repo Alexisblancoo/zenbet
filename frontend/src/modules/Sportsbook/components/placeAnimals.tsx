@@ -23,6 +23,8 @@ export interface PlaceAnimal {
   readonly image?: string;
   /** Nombre en español del animal que representa el lugar. */
   readonly label: string;
+  /** A qué lugar representa; se muestra en la descripción de la sede. */
+  readonly represents: string;
   readonly Icon: IconType;
 }
 
@@ -32,21 +34,21 @@ const ART_BASE = import.meta.env.BASE_URL.endsWith('/')
 const ink = (name: string) => `${ART_BASE}art/animals/${name}.webp`;
 
 const ANIMALS = {
-  eagle: { key: 'eagle', image: ink('aguila'), label: 'Águila calva', Icon: GiEagleHead },
-  imperialEagle: { key: 'imperialEagle', label: 'Águila imperial', Icon: GiEagleEmblem },
-  lion: { key: 'lion', image: ink('leon'), label: 'León', Icon: GiLion },
-  bull: { key: 'bull', label: 'Toro', Icon: GiBullHorns },
-  jaguar: { key: 'jaguar', image: ink('jaguar'), label: 'Jaguar', Icon: GiTigerHead },
-  condor: { key: 'condor', label: 'Cóndor', Icon: GiCondorEmblem },
-  camel: { key: 'camel', image: ink('camello'), label: 'Camello', Icon: GiCamelHead },
-  kangaroo: { key: 'kangaroo', image: ink('canguro'), label: 'Canguro', Icon: GiKangaroo },
-  bear: { key: 'bear', image: ink('oso'), label: 'Oso', Icon: GiBearHead },
-  rooster: { key: 'rooster', label: 'Gallo', Icon: GiRooster },
-  wolf: { key: 'wolf', image: ink('lobo'), label: 'Lobo', Icon: GiWolfHead },
-  panda: { key: 'panda', label: 'Panda', Icon: GiPanda },
-  fox: { key: 'fox', label: 'Zorro', Icon: GiFoxHead },
-  elephant: { key: 'elephant', label: 'Elefante', Icon: GiElephantHead },
-  kiwi: { key: 'kiwi', label: 'Kiwi', Icon: GiKiwiBird },
+  eagle: { key: 'eagle', image: ink('aguila'), label: 'Águila calva', represents: 'Estados Unidos', Icon: GiEagleHead },
+  imperialEagle: { key: 'imperialEagle', label: 'Águila imperial', represents: 'Alemania y Europa central', Icon: GiEagleEmblem },
+  lion: { key: 'lion', image: ink('leon'), label: 'León', represents: 'Reino Unido', Icon: GiLion },
+  bull: { key: 'bull', label: 'Toro', represents: 'España y Europa', Icon: GiBullHorns },
+  jaguar: { key: 'jaguar', image: ink('jaguar'), label: 'Jaguar', represents: 'Latinoamérica (Brasil, México, Argentina)', Icon: GiTigerHead },
+  condor: { key: 'condor', label: 'Cóndor', represents: 'los Andes (Bolivia, Perú, Chile, Colombia)', Icon: GiCondorEmblem },
+  camel: { key: 'camel', image: ink('camello'), label: 'Camello', represents: 'Emiratos Árabes y Arabia', Icon: GiCamelHead },
+  kangaroo: { key: 'kangaroo', image: ink('canguro'), label: 'Canguro', represents: 'Australia', Icon: GiKangaroo },
+  bear: { key: 'bear', image: ink('oso'), label: 'Oso', represents: 'Canadá', Icon: GiBearHead },
+  rooster: { key: 'rooster', label: 'Gallo', represents: 'Francia', Icon: GiRooster },
+  wolf: { key: 'wolf', image: ink('lobo'), label: 'Lobo', represents: 'Italia y las sedes sin animal propio', Icon: GiWolfHead },
+  panda: { key: 'panda', label: 'Panda', represents: 'China', Icon: GiPanda },
+  fox: { key: 'fox', label: 'Zorro', represents: 'Japón', Icon: GiFoxHead },
+  elephant: { key: 'elephant', label: 'Elefante', represents: 'el sudeste asiático e India', Icon: GiElephantHead },
+  kiwi: { key: 'kiwi', label: 'Kiwi', represents: 'Nueva Zelanda', Icon: GiKiwiBird },
 } as const satisfies Record<string, PlaceAnimal>;
 
 /**

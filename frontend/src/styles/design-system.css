@@ -384,3 +384,25 @@
   .hx-card:hover { transform: none; }
   .hx-card:hover .hx-ink { transform: none; }
 }
+
+/* Foto en tinta: duotono (gris → acento) con trama suave para que el rostro siga legible. */
+.hx-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: grayscale(1) contrast(1.35) brightness(1.05);
+  transition: transform 0.5s ease;
+}
+.hx-art.photo::before { background-image: radial-gradient(rgba(11, 11, 10, 0.42) 1px, transparent 1.3px); }
+.hx-art.photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--ac, #D4FF3F);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.hx-card:hover .hx-photo img { transform: scale(1.04); }
+@media (prefers-reduced-motion: reduce) { .hx-photo img { transition: none; } .hx-card:hover .hx-photo img { transform: none; } }

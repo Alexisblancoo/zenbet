@@ -49,6 +49,7 @@ import {
   UFC_BILLING_SECTIONS,
   UFC_MARKET_FAMILIES,
   formatFightDay,
+  shortFighterName,
   type UfcEvent,
   type UfcFighter,
   type UfcMarket,
@@ -914,7 +915,18 @@ export default function MmaEventsPage() {
         id: card.key,
         title: ufcCardNumber(card.competition) ? `UFC ${ufcCardNumber(card.competition)}` : card.competition,
         place: card.location || card.venue,
-        detail: card.venue || undefined,
+        venue: card.venue || undefined,
+        whenLabel: formatFightDay(card.startTime),
+        versus: {
+          left: {
+            name: shortFighterName(card.mainEvent.bout.red.name),
+            imageUrl: card.mainEvent.bout.red.imageUrl,
+          },
+          right: {
+            name: shortFighterName(card.mainEvent.bout.blue.name),
+            imageUrl: card.mainEvent.bout.blue.imageUrl,
+          },
+        },
         dateLabel: formatCardDayBadge(card.startTime),
         countLabel: `${card.events.length} ${card.events.length === 1 ? 'combate' : 'combates'}`,
         liveCount: card.liveCount,
