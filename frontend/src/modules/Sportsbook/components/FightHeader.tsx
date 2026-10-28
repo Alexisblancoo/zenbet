@@ -1,3 +1,4 @@
+import Countdown from '@/components/Countdown';
 import { CalendarClock, MapPin, ShieldCheck } from 'lucide-react';
 
 import {
@@ -190,6 +191,9 @@ export default function FightHeader({
         <span className='inline-flex items-center gap-1.5'>
           <CalendarClock size={9} aria-hidden='true' />
           {formatFightDay(event.startTime)}
+          {!isFinished && (
+            <Countdown startTime={event.startTime} className='text-lime-400' />
+          )}
         </span>
       </div>
 

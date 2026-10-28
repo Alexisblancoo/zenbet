@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, CalendarClock, ChevronDown, MapPin, RefreshCw } from 'lucide-react';
 
+import Countdown from '@/components/Countdown';
 import { formatDecimalOdds } from '@/domain/odds';
 import {
   buildUfcCards,
@@ -232,6 +233,7 @@ export default function Home() {
                       <CalendarClock size={12} aria-hidden='true' />
                       {formatFightDate(activeCard.startTime)}
                     </span>
+                    <Countdown startTime={activeCard.startTime} className='text-lime-400' />
                     <span className='inline-flex items-center gap-1.5'>
                       <MapPin size={12} aria-hidden='true' />
                       {activeCard.venue} · {activeCard.location}
