@@ -109,11 +109,6 @@ function TicketCard({ bet }: TicketCardProps) {
             <span className='font-mono text-[9px] uppercase tracking-wide text-metallic-titanium'>
               {bet.type === 'combined' ? `Combinada · ${bet.legs}` : 'Simple'}
             </span>
-            {bet.source === 'session' ? (
-              <span className='rounded-sm border border-odds-up/30 bg-odds-up/5 px-1 py-0.5 font-mono text-[8px] uppercase tracking-wide text-odds-up'>
-                Sesión
-              </span>
-            ) : null}
           </div>
           <BetStatusBadge status={bet.status} />
         </div>

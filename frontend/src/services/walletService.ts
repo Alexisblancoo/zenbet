@@ -6,7 +6,7 @@
  * dominio (`WalletSnapshot`, `WalletBet`, `WalletTransaction`).
  */
 
-import { apiClient, createIdempotencyKey, IDEMPOTENCY_HEADER } from '@/api';
+import { apiClient, IDEMPOTENCY_HEADER } from '@/api';
 import { roundMoney } from '@/domain/bets';
 import {
   sortBetsByDate,
@@ -121,84 +121,36 @@ export interface WalletDepositResult {
 }
 
 
-const SNAPSHOT_CACHE_KEY = 'zenbet_wallet_snapshot_v1';
-const PENDING_DEPOSITS_CACHE_KEY = 'zenbet_wallet_pending_deposits_v1';
-let memorySnapshotCache: { snapshot: WalletSnapshot; timestamp: number } | null = null;
-let memoryPendingCache: { deposits: readonly WalletPendingDeposit[]; timestamp: number } | null = null;
-
-export function getCachedWalletSnapshot(): WalletSnapshot | null {
-  if (memorySnapshotCache && Date.now() - memorySnapshotCache.timestamp < 60_000) {
-    return memorySnapshotCache.snapshot;
-  }
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      const raw = window.sessionStorage.getItem(SNAPSHOT_CACHE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && Date.now() - parsed.timestamp < 60_000) {
-          memorySnapshotCache = parsed;
-          return parsed.snapshot;
-        }
-      }
-    } catch {
-      // Ignora error
-    }
-  }
-  return memorySnapshotCache?.snapshot ?? null;
-}
-
-export function getCachedPendingDeposits(): readonly WalletPendingDeposit[] | null {
-  if (memoryPendingCache && Date.now() - memoryPendingCache.timestamp < 60_000) {
-    return memoryPendingCache.deposits;
-  }
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      const raw = window.sessionStorage.getItem(PENDING_DEPOSITS_CACHE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && Date.now() - parsed.timestamp < 60_000) {
-          memoryPendingCache = parsed;
-          return parsed.deposits;
-        }
-      }
-    } catch {
-      // Ignora error
-    }
-  }
-  return memoryPendingCache?.deposits ?? null;
-}
-
-function saveSnapshotCache(snapshot: WalletSnapshot): void {
-  const entry = { snapshot, timestamp: Date.now() };
-  memorySnapshotCache = entry;
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      window.sessionStorage.setItem(SNAPSHOT_CACHE_KEY, JSON.stringify(entry));
-    } catch {
-      // Ignora
-    }
+/**
+ * El contrato de la API es la única fuente de verdad. Si una respuesta no lo
+ * respeta (estado desconocido, importe ausente, fecha inválida) se rechaza con
+ * un error visible: nunca se rellena con valores supuestos.
+ */
+export class WalletContractError extends Error {
+  constructor(detail: string) {
+    super(`Respuesta inesperada de la billetera (${detail}).`);
+    this.name = 'WalletContractError';
   }
 }
 
-function savePendingCache(deposits: readonly WalletPendingDeposit[]): void {
-  const entry = { deposits, timestamp: Date.now() };
-  memoryPendingCache = entry;
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      window.sessionStorage.setItem(PENDING_DEPOSITS_CACHE_KEY, JSON.stringify(entry));
-    } catch {
-      // Ignora
-    }
-  }
-}
+/** Estados de apuesta que emite `WalletReadRepository` (más `void` del enum de dominio). */
+const BET_STATUS_MAP: Readonly<Record<string, WalletBetStatus>> = {
+  pending: 'pending',
+  won: 'won',
+  lost: 'lost',
+  cancelled: 'cancelled',
+  void: 'cancelled',
+};
 
-const BET_STATUSES = new Set<WalletBetStatus>(['pending', 'won', 'lost', 'cancelled']);
-const TRANSACTION_STATUSES = new Set<WalletTransactionStatus>([
-  'completed',
-  'pending',
-  'failed',
-  'cancelled',
-]);
+/** `TransactionStatus` del backend, en minúsculas. */
+const TRANSACTION_STATUS_MAP: Readonly<Record<string, WalletTransactionStatus>> = {
+  pending: 'pending',
+  completed: 'completed',
+  approved: 'completed',
+  failed: 'failed',
+  rejected: 'failed',
+  cancelled: 'cancelled',
+};
 
 const TRANSACTION_TYPE_MAP: Readonly<Record<string, WalletTransactionType>> = {
   deposit: 'deposit',
@@ -213,98 +165,90 @@ const TRANSACTION_TYPE_MAP: Readonly<Record<string, WalletTransactionType>> = {
   adjustment: 'adjustment',
 };
 
-function asNumber(value: unknown, fallback = 0): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+function requireNumber(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) throw new WalletContractError(field);
+  return value;
 }
 
-function asString(value: unknown, fallback = ''): string {
-  return typeof value === 'string' ? value : fallback;
+function requireString(value: unknown, field: string): string {
+  if (typeof value !== 'string' || value.length === 0) throw new WalletContractError(field);
+  return value;
 }
 
-function asIsoString(value: unknown): string {
-  const candidate = asString(value);
+function requireIso(value: unknown, field: string): string {
+  const candidate = requireString(value, field);
   const date = new Date(candidate);
-  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+  if (Number.isNaN(date.getTime())) throw new WalletContractError(field);
+  return date.toISOString();
 }
 
-function asNullableIso(value: unknown): string | null {
-  if (typeof value !== 'string' || !value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+function optionalIso(value: unknown, field: string): string | null {
+  if (value === null || value === undefined || value === '') return null;
+  return requireIso(value, field);
 }
 
-function normalizeBetStatus(value: string): WalletBetStatus {
-  return BET_STATUSES.has(value as WalletBetStatus)
-    ? (value as WalletBetStatus)
-    : 'pending';
+/** Texto libre que la API puede omitir: se muestra vacío, no inventado. */
+function textOrEmpty(value: unknown): string {
+  return typeof value === 'string' ? value : '';
 }
 
-function normalizeTransactionStatus(value: string): WalletTransactionStatus {
-  return TRANSACTION_STATUSES.has(value as WalletTransactionStatus)
-    ? (value as WalletTransactionStatus)
-    : 'completed';
-}
-
-function normalizeBetType(value: string): WalletBetType {
-  return value === 'combined' ? 'combined' : 'single';
-}
-
-function mapBet(wire: WalletBetWire): WalletBet | null {
-  const id = asString(wire.id) || asString(wire.transactionId);
-  if (!id) return null;
+function mapBet(wire: WalletBetWire): WalletBet {
+  const id = requireString(wire.id ?? wire.transactionId, 'bet.id');
+  const status = BET_STATUS_MAP[requireString(wire.status, 'bet.status').toLowerCase()];
+  if (!status) throw new WalletContractError(`bet.status=${String(wire.status)}`);
 
   return {
     id,
-    ticket: asString(wire.ticket) || `#${id.replace(/-/g, '').slice(0, 8).toUpperCase()}`,
-    eventName: asString(wire.eventName, 'Evento Zenbet'),
-    selectionName: asString(wire.selectionName, 'Selección'),
-    marketLabel: asString(wire.marketLabel, 'Moneyline'),
-    type: normalizeBetType(asString(wire.type)),
-    legs: Math.max(1, Math.round(asNumber(wire.legs, 1))),
-    stake: roundMoney(asNumber(wire.stake)),
-    odds: asNumber(wire.odds, 1),
-    potentialPayout: roundMoney(asNumber(wire.potentialPayout)),
-    payout: wire.payout === null ? null : roundMoney(asNumber(wire.payout)),
-    status: normalizeBetStatus(asString(wire.status)),
-    placedAt: asIsoString(wire.placedAt),
-    settledAt: asNullableIso(wire.settledAt),
+    ticket: requireString(wire.ticket, 'bet.ticket'),
+    eventName: textOrEmpty(wire.eventName),
+    selectionName: textOrEmpty(wire.selectionName),
+    marketLabel: textOrEmpty(wire.marketLabel),
+    type: wire.type === 'combined' ? 'combined' : 'single',
+    legs: Math.max(1, Math.round(requireNumber(wire.legs, 'bet.legs'))),
+    stake: roundMoney(requireNumber(wire.stake, 'bet.stake')),
+    odds: requireNumber(wire.odds, 'bet.odds'),
+    potentialPayout: roundMoney(requireNumber(wire.potentialPayout, 'bet.potentialPayout')),
+    payout:
+      wire.payout === null || wire.payout === undefined
+        ? null
+        : roundMoney(requireNumber(wire.payout, 'bet.payout')),
+    status,
+    placedAt: requireIso(wire.placedAt, 'bet.placedAt'),
+    settledAt: optionalIso(wire.settledAt, 'bet.settledAt'),
     source: 'live',
   };
 }
 
-function mapTransaction(wire: WalletTransactionWire): WalletTransaction | null {
-  const id = asString(wire.id);
-  const type = TRANSACTION_TYPE_MAP[asString(wire.type)];
-  if (!id || !type) return null;
+function mapTransaction(wire: WalletTransactionWire): WalletTransaction {
+  const type = TRANSACTION_TYPE_MAP[requireString(wire.type, 'tx.type').toLowerCase()];
+  if (!type) throw new WalletContractError(`tx.type=${String(wire.type)}`);
+  const status = TRANSACTION_STATUS_MAP[requireString(wire.status, 'tx.status').toLowerCase()];
+  if (!status) throw new WalletContractError(`tx.status=${String(wire.status)}`);
 
   return {
-    id,
+    id: requireString(wire.id, 'tx.id'),
     type,
-    status: normalizeTransactionStatus(asString(wire.status)),
-    amount: roundMoney(asNumber(wire.amount)),
-    description: asString(wire.description, 'Movimiento de billetera'),
-    reference: asString(wire.reference) || null,
-    createdAt: asIsoString(wire.createdAt),
+    status,
+    amount: roundMoney(requireNumber(wire.amount, 'tx.amount')),
+    description: textOrEmpty(wire.description),
+    reference: typeof wire.reference === 'string' && wire.reference ? wire.reference : null,
+    createdAt: requireIso(wire.createdAt, 'tx.createdAt'),
     source: 'live',
   };
 }
 
 export function mapWalletDashboard(wire: WalletDashboardWire): WalletSnapshot {
-  const bets = wire.bets
-    .map(mapBet)
-    .filter((bet): bet is WalletBet => bet !== null);
-
-  const transactions = wire.transactions
-    .map(mapTransaction)
-    .filter((transaction): transaction is WalletTransaction => transaction !== null);
+  if (!Array.isArray(wire?.bets) || !Array.isArray(wire?.transactions)) {
+    throw new WalletContractError('bets/transactions');
+  }
 
   return {
     mode: 'live',
     currency: 'USD',
-    balance: roundMoney(asNumber(wire.balance)),
-    bets: sortBetsByDate(bets),
-    transactions: sortTransactionsByDate(transactions),
-    updatedAt: asIsoString(wire.updatedAt),
+    balance: roundMoney(requireNumber(wire.balance, 'balance')),
+    bets: sortBetsByDate(wire.bets.map(mapBet)),
+    transactions: sortTransactionsByDate(wire.transactions.map(mapTransaction)),
+    updatedAt: requireIso(wire.updatedAt, 'updatedAt'),
   };
 }
 
@@ -337,44 +281,43 @@ export const httpWalletRepository: WalletRepository = {
     const snapshot = mapWalletDashboard(dashboardResult.value);
 
     if (betsResult.status === 'fulfilled') {
-      const bets = betsResult.value
-        .map(mapBet)
-        .filter((bet): bet is WalletBet => bet !== null);
+      if (!Array.isArray(betsResult.value)) throw new WalletContractError('/bets');
 
       return {
         ...snapshot,
-        bets: sortBetsByDate(bets),
+        bets: sortBetsByDate(betsResult.value.map(mapBet)),
       };
     }
 
     return snapshot;
   },
 
-  async deposit(amount, method = 'card') {
-    const wire = await apiClient.post<DepositFundsWire>(WALLET_ENDPOINTS.deposit, {
-      amount,
-      method,
-    });
+  async deposit(amount, method = 'card', idempotencyKey) {
+    const wire = await apiClient.post<DepositFundsWire>(
+      WALLET_ENDPOINTS.deposit,
+      { amount, method },
+      idempotencyKey ? { headers: { [IDEMPOTENCY_HEADER]: idempotencyKey } } : undefined,
+    );
 
     return {
-      transactionId: asString(wire.transactionId) || null,
-      newBalance: roundMoney(asNumber(wire.newBalance)),
+      transactionId: typeof wire.transactionId === 'string' ? wire.transactionId : null,
+      newBalance: roundMoney(requireNumber(wire.newBalance, 'newBalance')),
     };
   },
 
-  async requestDeposit(amount, method, reference) {
-    const wire = await apiClient.post<RequestDepositWire>(WALLET_ENDPOINTS.deposito, {
-      monto: amount,
-      metodo: method,
-      referencia: reference,
-    });
+  async requestDeposit(amount, method, reference, idempotencyKey) {
+    const wire = await apiClient.post<RequestDepositWire>(
+      WALLET_ENDPOINTS.deposito,
+      { monto: amount, metodo: method, referencia: reference },
+      idempotencyKey ? { headers: { [IDEMPOTENCY_HEADER]: idempotencyKey } } : undefined,
+    );
 
     return {
-      transactionId: asString(wire.transactionId),
-      reference: asString(wire.reference),
-      amount: roundMoney(asNumber(wire.amount)),
-      method: method === 'usdt' ? 'usdt' : 'qr_transfer',
-      createdAt: asIsoString(wire.createdAt),
+      transactionId: requireString(wire.transactionId, 'transactionId'),
+      reference: requireString(wire.reference, 'reference'),
+      amount: roundMoney(requireNumber(wire.amount, 'amount')),
+      method,
+      createdAt: requireIso(wire.createdAt, 'createdAt'),
     };
   },
 
@@ -384,15 +327,15 @@ export const httpWalletRepository: WalletRepository = {
       { signal },
     );
 
-    return wire
-      .map((item) => ({
-        transactionId: asString(item.transactionId),
-        amount: roundMoney(asNumber(item.amount)),
-        method: asString(item.method, 'qr_transfer'),
-        reference: asString(item.reference),
-        createdAt: asIsoString(item.createdAt),
-      }))
-      .filter((item) => item.transactionId.length > 0);
+    if (!Array.isArray(wire)) throw new WalletContractError('depositos/pendientes');
+
+    return wire.map((item) => ({
+      transactionId: requireString(item.transactionId, 'deposit.transactionId'),
+      amount: roundMoney(requireNumber(item.amount, 'deposit.amount')),
+      method: requireString(item.method, 'deposit.method'),
+      reference: textOrEmpty(item.reference),
+      createdAt: requireIso(item.createdAt, 'deposit.createdAt'),
+    }));
   },
 };
 
@@ -405,11 +348,11 @@ export function createWalletService(
     loadSnapshot(signal) {
       return repository.loadSnapshot(signal);
     },
-    deposit(amount, method) {
-      return repository.deposit(amount, method);
+    deposit(amount, method, idempotencyKey) {
+      return repository.deposit(amount, method, idempotencyKey);
     },
-    requestDeposit(amount, method, reference) {
-      return repository.requestDeposit(amount, method, reference);
+    requestDeposit(amount, method, reference, idempotencyKey) {
+      return repository.requestDeposit(amount, method, reference, idempotencyKey);
     },
     listPendingDeposits(signal) {
       return repository.listPendingDeposits(signal);

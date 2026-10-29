@@ -250,11 +250,6 @@ export function BetHistoryPanel({ bets, className = '' }: BetHistoryPanelProps) 
                             </span>
                             <span aria-hidden='true'>·</span>
                             <span>{bet.ticket}</span>
-                            {bet.source === 'session' ? (
-                              <span className='rounded-sm border border-odds-up/30 bg-odds-up/5 px-1 py-0.5 text-[8px] text-odds-up'>
-                                Sesión
-                              </span>
-                            ) : null}
                           </div>
                         </td>
 
@@ -351,11 +346,6 @@ export function BetHistoryPanel({ bets, className = '' }: BetHistoryPanelProps) 
                         </span>
                         <span aria-hidden='true'>·</span>
                         <span>{bet.ticket}</span>
-                        {bet.source === 'session' ? (
-                          <span className='rounded-sm border border-odds-up/30 bg-odds-up/5 px-1 py-0.5 text-odds-up'>
-                            Sesión
-                          </span>
-                        ) : null}
                       </span>
                       <span>{formatWalletDateTime(bet.placedAt)}</span>
                     </div>

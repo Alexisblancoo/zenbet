@@ -1,17 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { useAuth } from '@/context/authState';
 import { useBetSlip } from '@/context/betSlipState';
 import {
   buildDailyActivity,
   calculateWalletMetrics,
-  mergeSessionActivity,
   sumActivityNet,
   type DailyActivityPoint,
   type WalletMetrics,
   type WalletSnapshot,
 } from '@/domain/wallet';
-import { getCachedWalletSnapshot, walletService } from '@/services/walletService';
+import { walletService } from '@/services/walletService';
 import { WALLET_REFRESH_EVENT } from '@/context/authState';
 
 export type WalletDashboardStatus = 'loading' | 'ready' | 'refreshing' | 'error';
@@ -31,16 +29,15 @@ function isAbortError(error: unknown): boolean {
 }
 
 /**
- * Caso de uso del dashboard: carga el snapshot histórico y lo cruza con los
- * recibos reales de la sesión. El saldo vivo sigue viviendo en AuthContext.
+ * Caso de uso del dashboard: lee `GET /wallet` y `GET /bets`. El saldo vivo
+ * llega por `WalletHub` y vive en AuthContext.
  */
 export function useWalletDashboard(): WalletDashboardValue {
-  const { user } = useAuth();
   const { receipts } = useBetSlip();
 
-  const cached = getCachedWalletSnapshot();
-  const [baseSnapshot, setBaseSnapshot] = useState<WalletSnapshot | null>(() => cached);
-  const [status, setStatus] = useState<WalletDashboardStatus>(() => (cached ? 'ready' : 'loading'));
+  // Todo viene de la API: sin caché local ni movimientos construidos en el cliente.
+  const [snapshot, setSnapshot] = useState<WalletSnapshot | null>(null);
+  const [status, setStatus] = useState<WalletDashboardStatus>('loading');
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -51,7 +48,7 @@ export function useWalletDashboard(): WalletDashboardValue {
       .loadSnapshot(controller.signal)
       .then((snapshot) => {
         if (controller.signal.aborted) return;
-        setBaseSnapshot(snapshot);
+        setSnapshot(snapshot);
         setError(null);
         setStatus('ready');
       })
@@ -68,13 +65,6 @@ export function useWalletDashboard(): WalletDashboardValue {
     return () => controller.abort();
   }, [reloadToken]);
 
-  const accountId = user ? String(user.id) : '';
-
-  const snapshot = useMemo(
-    () => (baseSnapshot ? mergeSessionActivity(baseSnapshot, receipts, accountId) : null),
-    [baseSnapshot, receipts, accountId],
-  );
-
   const metrics = useMemo(
     () => calculateWalletMetrics(snapshot?.bets ?? []),
     [snapshot],
@@ -87,11 +77,22 @@ export function useWalletDashboard(): WalletDashboardValue {
 
   const activityNet = useMemo(() => sumActivityNet(activity), [activity]);
 
+  // Cada empuje del servidor debe traducirse en una lectura nueva: no se
+  // descarta ninguno aunque ya haya una en curso (el efecto cancela la previa).
   const refresh = useCallback(() => {
-    if (status === 'loading' || status === 'refreshing') return;
-    setStatus('refreshing');
+    setStatus((current) => (current === 'loading' ? current : 'refreshing'));
     setReloadToken((value) => value + 1);
-  }, [status]);
+  }, []);
+
+  // Una apuesta confirmada por la API cambia historial y saldo: se vuelve a
+  // pedir el snapshot en lugar de fabricar la fila en el cliente.
+  const confirmedBets = receipts.length;
+  const lastConfirmed = useRef(confirmedBets);
+  useEffect(() => {
+    if (confirmedBets === lastConfirmed.current) return;
+    lastConfirmed.current = confirmedBets;
+    setReloadToken((value) => value + 1);
+  }, [confirmedBets]);
 
   // El hub de wallet empujó un SaldoActualizado: refresca el snapshot para
   // mostrar la transacción acreditada sin esperar la próxima recarga.

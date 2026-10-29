@@ -8,6 +8,7 @@ import {
 } from '@/api';
 import type { AuthUser, LoginCredentials, RegisterPayload } from '@/domain/auth';
 import { authService } from '@/services/authService';
+import { walletService } from '@/services/walletService';
 import {
   clearStoredAuthUser,
   readStoredAuthUser,
@@ -127,6 +128,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new CustomEvent(WALLET_REFRESH_EVENT));
     });
 
+    // El saldo guardado en localStorage es solo una pista: la fuente de verdad
+    // es `GET /wallet`, que se consulta al abrir sesión y tras cada reconexión
+    // (los empujes perdidos mientras el socket estaba caído no se reenvían).
+    const controller = new AbortController();
+    const syncBalance = () => {
+      walletService
+        .loadSnapshot(controller.signal)
+        .then((snapshot) => {
+          if (!controller.signal.aborted) applyBalance(snapshot.balance);
+        })
+        .catch(() => {
+          // Sin respuesta de la API se conserva el último saldo confirmado.
+        });
+    };
+    syncBalance();
+    connection.onreconnected(syncBalance);
+
     connection
       .start()
       .catch(() => {
@@ -135,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
     return () => {
+      controller.abort();
       void connection.stop().catch(() => {
         // El socket puede ya estar cerrado durante el desmontaje.
       });

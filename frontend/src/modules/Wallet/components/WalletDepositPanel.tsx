@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import {
   ArrowDownToLine,
   Check,
@@ -17,7 +17,6 @@ import QRCode from 'qrcode';
 import { createIdempotencyKey } from '@/api';
 import { formatRelativeTime } from '@/domain/wallet';
 import {
-  getCachedPendingDeposits,
   walletService,
   type WalletDepositMethod,
   type WalletDepositRequestResult,
@@ -91,8 +90,10 @@ export function WalletDepositPanel({
 
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  const [pending, setPending] = useState<readonly WalletPendingDeposit[] | null>(() => getCachedPendingDeposits());
+  const [pending, setPending] = useState<readonly WalletPendingDeposit[] | null>(null);
+  const [pendingError, setPendingError] = useState<string | null>(null);
   const [pendingReload, setPendingReload] = useState(0);
+  const attempt = useRef<{ signature: string; key: string } | null>(null);
 
   const parsedAmount = Number.parseFloat(amount);
   const minDeposit = MIN_BY_METHOD[method];
@@ -148,10 +149,19 @@ export function WalletDepositPanel({
     walletService
       .listPendingDeposits(controller.signal)
       .then((deposits) => {
-        if (!controller.signal.aborted) setPending(deposits);
+        if (controller.signal.aborted) return;
+        setPending(deposits);
+        setPendingError(null);
       })
-      .catch(() => {
-        if (!controller.signal.aborted) setPending([]);
+      .catch((caught: unknown) => {
+        if (controller.signal.aborted) return;
+        // Sin datos locales de relleno: se muestra el motivo que devolvió la API.
+        setPending(null);
+        setPendingError(
+          caught instanceof Error && caught.message
+            ? caught.message
+            : 'No pudimos leer tus depósitos en revisión.',
+        );
       });
 
     return () => controller.abort();
@@ -176,17 +186,11 @@ export function WalletDepositPanel({
     setError(null);
     setConfirmation(null);
 
-    const idempotencyKey = createIdempotencyKey();
-    const optimisticPending: WalletPendingDeposit = {
-      transactionId: `temp-${idempotencyKey.slice(0, 8)}`,
-      amount: parsedAmount,
-      method,
-      reference: reference.trim(),
-      createdAt: new Date().toISOString(),
-    };
-
-    // Actualización optimista instantánea en la cola visible
-    setPending((prev) => [optimisticPending, ...(prev ?? [])]);
+    // La misma llave durante reintentos del mismo envío evita duplicar el depósito.
+    const signature = `${method}|${parsedAmount}|${reference.trim()}`;
+    const idempotencyKey =
+      attempt.current?.signature === signature ? attempt.current.key : createIdempotencyKey();
+    attempt.current = { signature, key: idempotencyKey };
 
     try {
       const result = await walletService.requestDeposit(
@@ -196,16 +200,13 @@ export function WalletDepositPanel({
         idempotencyKey,
       );
 
+      attempt.current = null;
       setConfirmation(result);
       setAmount('');
       setReference('');
       setPendingReload((value) => value + 1);
       onSubmitted?.();
     } catch (caught) {
-      // Revertir optimistic si la llamada fue rechazada
-      setPending((prev) =>
-        prev ? prev.filter((item) => item.transactionId !== optimisticPending.transactionId) : prev,
-      );
       setError(
         caught instanceof Error
           ? caught.message
@@ -577,6 +578,15 @@ export function WalletDepositPanel({
         </div>
 
         {/* Cola propia en revisión */}
+        {pendingError ? (
+          <p
+            role='alert'
+            className='mt-4 flex items-start gap-2 border border-odds-down/25 bg-odds-down/[0.045] px-3 py-2 text-[11px] leading-relaxed text-odds-down'
+          >
+            <TriangleAlert size={13} className='mt-0.5 shrink-0' aria-hidden='true' />
+            {pendingError}
+          </p>
+        ) : null}
         {pending && pending.length > 0 ? (
           <div className='mt-4 border-t border-obsidian-border/60 pt-3'>
             <p className='mb-2 font-mono text-[9px] font-bold uppercase tracking-wide text-metallic-slate'>
