@@ -440,9 +440,6 @@ const MainEventHero = memo(function MainEventHero({
           <span className='shibuya-kicker text-crimson'>Zenbet // Sportsbook</span>
           <span className='font-mono text-[7px] uppercase tracking-wider text-metallic-slate/35'>ЛИНИЯ</span>
           <span className='h-px w-4 bg-crimson/50' aria-hidden='true' />
-          <span className='inline-flex items-center border border-crimson/40 bg-crimson/[0.08] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wide text-crimson'>
-            {event.competition ?? 'UFC'}
-          </span>
         </div>
 
         <div className='flex flex-wrap items-center gap-3 font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
