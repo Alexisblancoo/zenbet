@@ -53,11 +53,12 @@ public sealed class TransactionRepository : ITransactionRepository
     {
         return await _dbContext.Transactions
             .AsNoTracking()
-            .FirstOrDefaultAsync(
+            .Where(
                 transaction => transaction.WalletId == walletId
                     && transaction.ReferenceId == referenceId
-                    && transaction.Type == Zenbet.EventsMarkets.Domain.Enums.TransactionType.Deposit,
-                cancellationToken);
+                    && transaction.Type == Zenbet.EventsMarkets.Domain.Enums.TransactionType.Deposit)
+            .OrderByDescending(transaction => transaction.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<Transaction>> ListPendingDepositTransactionsAsync(

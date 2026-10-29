@@ -54,13 +54,19 @@ public sealed class RequestDepositCommandHandler : IRequestHandler<RequestDeposi
         var idempotencyKey = request.IdempotencyKey.ToString();
         if (await _idempotencyService.ExistsAsync(idempotencyKey, cancellationToken))
         {
+            var existing = await _transactionRepository.GetDepositByReferenceAsync(
+                request.WalletId,
+                reference,
+                cancellationToken);
+
             return new RequestDepositResult(
                 true,
-                null,
-                reference,
-                request.Amount.Amount,
-                request.Method,
-                null,
+                existing?.Id,
+                existing?.ReferenceId ?? reference,
+                existing?.Amount.Amount ?? request.Amount.Amount,
+                existing?.Method ?? request.Method,
+                DescribeStatus(existing?.Status),
+                existing?.CreatedAt,
                 "La solicitud ya fue registrada.");
         }
 
@@ -123,6 +129,7 @@ public sealed class RequestDepositCommandHandler : IRequestHandler<RequestDeposi
                 transaction.ReferenceId,
                 transaction.Amount.Amount,
                 transaction.Method,
+                DescribeStatus(transaction.Status),
                 transaction.CreatedAt,
                 null);
         }
@@ -148,5 +155,13 @@ public sealed class RequestDepositCommandHandler : IRequestHandler<RequestDeposi
     }
 
     private static RequestDepositResult Failure(string message) =>
-        new(false, null, null, null, null, null, message);
+        new(false, null, null, null, null, null, null, message);
+
+    private static string DescribeStatus(TransactionStatus? status) => status switch
+    {
+        TransactionStatus.Approved => "approved",
+        TransactionStatus.Rejected => "rejected",
+        TransactionStatus.Completed => "completed",
+        _ => "pending",
+    };
 }

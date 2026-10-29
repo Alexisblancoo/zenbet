@@ -364,9 +364,9 @@ export const httpWalletRepository: WalletRepository = {
 
   async requestDeposit(amount, method, reference) {
     const wire = await apiClient.post<RequestDepositWire>(WALLET_ENDPOINTS.deposito, {
-      amount,
-      method,
-      reference,
+      monto: amount,
+      metodo: method,
+      referencia: reference,
     });
 
     return {

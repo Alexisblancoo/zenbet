@@ -22,5 +22,6 @@ public sealed record RequestDepositResult(
     string? Reference,
     decimal? Amount,
     PaymentMethod? Method,
+    string? Status,
     DateTimeOffset? CreatedAt,
     string? ErrorMessage);

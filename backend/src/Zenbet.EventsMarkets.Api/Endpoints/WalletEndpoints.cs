@@ -171,56 +171,53 @@ public static class WalletEndpoints
                 return Results.Unauthorized();
             }
 
-            if (request.Amount <= 0m)
+            var amount = request.ResolvedAmount;
+
+            if (amount <= 0m)
             {
-                return Results.UnprocessableEntity(new
-                {
-                    success = false,
-                    error = "El monto del depósito debe ser mayor a cero.",
-                });
+                return Results.Problem(
+                    title: "Monto inválido",
+                    detail: "El monto del depósito debe ser mayor a cero.",
+                    statusCode: StatusCodes.Status422UnprocessableEntity);
             }
 
-            if (request.Amount > 10_000m)
+            if (amount > 10_000m)
             {
-                return Results.UnprocessableEntity(new
-                {
-                    success = false,
-                    error = "El depósito máximo por solicitud es de Bs 10,000.00.",
-                });
+                return Results.Problem(
+                    title: "Monto inválido",
+                    detail: "El depósito máximo por solicitud es de Bs 10,000.00.",
+                    statusCode: StatusCodes.Status422UnprocessableEntity);
             }
 
-            var reference = request.Reference?.Trim() ?? string.Empty;
+            var reference = request.ResolvedReference?.Trim() ?? string.Empty;
             if (reference.Length is < 4 or > 100)
             {
-                return Results.UnprocessableEntity(new
-                {
-                    success = false,
-                    error = "El número de comprobante es obligatorio (entre 4 y 100 caracteres).",
-                });
+                return Results.Problem(
+                    title: "Referencia inválida",
+                    detail: "El número de comprobante es obligatorio (entre 4 y 100 caracteres).",
+                    statusCode: StatusCodes.Status422UnprocessableEntity);
             }
 
-            if (!TryMapDepositMethod(request.Method, out var method))
+            if (!TryMapDepositMethod(request.ResolvedMethod, out var method))
             {
-                return Results.UnprocessableEntity(new
-                {
-                    success = false,
-                    error = "Método de depósito no soportado. Usa 'qr_transfer' o 'usdt'.",
-                });
+                return Results.Problem(
+                    title: "Método de depósito no soportado",
+                    detail: "Usa 'qr_transfer' o 'usdt'.",
+                    statusCode: StatusCodes.Status422UnprocessableEntity);
             }
 
             if (!TryReadIdempotencyKey(httpRequest, out var idempotencyKey))
             {
-                return Results.BadRequest(new
-                {
-                    success = false,
-                    error = "Falta un Idempotency-Key válido para procesar la solicitud.",
-                });
+                return Results.Problem(
+                    title: "Idempotency-Key requerido",
+                    detail: "Falta un Idempotency-Key válido para procesar la solicitud.",
+                    statusCode: StatusCodes.Status400BadRequest);
             }
 
             var result = await mediator.Send(
                 new RequestDepositCommand(
                     WalletId.From(walletId),
-                    new Money(request.Amount),
+                    new Money(amount),
                     method,
                     reference,
                     idempotencyKey),
@@ -228,11 +225,10 @@ public static class WalletEndpoints
 
             if (!result.Success)
             {
-                return Results.UnprocessableEntity(new
-                {
-                    success = false,
-                    error = result.ErrorMessage,
-                });
+                return Results.Problem(
+                    title: "No se pudo registrar el depósito",
+                    detail: result.ErrorMessage,
+                    statusCode: StatusCodes.Status422UnprocessableEntity);
             }
 
             return Results.Ok(new
@@ -242,7 +238,7 @@ public static class WalletEndpoints
                 reference = result.Reference,
                 amount = result.Amount,
                 method = DescribeDepositMethod(method),
-                status = "pending",
+                status = result.Status ?? "pending",
                 createdAt = result.CreatedAt,
             });
         })
@@ -440,6 +436,19 @@ public static class WalletEndpoints
 
 public sealed record DepositFundsRequest(decimal Amount, string? Method);
 
-public sealed record RequestDepositRequest(decimal Amount, string Method, string Reference);
+public sealed record RequestDepositRequest(
+    decimal? Monto,
+    string? Metodo,
+    string? Referencia,
+    decimal? Amount,
+    string? Method,
+    string? Reference)
+{
+    public decimal ResolvedAmount => Monto ?? Amount ?? 0m;
+
+    public string? ResolvedMethod => Metodo ?? Method;
+
+    public string? ResolvedReference => Referencia ?? Reference;
+}
 
 public sealed record RejectDepositRequest(string? Reason);

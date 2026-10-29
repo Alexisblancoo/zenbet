@@ -1,7 +1,7 @@
 namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Repositories;
 
 using Microsoft.EntityFrameworkCore;
-using Zenbet.EventsMarkets.Application.Commands.CreateDeposit;
+using Zenbet.EventsMarkets.Application.Common;
 using Zenbet.EventsMarkets.Application.DTOs;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Enums;
