@@ -15,7 +15,16 @@ public interface IUnitOfWork : IDisposable
 public interface IIdempotencyService
 {
     Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default);
-    Task AddAsync(string key, string commandType, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(
+        string key,
+        string commandType,
+        string payloadHash,
+        CancellationToken cancellationToken = default);
+    Task AddAsync(
+        string key,
+        string commandType,
+        CancellationToken cancellationToken = default,
+        string? payloadHash = null);
 }
 
 public interface ISettlementAuditService

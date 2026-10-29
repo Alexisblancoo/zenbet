@@ -1,7 +1,9 @@
 namespace Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 
+using System.Security.Cryptography;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Zenbet.EventsMarkets.Application.Common;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.Enums;
@@ -45,6 +47,15 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
 
     public async Task<PlaceBetResult> Handle(PlaceBetCommand request, CancellationToken cancellationToken)
     {
+        var payloadHash = IdempotencyPayloadHasher.Compute(new
+        {
+            walletId = request.WalletId.Value,
+            selectionId = request.SelectionId.Value,
+            amount = request.Amount.Amount,
+            request.Description,
+            request.PromoCode,
+        });
+
         PromoCodeDefinition? promoCode = null;
         if (!string.IsNullOrWhiteSpace(request.PromoCode) &&
             !PromoCodeCatalog.TryResolve(request.PromoCode, out promoCode))
@@ -58,7 +69,12 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
         }
 
         // 1. Check idempotency first - fast path without loading aggregate
-        var idempotencyExists = await _idempotencyService.ExistsAsync(request.IdempotencyKey.ToString(), cancellationToken);
+        var idempotencyKey = request.IdempotencyKey.ToString();
+        var idempotencyExists = await _idempotencyService.ExistsAsync(
+            idempotencyKey,
+            nameof(PlaceBetCommand),
+            payloadHash,
+            cancellationToken);
 
         if (idempotencyExists)
         {
@@ -99,6 +115,12 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
 
         try
         {
+            // Serialize the key globally before the wallet/selection lock. A
+            // reused key aimed at another wallet must still observe the first
+            // committed payload before it can create a second transaction.
+            var idempotencyLockKey = BitConverter.ToInt64(request.IdempotencyKey.ToByteArray(), 0);
+            await _unitOfWork.TryAcquireAdvisoryLockAsync(idempotencyLockKey, cancellationToken);
+
             // Advisory lock key: hash of UserId + SelectionId to prevent over-spending
             // We need to get the wallet first to get UserId, but we can use a composite key
             var lockKey = ComputeAdvisoryLockKey(request.WalletId, request.SelectionId);
@@ -109,7 +131,11 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
             }
 
             // Re-check idempotency under lock
-            if (await _idempotencyService.ExistsAsync(request.IdempotencyKey.ToString(), cancellationToken))
+            if (await _idempotencyService.ExistsAsync(
+                    idempotencyKey,
+                    nameof(PlaceBetCommand),
+                    payloadHash,
+                    cancellationToken))
             {
                 var existing = await _transactionRepository.GetByReferenceIdAsync(
                     request.WalletId,
@@ -158,6 +184,39 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
                     "El mercado ya no está abierto para apuestas.");
             }
 
+            // Serialize bets from the same user into the same market, even if
+            // they target different selections. The xact lock remains held
+            // through wallet/transaction/outbox persistence.
+            var userMarketLockKey = ComputeUserMarketAdvisoryLockKey(wallet.UserId, market.Id);
+            await _unitOfWork.TryAcquireAdvisoryLockAsync(userMarketLockKey, cancellationToken);
+
+            // The initial reads may have happened while another transaction
+            // owned this user-market lock. Refresh the values used for the
+            // balance/version check after entering the serialized section.
+            wallet = await _walletRepository.GetByIdAsync(request.WalletId, cancellationToken)
+                ?? throw new WalletNotFoundException(request.WalletId);
+            selection = await _selectionRepository.GetByIdAsync(request.SelectionId, cancellationToken)
+                ?? throw new SelectionNotFoundException(request.SelectionId);
+            market = await _marketRepository.GetBySelectionIdAsync(request.SelectionId, cancellationToken);
+            @event = market is null
+                ? null
+                : await _eventRepository.GetByIdAsync(market.EventId, cancellationToken);
+
+            if (market is null ||
+                market.Status != MarketStatus.Open ||
+                @event is null ||
+                !@event.IsBettingOpen(DateTimeOffset.UtcNow) ||
+                selection.SettlementResult is not null)
+            {
+                await _unitOfWork.RollbackAsync(cancellationToken);
+                return new PlaceBetResult(
+                    false,
+                    null,
+                    null,
+                    null,
+                    "El mercado ya no está abierto para apuestas.");
+            }
+
             // 4. Execute domain logic - PlaceBet validates balance and creates transaction.
             // La versión debe capturarse antes de mutar el agregado: PlaceBet la
             // incrementa y EF la usa como token de concurrencia.
@@ -183,7 +242,11 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
             }
 
             // 8. Record idempotency key
-            await _idempotencyService.AddAsync(request.IdempotencyKey.ToString(), nameof(PlaceBetCommand), cancellationToken);
+            await _idempotencyService.AddAsync(
+                idempotencyKey,
+                nameof(PlaceBetCommand),
+                cancellationToken,
+                payloadHash);
 
             await _unitOfWork.CommitAsync(cancellationToken);
 
@@ -254,5 +317,14 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
         var selectionHash = BitConverter.ToInt64(selectionBytes, 0);
 
         return walletHash ^ selectionHash;
+    }
+
+    private static long ComputeUserMarketAdvisoryLockKey(UserId userId, MarketId marketId)
+    {
+        var identifiers = userId.Value.ToByteArray()
+            .Concat(marketId.Value.ToByteArray())
+            .ToArray();
+        var hash = SHA256.HashData(identifiers);
+        return BitConverter.ToInt64(hash, 0);
     }
 }

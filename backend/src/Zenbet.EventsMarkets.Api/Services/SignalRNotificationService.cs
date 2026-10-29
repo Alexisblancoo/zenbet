@@ -88,6 +88,29 @@ public sealed class SignalRNotificationService : INotificationService
         }, cancellationToken);
     }
 
+    public async Task NotifyBetOutcomeSettledAsync(
+        Guid walletId,
+        Guid userId,
+        Guid betTransactionId,
+        Guid marketId,
+        string outcome,
+        decimal payout,
+        decimal newBalance,
+        CancellationToken cancellationToken = default)
+    {
+        await _walletHubContext.Clients.User(walletId.ToString()).SendAsync("ApuestaLiquidada", new
+        {
+            walletId,
+            userId,
+            betTransactionId,
+            marketId,
+            outcome,
+            payout,
+            newBalance,
+            timestamp = DateTimeOffset.UtcNow
+        }, cancellationToken);
+    }
+
     public async Task NotifyFootballScoreUpdateAsync(
         string matchId,
         int homeScore,

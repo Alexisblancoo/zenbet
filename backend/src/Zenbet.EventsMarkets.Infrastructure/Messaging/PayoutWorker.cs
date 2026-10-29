@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.Enums;
+using Zenbet.EventsMarkets.Domain.Events;
 using Zenbet.EventsMarkets.Domain.Repositories;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 using Zenbet.EventsMarkets.Infrastructure.Persistence;
@@ -186,6 +187,7 @@ public sealed class PayoutWorker : BackgroundService
 
             var expectedVersion = wallet.Version;
             var walletChanged = false;
+            var appliedBets = new List<SettledBet>();
 
             foreach (var item in bets)
             {
@@ -224,6 +226,7 @@ public sealed class PayoutWorker : BackgroundService
 
                 item.Bet.SettleBet(item.Outcome);
                 await transactionRepository.UpdateAsync(item.Bet, cancellationToken);
+                appliedBets.Add(item);
 
                 _logger.LogInformation(
                     "Bet {BetId} settled as {Outcome} for wallet {WalletId}: stake {Stake}, payout {Payout}, bonus {Bonus}",
@@ -243,6 +246,19 @@ public sealed class PayoutWorker : BackgroundService
                     await outboxWriter.WriteAsync(domainEvent, cancellationToken);
 
                 wallet.ClearDomainEvents();
+            }
+
+            foreach (var item in appliedBets)
+            {
+                await outboxWriter.WriteAsync(new BetOutcomeSettledDomainEvent(
+                    wallet.Id,
+                    wallet.UserId,
+                    item.Bet.Id,
+                    item.MarketId,
+                    item.Outcome,
+                    new Money(item.Payout),
+                    wallet.Balance,
+                    DateTimeOffset.UtcNow), cancellationToken);
             }
 
             await unitOfWork.SaveChangesAsync(cancellationToken);

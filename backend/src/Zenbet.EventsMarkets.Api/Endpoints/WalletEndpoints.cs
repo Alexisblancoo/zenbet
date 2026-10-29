@@ -105,14 +105,7 @@ public static class WalletEndpoints
                 });
             }
 
-            var idempotencyHeader = httpRequest.Headers["X-Idempotency-Key"].ToString();
-            if (string.IsNullOrWhiteSpace(idempotencyHeader))
-            {
-                // Compatibilidad con clientes que usan el nombre estándar.
-                idempotencyHeader = httpRequest.Headers["Idempotency-Key"].ToString();
-            }
-
-            if (!Guid.TryParse(idempotencyHeader, out var idempotencyKey))
+            if (!TryReadIdempotencyKey(httpRequest, out var idempotencyKey))
             {
                 return Results.BadRequest(new
                 {
@@ -153,6 +146,7 @@ public static class WalletEndpoints
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status409Conflict)
         .Produces(StatusCodes.Status422UnprocessableEntity);
 
         // --------------------------------------------------------------------
@@ -246,6 +240,7 @@ public static class WalletEndpoints
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status409Conflict)
         .Produces(StatusCodes.Status422UnprocessableEntity);
 
         // Depósitos propios en revisión (vista del jugador).
@@ -394,16 +389,10 @@ public static class WalletEndpoints
     internal static bool TryReadWalletId(ClaimsPrincipal user, out Guid walletId) =>
         Guid.TryParse(user.FindFirstValue("wallet_id"), out walletId) && walletId != Guid.Empty;
 
-    /// <summary>Lee el Idempotency-Key (o X-Idempotency-Key) como GUID.</summary>
+    /// <summary>Lee exclusivamente el header estándar Idempotency-Key como GUID.</summary>
     internal static bool TryReadIdempotencyKey(HttpRequest httpRequest, out Guid idempotencyKey)
     {
-        var header = httpRequest.Headers["X-Idempotency-Key"].ToString();
-        if (string.IsNullOrWhiteSpace(header))
-        {
-            // Compatibilidad con clientes que usan el nombre estándar.
-            header = httpRequest.Headers["Idempotency-Key"].ToString();
-        }
-
+        var header = httpRequest.Headers["Idempotency-Key"].ToString();
         return Guid.TryParse(header, out idempotencyKey) && idempotencyKey != Guid.Empty;
     }
 

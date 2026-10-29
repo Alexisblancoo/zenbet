@@ -14,13 +14,14 @@ public sealed class OutboxMessage
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? ProcessedAt { get; set; }
     public int RetryCount { get; set; }
-    public string? LastError { get; set; }
+    public string? Error { get; set; }
 }
 
 public sealed class IdempotencyKey
 {
     public string Key { get; set; } = default!;
     public string CommandType { get; set; } = default!;
+    public string? PayloadHash { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset ExpiresAt { get; set; } = DateTimeOffset.UtcNow.AddDays(7);
 }

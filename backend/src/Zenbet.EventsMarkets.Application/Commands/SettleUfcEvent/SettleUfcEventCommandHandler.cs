@@ -44,63 +44,73 @@ public sealed class SettleUfcEventCommandHandler
         SettleUfcEventCommand request,
         CancellationToken cancellationToken)
     {
-        var @event = await _eventRepository.GetByIdWithDetailsAsync(request.EventId, cancellationToken)
-            ?? throw new EventNotFoundException(request.EventId);
-
-        if (@event.SportType != SportType.MixedMartialArts || @event.Bout is null)
-            throw new InvalidOperationException("El evento no es un combate de MMA con ficha de peleadores.");
-
-        if (request.Round < 1 || request.Round > @event.Bout.ScheduledRounds)
-            throw new ArgumentOutOfRangeException(
-                nameof(request.Round),
-                $"El asalto debe estar entre 1 y {@event.Bout.ScheduledRounds}.");
-
-        if (request.Method == MmaVictoryMethod.Decision &&
-            request.Round != @event.Bout.ScheduledRounds)
-            throw new ArgumentException(
-                "Una decisión debe registrarse en el último asalto programado.",
-                nameof(request.Round));
-
-        var alreadyRecorded = @event.Result is not null &&
-            @event.Result.Matches(request.WinnerCorner, request.Method, request.Round);
-
-        if (@event.Result is null)
+        Event @event;
+        bool alreadyRecorded;
+        await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        try
         {
-            var result = MmaResult.Create(
-                request.WinnerCorner,
-                request.Method,
-                request.Round,
-                DateTimeOffset.UtcNow);
+            var eventLockKey = BitConverter.ToInt64(request.EventId.Value.ToByteArray(), 0);
+            await _unitOfWork.TryAcquireAdvisoryLockAsync(eventLockKey, cancellationToken);
 
-            // Se actualiza una instancia sin mercados para no marcar como
-            // modificado el grafo completo de cuotas y selecciones.
-            var eventForUpdate = await _eventRepository.GetByIdAsync(request.EventId, cancellationToken)
+            @event = await _eventRepository.GetByIdWithDetailsAsync(request.EventId, cancellationToken)
                 ?? throw new EventNotFoundException(request.EventId);
 
-            var expectedVersion = eventForUpdate.Version;
-            eventForUpdate.RecordResult(result);
+            if (@event.SportType != SportType.MixedMartialArts || @event.Bout is null)
+                throw new InvalidOperationException("El evento no es un combate de MMA con ficha de peleadores.");
 
-            await _eventRepository.UpdateAsync(eventForUpdate, expectedVersion, cancellationToken);
+            if (request.Round < 1 || request.Round > @event.Bout.ScheduledRounds)
+                throw new ArgumentOutOfRangeException(
+                    nameof(request.Round),
+                    $"El asalto debe estar entre 1 y {@event.Bout.ScheduledRounds}.");
 
-            foreach (var domainEvent in eventForUpdate.DomainEvents)
+            if (request.Method == MmaVictoryMethod.Decision && request.Round != @event.Bout.ScheduledRounds)
+                throw new ArgumentException(
+                    "Una decisión debe registrarse en el último asalto programado.",
+                    nameof(request.Round));
+
+            alreadyRecorded = @event.Result is not null &&
+                @event.Result.Matches(request.WinnerCorner, request.Method, request.Round);
+
+            if (@event.Result is null)
             {
-                await _outboxWriter.WriteAsync(domainEvent, cancellationToken);
+                var result = MmaResult.Create(
+                    request.WinnerCorner,
+                    request.Method,
+                    request.Round,
+                    DateTimeOffset.UtcNow);
+
+                // Se actualiza una instancia sin mercados para no marcar como
+                // modificado el grafo completo de cuotas y selecciones.
+                var eventForUpdate = await _eventRepository.GetByIdAsync(request.EventId, cancellationToken)
+                    ?? throw new EventNotFoundException(request.EventId);
+
+                var expectedVersion = eventForUpdate.Version;
+                eventForUpdate.RecordResult(result);
+                await _eventRepository.UpdateAsync(eventForUpdate, expectedVersion, cancellationToken);
+
+                foreach (var domainEvent in eventForUpdate.DomainEvents)
+                    await _outboxWriter.WriteAsync(domainEvent, cancellationToken);
+
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                eventForUpdate.ClearDomainEvents();
+
+                _logger.LogInformation(
+                    "Resultado UFC registrado para {EventId}: {Corner} por {Method} en R{Round}.",
+                    request.EventId,
+                    request.WinnerCorner,
+                    request.Method,
+                    request.Round);
             }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-            eventForUpdate.ClearDomainEvents();
+            if (@event.Result is not null && !alreadyRecorded)
+                throw new InvalidOperationException("El evento ya tiene un resultado oficial distinto. No se puede reescribir.");
 
-            _logger.LogInformation(
-                "Resultado UFC registrado para {EventId}: {Corner} por {Method} en R{Round}.",
-                request.EventId,
-                request.WinnerCorner,
-                request.Method,
-                request.Round);
+            await _unitOfWork.CommitAsync(cancellationToken);
         }
-        else if (!alreadyRecorded)
+        catch
         {
-            throw new InvalidOperationException(
-                "El evento ya tiene un resultado oficial distinto. No se puede reescribir.");
+            await _unitOfWork.RollbackAsync(cancellationToken);
+            throw;
         }
 
         var marketResults = new List<UfcMarketSettlementResult>(@event.Markets.Count);

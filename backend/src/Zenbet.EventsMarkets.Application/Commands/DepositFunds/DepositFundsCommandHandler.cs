@@ -2,6 +2,7 @@ namespace Zenbet.EventsMarkets.Application.Commands.DepositFunds;
 
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Zenbet.EventsMarkets.Application.Common;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Exceptions;
 using Zenbet.EventsMarkets.Domain.Repositories;
@@ -46,8 +47,18 @@ public sealed class DepositFundsCommandHandler : IRequestHandler<DepositFundsCom
         }
 
         var idempotencyKey = request.IdempotencyKey.ToString();
+        var payloadHash = IdempotencyPayloadHasher.Compute(new
+        {
+            walletId = request.WalletId.Value,
+            amount = request.Amount.Amount,
+            paymentMethod = request.PaymentMethod,
+        });
 
-        if (await _idempotencyService.ExistsAsync(idempotencyKey, cancellationToken))
+        if (await _idempotencyService.ExistsAsync(
+                idempotencyKey,
+                nameof(DepositFundsCommand),
+                payloadHash,
+                cancellationToken))
         {
             var existingWallet = await _walletRepository.GetByIdAsync(
                 request.WalletId,
@@ -64,6 +75,9 @@ public sealed class DepositFundsCommandHandler : IRequestHandler<DepositFundsCom
 
         try
         {
+            var idempotencyLockKey = BitConverter.ToInt64(request.IdempotencyKey.ToByteArray(), 0);
+            await _unitOfWork.TryAcquireAdvisoryLockAsync(idempotencyLockKey, cancellationToken);
+
             var lockKey = BitConverter.ToInt64(request.WalletId.Value.ToByteArray(), 0);
             if (!await _unitOfWork.TryAcquireAdvisoryLockAsync(lockKey, cancellationToken))
             {
@@ -73,7 +87,11 @@ public sealed class DepositFundsCommandHandler : IRequestHandler<DepositFundsCom
 
             // Revalidar bajo el lock para que dos reintentos simultáneos no
             // acrediten el mismo movimiento dos veces.
-            if (await _idempotencyService.ExistsAsync(idempotencyKey, cancellationToken))
+            if (await _idempotencyService.ExistsAsync(
+                    idempotencyKey,
+                    nameof(DepositFundsCommand),
+                    payloadHash,
+                    cancellationToken))
             {
                 var existingWallet = await _walletRepository.GetByIdAsync(
                     request.WalletId,
@@ -109,7 +127,8 @@ public sealed class DepositFundsCommandHandler : IRequestHandler<DepositFundsCom
             await _idempotencyService.AddAsync(
                 idempotencyKey,
                 nameof(DepositFundsCommand),
-                cancellationToken);
+                cancellationToken,
+                payloadHash);
 
             await _unitOfWork.CommitAsync(cancellationToken);
             wallet.ClearDomainEvents();

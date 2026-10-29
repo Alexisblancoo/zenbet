@@ -23,6 +23,15 @@ public interface INotificationService
         decimal newBalance,
         Guid transactionId,
         CancellationToken cancellationToken = default);
+    Task NotifyBetOutcomeSettledAsync(
+        Guid walletId,
+        Guid userId,
+        Guid betTransactionId,
+        Guid marketId,
+        string outcome,
+        decimal payout,
+        decimal newBalance,
+        CancellationToken cancellationToken = default);
 
     Task NotifyFootballScoreUpdateAsync(
         string matchId,

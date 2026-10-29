@@ -2,6 +2,7 @@ namespace Zenbet.EventsMarkets.Application.Commands.RequestDeposit;
 
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Zenbet.EventsMarkets.Application.Common;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.Enums;
@@ -52,7 +53,19 @@ public sealed class RequestDepositCommandHandler : IRequestHandler<RequestDeposi
         }
 
         var idempotencyKey = request.IdempotencyKey.ToString();
-        if (await _idempotencyService.ExistsAsync(idempotencyKey, cancellationToken))
+        var payloadHash = IdempotencyPayloadHasher.Compute(new
+        {
+            walletId = request.WalletId.Value,
+            amount = request.Amount.Amount,
+            method = request.Method,
+            request.Reference,
+        });
+
+        if (await _idempotencyService.ExistsAsync(
+                idempotencyKey,
+                nameof(RequestDepositCommand),
+                payloadHash,
+                cancellationToken))
         {
             var existing = await _transactionRepository.GetDepositByReferenceAsync(
                 request.WalletId,
@@ -74,6 +87,9 @@ public sealed class RequestDepositCommandHandler : IRequestHandler<RequestDeposi
 
         try
         {
+            var idempotencyLockKey = BitConverter.ToInt64(request.IdempotencyKey.ToByteArray(), 0);
+            await _unitOfWork.TryAcquireAdvisoryLockAsync(idempotencyLockKey, cancellationToken);
+
             // Serializa operaciones concurrentes de la misma billetera para que
             // el chequeo de referencia única no tenga carrera.
             var lockKey = BitConverter.ToInt64(request.WalletId.Value.ToByteArray(), 0);
@@ -81,6 +97,34 @@ public sealed class RequestDepositCommandHandler : IRequestHandler<RequestDeposi
             {
                 throw new InvalidOperationException(
                     $"Wallet {request.WalletId} already has a deposit request in progress.");
+            }
+
+            // The fast-path check above can race with another request carrying
+            // the same key. Re-check after acquiring the wallet lock so retries
+            // observe the committed request instead of being reported as a
+            // duplicate receipt reference.
+            if (await _idempotencyService.ExistsAsync(
+                    idempotencyKey,
+                    nameof(RequestDepositCommand),
+                    payloadHash,
+                    cancellationToken))
+            {
+                var replay = await _transactionRepository.GetDepositByReferenceAsync(
+                    request.WalletId,
+                    reference,
+                    cancellationToken);
+
+                await _unitOfWork.CommitAsync(cancellationToken);
+
+                return new RequestDepositResult(
+                    true,
+                    replay?.Id,
+                    replay?.ReferenceId ?? reference,
+                    replay?.Amount.Amount ?? request.Amount.Amount,
+                    replay?.Method ?? request.Method,
+                    DescribeStatus(replay?.Status),
+                    replay?.CreatedAt,
+                    "La solicitud ya fue registrada.");
             }
 
             var wallet = await _walletRepository.GetByIdAsync(request.WalletId, cancellationToken)
@@ -112,7 +156,8 @@ public sealed class RequestDepositCommandHandler : IRequestHandler<RequestDeposi
             await _idempotencyService.AddAsync(
                 idempotencyKey,
                 nameof(RequestDepositCommand),
-                cancellationToken);
+                cancellationToken,
+                payloadHash);
 
             await _unitOfWork.CommitAsync(cancellationToken);
 

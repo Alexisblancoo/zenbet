@@ -2,6 +2,14 @@ namespace Zenbet.EventsMarkets.Domain.Exceptions;
 
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 
+public sealed class IdempotencyConflictException : DomainException
+{
+    public IdempotencyConflictException()
+        : base("Idempotency-Key ya fue utilizada con un payload diferente o no verificable.")
+    {
+    }
+}
+
 public sealed class EventNotFoundException : DomainException
 {
     public EventId EventId { get; }

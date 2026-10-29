@@ -1,11 +1,10 @@
 namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Services;
 
-using System.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 using Zenbet.EventsMarkets.Domain.Enums;
+using Zenbet.EventsMarkets.Domain.Exceptions;
 using Zenbet.EventsMarkets.Infrastructure.Persistence;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Outbox;
 
@@ -43,22 +42,12 @@ public sealed class EfUnitOfWork : IUnitOfWork
 
     public async Task<bool> TryAcquireAdvisoryLockAsync(long lockKey, CancellationToken cancellationToken = default)
     {
-        var connection = _dbContext.Database.GetDbConnection();
-        if (connection.State != ConnectionState.Open)
-        {
-            await connection.OpenAsync(cancellationToken);
-        }
-
-        await using var cmd = connection.CreateCommand();
-        cmd.Transaction = _dbContext.Database.CurrentTransaction?.GetDbTransaction();
-        cmd.CommandText = "SELECT pg_try_advisory_xact_lock(@key)";
-        var param = cmd.CreateParameter();
-        param.ParameterName = "@key";
-        param.Value = lockKey;
-        cmd.Parameters.Add(param);
-
-        var result = await cmd.ExecuteScalarAsync(cancellationToken);
-        return result is true || (result is bool b && b);
+        // The transaction-scoped lock is released by commit or rollback.
+        // Interpolated SQL is parameterized by EF Core.
+        await _dbContext.Database.ExecuteSqlAsync(
+            $"SELECT pg_advisory_xact_lock({lockKey});",
+            cancellationToken);
+        return true;
     }
 
     public void Dispose()
@@ -82,12 +71,42 @@ public sealed class EfIdempotencyService : IIdempotencyService
             .AnyAsync(k => k.Key == key, cancellationToken);
     }
 
-    public async Task AddAsync(string key, string commandType, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(
+        string key,
+        string commandType,
+        string payloadHash,
+        CancellationToken cancellationToken = default)
+    {
+        var existing = await _dbContext.IdempotencyKeys
+            .AsNoTracking()
+            .SingleOrDefaultAsync(k => k.Key == key, cancellationToken);
+
+        if (existing is null)
+        {
+            return false;
+        }
+
+        if (!string.Equals(existing.CommandType, commandType, StringComparison.Ordinal) ||
+            existing.PayloadHash is null ||
+            !string.Equals(existing.PayloadHash, payloadHash, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new IdempotencyConflictException();
+        }
+
+        return true;
+    }
+
+    public async Task AddAsync(
+        string key,
+        string commandType,
+        CancellationToken cancellationToken = default,
+        string? payloadHash = null)
     {
         _dbContext.IdempotencyKeys.Add(new IdempotencyKey
         {
             Key = key,
             CommandType = commandType,
+            PayloadHash = payloadHash,
             CreatedAt = DateTimeOffset.UtcNow,
             ExpiresAt = DateTimeOffset.UtcNow.AddDays(7)
         });

@@ -2,6 +2,7 @@ namespace Zenbet.EventsMarkets.Application.Commands.SettleMarket;
 
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Zenbet.EventsMarkets.Application.Common;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.Events;
@@ -36,15 +37,28 @@ public sealed class SettleMarketCommandHandler : IRequestHandler<SettleMarketCom
 
     public async Task<SettleMarketResult> Handle(SettleMarketCommand request, CancellationToken cancellationToken)
     {
+        var idempotencyKey = request.IdempotencyKey.ToString();
+        var payloadHash = IdempotencyPayloadHasher.Compute(new
+        {
+            marketId = request.MarketId.Value,
+            winnerSelectionId = request.WinnerSelectionId.Value,
+            request.Result,
+            request.SettledBy,
+        });
+
         // 1. Check idempotency first - fast path without loading aggregate
-        var idempotencyExists = await _idempotencyService.ExistsAsync(request.IdempotencyKey.ToString(), cancellationToken);
+        var idempotencyExists = await _idempotencyService.ExistsAsync(
+            idempotencyKey,
+            nameof(SettleMarketCommand),
+            payloadHash,
+            cancellationToken);
 
         if (idempotencyExists)
         {
             _logger.LogInformation("Idempotent settlement request detected for key {Key}, returning existing result",
                 request.IdempotencyKey);
 
-            var cached = await _settlementAuditService.GetByIdempotencyKeyAsync(request.IdempotencyKey.ToString(), cancellationToken);
+            var cached = await _settlementAuditService.GetByIdempotencyKeyAsync(idempotencyKey, cancellationToken);
 
             if (cached is not null)
             {
@@ -70,6 +84,9 @@ public sealed class SettleMarketCommandHandler : IRequestHandler<SettleMarketCom
 
         try
         {
+            var idempotencyLockKey = BitConverter.ToInt64(request.IdempotencyKey.ToByteArray(), 0);
+            await _unitOfWork.TryAcquireAdvisoryLockAsync(idempotencyLockKey, cancellationToken);
+
             var lockKey = BitConverter.ToInt64(request.MarketId.Value.ToByteArray(), 0);
             var lockAcquired = await _unitOfWork.TryAcquireAdvisoryLockAsync(lockKey, cancellationToken);
             if (!lockAcquired)
@@ -78,9 +95,13 @@ public sealed class SettleMarketCommandHandler : IRequestHandler<SettleMarketCom
             }
 
             // Re-check idempotency under lock
-            if (await _idempotencyService.ExistsAsync(request.IdempotencyKey.ToString(), cancellationToken))
+            if (await _idempotencyService.ExistsAsync(
+                    idempotencyKey,
+                    nameof(SettleMarketCommand),
+                    payloadHash,
+                    cancellationToken))
             {
-                var cached = await _settlementAuditService.GetByIdempotencyKeyAsync(request.IdempotencyKey.ToString(), cancellationToken);
+                var cached = await _settlementAuditService.GetByIdempotencyKeyAsync(idempotencyKey, cancellationToken);
                 if (cached is not null)
                 {
                     await _unitOfWork.CommitAsync(cancellationToken);
@@ -105,7 +126,11 @@ public sealed class SettleMarketCommandHandler : IRequestHandler<SettleMarketCom
             }
 
             // 7. Record idempotency key
-            await _idempotencyService.AddAsync(request.IdempotencyKey.ToString(), nameof(SettleMarketCommand), cancellationToken);
+            await _idempotencyService.AddAsync(
+                idempotencyKey,
+                nameof(SettleMarketCommand),
+                cancellationToken,
+                payloadHash);
 
             // 8. Audit log for settlement
             await _settlementAuditService.AddAsync(new SettlementAuditRecord(
@@ -115,7 +140,7 @@ public sealed class SettleMarketCommandHandler : IRequestHandler<SettleMarketCom
                 request.Result,
                 request.SettledBy,
                 DateTimeOffset.UtcNow,
-                request.IdempotencyKey.ToString()), cancellationToken);
+                idempotencyKey), cancellationToken);
 
             await _unitOfWork.CommitAsync(cancellationToken);
 

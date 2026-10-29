@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using MediatR;
+using FluentValidation;
 using Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 using Zenbet.EventsMarkets.Application.Commands.SettleMarket;
 using Zenbet.EventsMarkets.Application.Commands.UpdateOdds;
@@ -45,58 +46,28 @@ public static class BetsEndpoints
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status429TooManyRequests);
 
-        // Place a bet
-        group.MapPost("", async (
-            [FromBody] PlaceBetRequest request,
-            ClaimsPrincipal user,
-            IMediator mediator,
-            CancellationToken cancellationToken) =>
-        {
-            var authenticatedWalletId = user.FindFirstValue("wallet_id");
-            if (!Guid.TryParse(authenticatedWalletId, out var walletId) ||
-                walletId != request.WalletId)
-            {
-                return Results.Problem(
-                    statusCode: StatusCodes.Status403Forbidden,
-                    title: "Billetera no autorizada",
-                    detail: "La billetera no pertenece a tu cuenta.");
-            }
+        group.MapPost("/place", PlaceBetAsync)
+            .RequireAuthorization()
+            .WithName("PlaceBet")
+            .Produces<PlaceBetResponse>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
+            .Produces(StatusCodes.Status429TooManyRequests);
 
-            var command = new PlaceBetCommand(
-                WalletId.From(request.WalletId),
-                SelectionId.From(request.SelectionId),
-                new Money(request.Amount),
-                request.Description,
-                request.IdempotencyKey,
-                request.PromoCode);
-
-            var result = await mediator.Send(command, cancellationToken);
-
-            if (!result.Success)
-            {
-                return Results.UnprocessableEntity(new
-                {
-                    success = false,
-                    error = result.ErrorMessage
-                });
-            }
-
-            return Results.Created($"/api/v1/bets/{result.BetId}", new
-            {
-                success = true,
-                betId = result.BetId?.Value,
-                transactionId = result.TransactionId?.Value,
-                newBalance = result.NewBalance?.Amount,
-                idempotentReplay = result.IdempotentReplay
-            });
-        })
-        .RequireAuthorization()
-        .WithName("PlaceBet")
-        .Produces(StatusCodes.Status201Created)
-        .Produces(StatusCodes.Status401Unauthorized)
-        .Produces(StatusCodes.Status403Forbidden)
-        .Produces(StatusCodes.Status422UnprocessableEntity)
-        .Produces(StatusCodes.Status429TooManyRequests);
+        // Keep the original POST /api/v1/bets route as a compatibility alias.
+        group.MapPost("", PlaceBetAsync)
+            .RequireAuthorization()
+            .WithName("PlaceBetLegacy")
+            .Produces<PlaceBetResponse>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
+            .Produces(StatusCodes.Status429TooManyRequests);
 
         // Settle a market (admin/internal)
         group.MapPost("/settle", async (
@@ -174,6 +145,67 @@ public static class BetsEndpoints
         .WithName("UpdateOdds")
         .Produces(StatusCodes.Status200OK);
     }
+
+    private static async Task<IResult> PlaceBetAsync(
+        PlaceBetRequest request,
+        [FromHeader(Name = "X-Idempotency-Key")] string? idempotencyKeyHeader,
+        ClaimsPrincipal user,
+        IMediator mediator,
+        IValidator<PlaceBetRequest> validator,
+        CancellationToken cancellationToken)
+    {
+        var validation = await validator.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors
+                .GroupBy(failure => failure.PropertyName)
+                .ToDictionary(group => group.Key, group => group.Select(failure => failure.ErrorMessage).ToArray());
+            return Results.ValidationProblem(errors);
+        }
+
+        if (!Guid.TryParse(idempotencyKeyHeader, out var idempotencyKey) ||
+            idempotencyKey == Guid.Empty)
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["X-Idempotency-Key"] = ["Envía una clave GUID válida en el header X-Idempotency-Key."]
+            });
+        }
+
+        var authenticatedWalletId = user.FindFirstValue("wallet_id");
+        if (!Guid.TryParse(authenticatedWalletId, out var walletId) || walletId != request.WalletId)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Billetera no autorizada",
+                detail: "La billetera no pertenece a tu cuenta.");
+        }
+
+        var result = await mediator.Send(
+            new PlaceBetCommand(
+                WalletId.From(request.WalletId),
+                SelectionId.From(request.SelectionId),
+                new Money(request.Amount),
+                request.Description!,
+                idempotencyKey,
+                request.PromoCode),
+            cancellationToken);
+
+        if (!result.Success)
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status422UnprocessableEntity,
+                title: "No se pudo realizar la apuesta",
+                detail: result.ErrorMessage);
+        }
+
+        return Results.Created($"/api/v1/bets/{result.BetId}", new PlaceBetResponse(
+            true,
+            result.BetId?.Value,
+            result.TransactionId?.Value,
+            result.NewBalance?.Amount,
+            result.IdempotentReplay));
+    }
 }
 
 // Request DTOs
@@ -182,8 +214,14 @@ public sealed record PlaceBetRequest(
     Guid SelectionId,
     decimal Amount,
     string Description,
-    Guid IdempotencyKey,
     string? PromoCode = null);
+
+public sealed record PlaceBetResponse(
+    bool Success,
+    Guid? BetId,
+    Guid? TransactionId,
+    decimal? NewBalance,
+    bool IdempotentReplay);
 
 public sealed record SettleMarketRequest(
     Guid MarketId,

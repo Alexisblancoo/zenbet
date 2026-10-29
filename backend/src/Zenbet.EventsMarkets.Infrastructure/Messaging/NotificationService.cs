@@ -41,6 +41,16 @@ public sealed class NoOpNotificationService : INotificationService
         return Task.CompletedTask;
     }
 
+    public Task NotifyBetOutcomeSettledAsync(
+        Guid walletId,
+        Guid userId,
+        Guid betTransactionId,
+        Guid marketId,
+        string outcome,
+        decimal payout,
+        decimal newBalance,
+        CancellationToken cancellationToken = default) => Task.CompletedTask;
+
     public Task NotifyFootballScoreUpdateAsync(
         string matchId,
         int homeScore,

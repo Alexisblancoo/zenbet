@@ -42,7 +42,7 @@ public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outbox
             .HasDefaultValue(0)
             .IsRequired();
 
-        builder.Property(o => o.LastError)
+        builder.Property(o => o.Error)
             .HasColumnName("last_error")
             .HasMaxLength(2000);
 

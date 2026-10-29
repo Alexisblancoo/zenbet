@@ -22,6 +22,10 @@ public sealed class IdempotencyKeyConfiguration : IEntityTypeConfiguration<Idemp
             .HasMaxLength(100)
             .IsRequired();
 
+        builder.Property(k => k.PayloadHash)
+            .HasColumnName("payload_hash")
+            .HasMaxLength(64);
+
         builder.Property(k => k.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();

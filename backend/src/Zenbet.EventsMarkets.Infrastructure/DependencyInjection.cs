@@ -50,6 +50,8 @@ public static class DependencyInjection
 
         // Repositories
         services.AddScoped<IEventRepository, EventRepository>();
+        services.AddScoped<IPromotionRepository, PromotionRepository>();
+        services.AddScoped<MmaEventSynchronizer>();
         services.AddScoped<IMarketRepository, MarketRepository>();
         services.AddScoped<ISelectionRepository, SelectionRepository>();
         services.AddScoped<IWalletRepository, WalletRepository>();
@@ -91,9 +93,15 @@ public static class DependencyInjection
         services.AddScoped<INotificationService, NoOpNotificationService>();
 
         // Background services for outbox/inbox processing
-        services.AddHostedService<OutboxProcessor>();
+        services.Configure<OutboxProcessorOptions>(configuration.GetSection("OutboxProcessor"));
+        services.AddHostedService<OutboxProcessorBackgroundService>();
         services.AddHostedService<InboxProcessor>();
         services.AddHostedService<PayoutWorker>();
+
+        services.Configure<MmaSyncOptions>(configuration.GetSection("MmaSync"));
+        services.AddSingleton<HttpClient>();
+        services.AddTransient<IMmaDataProvider, HttpMmaDataProvider>();
+        services.AddHostedService<EventSyncBackgroundService>();
 
         // Ciclo de vida de combates + reloj en vivo (SignalR FightHub).
         services.Configure<FightLiveUpdateOptions>(configuration.GetSection("FightLiveUpdates"));

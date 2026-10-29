@@ -5,6 +5,7 @@ using System.Threading.Channels;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Zenbet.EventsMarkets.Application.Common;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.Repositories;
@@ -59,8 +60,20 @@ public sealed class UpdateOddsCommandHandler : IRequestHandler<UpdateOddsCommand
         if (request.Updates.Count == 0)
             return new UpdateOddsResult(0, 0, Array.Empty<OddsUpdateFailure>());
 
-        // Check idempotency
-        var idempotencyExists = await _idempotencyService.ExistsAsync(request.IdempotencyKey.ToString(), cancellationToken);
+        // Check idempotency against the complete odds update payload.
+        var idempotencyKey = request.IdempotencyKey.ToString();
+        var payloadHash = IdempotencyPayloadHasher.Compute(request.Updates.Select(update => new
+        {
+            selectionId = update.SelectionId.Value,
+            update.Value,
+            update.Timestamp,
+            update.Provider,
+        }).ToArray());
+        var idempotencyExists = await _idempotencyService.ExistsAsync(
+            idempotencyKey,
+            nameof(UpdateOddsCommand),
+            payloadHash,
+            cancellationToken);
 
         if (idempotencyExists)
         {
@@ -81,7 +94,11 @@ public sealed class UpdateOddsCommandHandler : IRequestHandler<UpdateOddsCommand
         }
 
         // Record idempotency key
-        await _idempotencyService.AddAsync(request.IdempotencyKey.ToString(), nameof(UpdateOddsCommand), cancellationToken);
+        await _idempotencyService.AddAsync(
+            idempotencyKey,
+            nameof(UpdateOddsCommand),
+            cancellationToken,
+            payloadHash);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new UpdateOddsResult(processed, failures.Count, failures);

@@ -20,6 +20,24 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
+        if (exception is FluentValidation.ValidationException validationException)
+        {
+            var errors = validationException.Errors
+                .GroupBy(failure => failure.PropertyName)
+                .ToDictionary(group => group.Key, group => group.Select(failure => failure.ErrorMessage).ToArray());
+            var validationDetails = new ValidationProblemDetails(errors)
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "One or more validation errors occurred.",
+                Instance = httpContext.Request.Path
+            };
+            validationDetails.Extensions["traceId"] = httpContext.TraceIdentifier;
+            httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            httpContext.Response.ContentType = "application/problem+json";
+            await httpContext.Response.WriteAsJsonAsync(validationDetails, cancellationToken);
+            return true;
+        }
+
         var (statusCode, title, detail, type) = MapException(exception);
 
         _logger.LogWarning(exception, "Exception handled: {ExceptionType} - {Message}", exception.GetType().Name, exception.Message);
@@ -46,6 +64,11 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
     {
         return exception switch
         {
+            IdempotencyConflictException ex => (StatusCodes.Status409Conflict,
+                "Idempotency-Key conflict",
+                ex.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.5.10"),
+
             InsufficientFundsException ex => (StatusCodes.Status422UnprocessableEntity,
                 "Insufficient Funds",
                 ex.Message,
@@ -108,11 +131,6 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
 
             DivisionMismatchException ex => (StatusCodes.Status400BadRequest,
                 "Invalid MMA Bout",
-                ex.Message,
-                "https://tools.ietf.org/html/rfc9110#section-15.5.1"),
-
-            ArgumentException ex => (StatusCodes.Status400BadRequest,
-                "Invalid Request",
                 ex.Message,
                 "https://tools.ietf.org/html/rfc9110#section-15.5.1"),
 

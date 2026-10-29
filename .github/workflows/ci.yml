@@ -37,6 +37,12 @@ jobs:
       - name: Build
         run: dotnet build Zenbet.EventsMarkets.sln -c Release --no-restore
 
+      - name: Unit tests (no containers)
+        run: dotnet test tests/Zenbet.EventsMarkets.Unit.Tests/Zenbet.EventsMarkets.Unit.Tests.csproj -c Release --no-build
+
+      - name: PostgreSQL integration tests (Testcontainers)
+        run: dotnet test tests/Zenbet.EventsMarkets.Integration.Tests/Zenbet.EventsMarkets.Integration.Tests.csproj -c Release
+
   frontend:
     name: Frontend build
     runs-on: ubuntu-latest

@@ -23,6 +23,48 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.FightingEvent", b =>
+                {
+                    b.Property<Guid>("Id").HasColumnType("uuid").HasColumnName("id");
+                    b.Property<string>("Name").IsRequired().HasMaxLength(160).HasColumnType("character varying(160)").HasColumnName("name");
+                    b.Property<Guid>("PromotionId").HasColumnType("uuid").HasColumnName("promotion_id");
+                    b.Property<string>("Slug").IsRequired().HasMaxLength(160).HasColumnType("character varying(160)").HasColumnName("slug");
+                    b.Property<DateTimeOffset>("StartTime").HasColumnType("timestamp with time zone").HasColumnName("start_time");
+                    b.HasKey("Id");
+                    b.HasIndex("PromotionId", "StartTime").HasDatabaseName("ix_fighting_events_promotion_start_time");
+                    b.HasIndex("PromotionId", "Slug").IsUnique().HasDatabaseName("ux_fighting_events_promotion_slug");
+                    b.ToTable("fighting_events", "events_markets");
+                    b.HasData(
+                        new { Id = new Guid("20000000-0000-0000-0000-000000000001"), Name = "UFC 334: Gane vs Hokit", PromotionId = new Guid("10000000-0000-0000-0000-000000000001"), Slug = "ufc-334-gane-vs-hokit", StartTime = new DateTimeOffset(2026, 11, 14, 22, 0, 0, TimeSpan.Zero) },
+                        new { Id = new Guid("20000000-0000-0000-0000-000000000002"), Name = "Cage Warriors Q4 Simulated Showcase", PromotionId = new Guid("10000000-0000-0000-0000-000000000002"), Slug = "cage-warriors-q4-showcase", StartTime = new DateTimeOffset(2026, 11, 21, 18, 0, 0, TimeSpan.Zero) },
+                        new { Id = new Guid("20000000-0000-0000-0000-000000000003"), Name = "Jungle Fight Q4 Simulated Showcase", PromotionId = new Guid("10000000-0000-0000-0000-000000000003"), Slug = "jungle-fight-q4-showcase", StartTime = new DateTimeOffset(2026, 12, 5, 20, 0, 0, TimeSpan.Zero) },
+                        new { Id = new Guid("20000000-0000-0000-0000-000000000004"), Name = "ZenBet Regional Amateur Showcase (simulated)", PromotionId = new Guid("10000000-0000-0000-0000-000000000004"), Slug = "zenbet-regional-amateur-showcase", StartTime = new DateTimeOffset(2026, 12, 12, 18, 0, 0, TimeSpan.Zero) },
+                        new { Id = new Guid("20000000-0000-0000-0000-000000000005"), Name = "PFL Q4 Simulated Championship Showcase", PromotionId = new Guid("10000000-0000-0000-0000-000000000005"), Slug = "pfl-q4-championship-showcase", StartTime = new DateTimeOffset(2026, 11, 21, 22, 0, 0, TimeSpan.Zero) },
+                        new { Id = new Guid("20000000-0000-0000-0000-000000000006"), Name = "ONE Friday Fights 177", PromotionId = new Guid("10000000-0000-0000-0000-000000000006"), Slug = "one-friday-fights-177", StartTime = new DateTimeOffset(2026, 11, 6, 12, 30, 0, TimeSpan.Zero) },
+                        new { Id = new Guid("20000000-0000-0000-0000-000000000007"), Name = "OKTAGON 100: Prague", PromotionId = new Guid("10000000-0000-0000-0000-000000000007"), Slug = "oktagon-100-prague", StartTime = new DateTimeOffset(2026, 12, 29, 17, 0, 0, TimeSpan.Zero) },
+                        new { Id = new Guid("20000000-0000-0000-0000-000000000008"), Name = "UFC Fight Night: Bonfim vs. Brady", PromotionId = new Guid("10000000-0000-0000-0000-000000000001"), Slug = "ufc-fight-night-bonfim-vs-brady", StartTime = new DateTimeOffset(2026, 11, 7, 22, 0, 0, TimeSpan.Zero) });
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Promotion", b =>
+                {
+                    b.Property<Guid>("Id").HasColumnType("uuid").HasColumnName("id");
+                    b.Property<string>("CountryCode").IsRequired().HasMaxLength(2).HasColumnType("character varying(2)").HasColumnName("country_code");
+                    b.Property<string>("Name").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)").HasColumnName("name");
+                    b.Property<string>("Slug").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)").HasColumnName("slug");
+                    b.Property<int>("Tier").HasColumnType("integer").HasColumnName("tier");
+                    b.HasKey("Id");
+                    b.HasIndex("Slug").IsUnique().HasDatabaseName("ux_promotions_slug");
+                    b.ToTable("promotions", "events_markets");
+                    b.HasData(
+                        new { Id = new Guid("10000000-0000-0000-0000-000000000001"), CountryCode = "US", Name = "UFC", Slug = "ufc", Tier = 1 },
+                        new { Id = new Guid("10000000-0000-0000-0000-000000000002"), CountryCode = "GB", Name = "Cage Warriors", Slug = "cage-warriors", Tier = 2 },
+                        new { Id = new Guid("10000000-0000-0000-0000-000000000003"), CountryCode = "BR", Name = "Jungle Fight", Slug = "jungle-fight", Tier = 3 },
+                        new { Id = new Guid("10000000-0000-0000-0000-000000000004"), CountryCode = "BO", Name = "ZenBet Regional Development Circuit", Slug = "zenbet-regional-development", Tier = 4 },
+                        new { Id = new Guid("10000000-0000-0000-0000-000000000005"), CountryCode = "US", Name = "Professional Fighters League", Slug = "pfl", Tier = 1 },
+                        new { Id = new Guid("10000000-0000-0000-0000-000000000006"), CountryCode = "SG", Name = "ONE Championship", Slug = "one-championship", Tier = 1 },
+                        new { Id = new Guid("10000000-0000-0000-0000-000000000007"), CountryCode = "CZ", Name = "OKTAGON MMA", Slug = "oktagon-mma", Tier = 2 });
+                });
+
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Event", b =>
                 {
                     b.Property<Guid>("Id")
@@ -407,6 +449,316 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.ToTable("wallets", "events_markets");
                 });
 
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballLeague", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("country");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("country_code");
+
+                    b.Property<string>("CyrillicName")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("cyrillic_name");
+
+                    b.Property<string>("LeagueLogoUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("league_logo_url");
+
+                    b.Property<string>("Matchday")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("matchday");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Season")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("season");
+
+                    b.Property<string>("ShortName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("short_name");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("football_leagues", "events_markets");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballMarket", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("Line")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("line");
+
+                    b.Property<Guid>("MarketId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("market_id");
+
+                    b.Property<string>("MatchId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("match_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("TypeKey")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("type_key");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MatchId");
+
+                    b.ToTable("football_markets", "events_markets");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballMatch", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("id");
+
+                    b.Property<int>("AwayScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("away_score");
+
+                    b.Property<string>("AwayTeamId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("away_team_id");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<int?>("CurrentMinute")
+                        .HasColumnType("integer")
+                        .HasColumnName("current_minute");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_id");
+
+                    b.Property<int>("HomeScore")
+                        .HasColumnType("integer")
+                        .HasColumnName("home_score");
+
+                    b.Property<string>("HomeTeamId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("home_team_id");
+
+                    b.Property<bool>("IsRunning")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_running");
+
+                    b.Property<DateTimeOffset>("KickoffTimeUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("kickoff_time_utc");
+
+                    b.Property<string>("LeagueId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("league_id");
+
+                    b.Property<string>("Period")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("period");
+
+                    b.Property<string>("Referee")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("referee");
+
+                    b.Property<string>("Stadium")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("stadium");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AwayTeamId");
+
+                    b.HasIndex("HomeTeamId");
+
+                    b.HasIndex("LeagueId");
+
+                    b.ToTable("football_matches", "events_markets");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballSelection", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AmericanOdds")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("american_odds");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("code");
+
+                    b.Property<string>("CyrillicLabel")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("cyrillic_label");
+
+                    b.Property<decimal>("DecimalOdds")
+                        .HasPrecision(6, 3)
+                        .HasColumnType("numeric(6,3)")
+                        .HasColumnName("decimal_odds");
+
+                    b.Property<decimal?>("Line")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("line");
+
+                    b.Property<string>("MarketId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("market_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("SelectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("selection_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MarketId");
+
+                    b.ToTable("football_selections", "events_markets");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballTeam", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("country");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("country_code");
+
+                    b.Property<string>("CyrillicName")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("cyrillic_name");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("ShortName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)")
+                        .HasColumnName("short_name");
+
+                    b.Property<string>("TeamCrestUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)")
+                        .HasColumnName("team_crest_url");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("football_teams", "events_markets");
+                });
+
             modelBuilder.Entity("Zenbet.EventsMarkets.Infrastructure.Persistence.Outbox.DeadLetterEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -667,6 +1019,16 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.HasKey("Key");
 
                     b.ToTable("ufc_seed_states", "events_markets");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.FightingEvent", b =>
+                {
+                    b.HasOne("Zenbet.EventsMarkets.Domain.Aggregates.Promotion", "Promotion")
+                        .WithMany("Events")
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                    b.Navigation("Promotion");
                 });
 
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Event", b =>
@@ -982,6 +1344,56 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballMarket", b =>
+                {
+                    b.HasOne("Zenbet.EventsMarkets.Domain.Football.FootballMatch", null)
+                        .WithMany("Markets")
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballMatch", b =>
+                {
+                    b.HasOne("Zenbet.EventsMarkets.Domain.Football.FootballTeam", "AwayTeam")
+                        .WithMany()
+                        .HasForeignKey("AwayTeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zenbet.EventsMarkets.Domain.Football.FootballTeam", "HomeTeam")
+                        .WithMany()
+                        .HasForeignKey("HomeTeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Zenbet.EventsMarkets.Domain.Football.FootballLeague", "League")
+                        .WithMany()
+                        .HasForeignKey("LeagueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AwayTeam");
+
+                    b.Navigation("HomeTeam");
+
+                    b.Navigation("League");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballSelection", b =>
+                {
+                    b.HasOne("Zenbet.EventsMarkets.Domain.Football.FootballMarket", null)
+                        .WithMany("Selections")
+                        .HasForeignKey("MarketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Promotion", b =>
+                {
+                    b.Navigation("Events");
+                });
+
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Event", b =>
                 {
                     b.Navigation("Markets");
@@ -995,6 +1407,16 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Wallet", b =>
                 {
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballMarket", b =>
+                {
+                    b.Navigation("Selections");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballMatch", b =>
+                {
+                    b.Navigation("Markets");
                 });
 #pragma warning restore 612, 618
         }

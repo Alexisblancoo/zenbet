@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Zenbet.EventsMarkets.Application.Commands.SettleUfcEvent;
+using Zenbet.EventsMarkets.Application.Commands.SettleFight;
 using Zenbet.EventsMarkets.Application.DTOs;
 using Zenbet.EventsMarkets.Application.Queries.GetEventById;
 using Zenbet.EventsMarkets.Application.Queries.GetEvents;
@@ -141,7 +142,7 @@ public static class EventsEndpoints
             try
             {
                 var result = await mediator.Send(
-                    new SettleUfcEventCommand(
+                    new SettleFightCommand(
                         Zenbet.EventsMarkets.Domain.ValueObjects.EventId.From(eventId),
                         winnerCorner,
                         method,
@@ -149,7 +150,7 @@ public static class EventsEndpoints
                         string.IsNullOrWhiteSpace(request.SettledBy)
                             ? "ufc-result-feed"
                             : request.SettledBy.Trim(),
-                        request.IdempotencyKey ?? Guid.NewGuid()),
+                        request.IdempotencyKey),
                     cancellationToken);
 
                 return Results.Ok(result);

@@ -43,12 +43,13 @@ public sealed class Event : AggregateRoot<EventId>
         Bout = bout;
         Status = EventStatus.Scheduled;
         Version = 0; // Optimistic concurrency
+        AddDomainEvent(new EventCreatedDomainEvent(Id, Name, SportType, StartTime, Competition));
     }
 
-    public required string Name { get; init; }
-    public required SportType SportType { get; init; }
-    public required DateTimeOffset StartTime { get; init; }
-    public string? Competition { get; init; }
+    public string Name { get; private set; } = string.Empty;
+    public SportType SportType { get; private set; }
+    public DateTimeOffset StartTime { get; private set; }
+    public string? Competition { get; private set; }
     public MmaBout? Bout { get; private set; }
 
     /// <summary>Resultado oficial del combate, una vez registrado por operaciones.</summary>
@@ -93,6 +94,57 @@ public sealed class Event : AggregateRoot<EventId>
     /// <summary>Los mercados solo aceptan picks mientras el evento está abierto.</summary>
     public bool IsBettingOpen(DateTimeOffset now) =>
         (Status is EventStatus.Scheduled or EventStatus.Live) && !IsExpired(now);
+
+    /// <summary>Applies a provider snapshot while preserving settlement state.</summary>
+    public bool SynchronizeFromProvider(string name, DateTimeOffset startTime, string? competition, MmaBout? bout)
+    {
+        if (Status is EventStatus.Finished or EventStatus.Cancelled or EventStatus.Void)
+            return false;
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("An event name is required.", nameof(name));
+        if (SportType != SportType.MixedMartialArts)
+            throw new InvalidOperationException("Only MMA events can be synchronized from an MMA provider.");
+
+        var normalizedCompetition = string.IsNullOrWhiteSpace(competition) ? null : competition.Trim();
+        var boutChanged = bout is not null && (Bout is null ||
+            FighterChanged(Bout.Red, bout.Red) ||
+            FighterChanged(Bout.Blue, bout.Blue) ||
+            Bout.Division != bout.Division ||
+            Bout.ScheduledRounds != bout.ScheduledRounds ||
+            Bout.IsTitleFight != bout.IsTitleFight ||
+            Bout.Billing != bout.Billing ||
+            Bout.BillingOrder != bout.BillingOrder ||
+            !string.Equals(Bout.Venue, bout.Venue, StringComparison.Ordinal) ||
+            !string.Equals(Bout.Location, bout.Location, StringComparison.Ordinal));
+        var changed = !string.Equals(Name, name.Trim(), StringComparison.Ordinal) ||
+            StartTime != startTime ||
+            !string.Equals(Competition, normalizedCompetition, StringComparison.Ordinal) ||
+            boutChanged;
+
+        Name = name.Trim();
+        StartTime = startTime;
+        Competition = normalizedCompetition;
+        if (boutChanged)
+            Bout = bout;
+
+        if (changed)
+            AddDomainEvent(new EventSyncedDomainEvent(Id, Name, StartTime, Competition, DateTimeOffset.UtcNow));
+        return changed;
+    }
+
+    private static bool FighterChanged(Fighter current, Fighter incoming) =>
+        !string.Equals(current.Id, incoming.Id, StringComparison.Ordinal) ||
+        !string.Equals(current.Name, incoming.Name, StringComparison.Ordinal) ||
+        !string.Equals(current.CountryCode, incoming.CountryCode, StringComparison.Ordinal) ||
+        !string.Equals(current.Country, incoming.Country, StringComparison.Ordinal) ||
+        !string.Equals(current.Record, incoming.Record, StringComparison.Ordinal) ||
+        !string.Equals(current.Rank, incoming.Rank, StringComparison.Ordinal) ||
+        current.Division != incoming.Division ||
+        !string.Equals(current.ImageUrl, incoming.ImageUrl, StringComparison.Ordinal) ||
+        current.ReachInches != incoming.ReachInches ||
+        current.Stance != incoming.Stance ||
+        current.TakedownDefensePercent != incoming.TakedownDefensePercent ||
+        current.StrikingAccuracyPercent != incoming.StrikingAccuracyPercent;
 
     public Market AddMarket(string name, MarketType type, IReadOnlyList<Selection> selections)
         => AddMarket(MarketId.New(), name, type, selections);

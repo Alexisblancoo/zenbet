@@ -62,9 +62,14 @@ public sealed class Market : AggregateRoot<MarketId>
         if (line is < 0m)
             throw new ArgumentOutOfRangeException(nameof(line), "La línea no puede ser negativa.");
 
-        Name = name.Trim();
+        var normalizedName = name.Trim();
+        var changed = !string.Equals(Name, normalizedName, StringComparison.Ordinal) ||
+            Line != line || DisplayOrder != displayOrder;
+        Name = normalizedName;
         Line = line;
         DisplayOrder = displayOrder;
+        if (changed)
+            AddDomainEvent(new MarketPresentationUpdatedDomainEvent(Id, EventId, Name, DateTimeOffset.UtcNow));
     }
 
     public void SetProvenance(MarketProvenance provenance)

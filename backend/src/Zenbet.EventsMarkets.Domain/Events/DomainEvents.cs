@@ -16,6 +16,14 @@ public sealed record EventCreatedDomainEvent(
     string? Competition)
     : DomainEvent(DateTimeOffset.UtcNow, EventId.Value);
 
+public sealed record EventSyncedDomainEvent(
+    EventId EventId,
+    string Name,
+    DateTimeOffset StartTime,
+    string? Competition,
+    DateTimeOffset SyncedAt)
+    : DomainEvent(SyncedAt, EventId.Value);
+
 public sealed record EventStatusChangedDomainEvent(
     EventId EventId,
     EventStatus OldStatus,
@@ -51,6 +59,13 @@ public sealed record MarketCreatedDomainEvent(
     string Name,
     MarketType Type)
     : DomainEvent(DateTimeOffset.UtcNow, MarketId.Value);
+
+public sealed record MarketPresentationUpdatedDomainEvent(
+    MarketId MarketId,
+    EventId EventId,
+    string Name,
+    DateTimeOffset UpdatedAt)
+    : DomainEvent(UpdatedAt, MarketId.Value);
 
 public sealed record OddsChangedDomainEvent(
     MarketId MarketId,
@@ -127,6 +142,17 @@ public sealed record BetSettledDomainEvent(
     TransactionId TransactionId,
     DateTimeOffset OccurredAt)
     : DomainEvent(OccurredAt, WalletId.Value);
+
+public sealed record BetOutcomeSettledDomainEvent(
+    WalletId WalletId,
+    UserId UserId,
+    TransactionId BetTransactionId,
+    MarketId MarketId,
+    BetStatus Outcome,
+    Money Payout,
+    Money NewBalance,
+    DateTimeOffset OccurredAt)
+    : DomainEvent(OccurredAt, BetTransactionId.Value);
 
 public sealed record BetCancelledDomainEvent(
     WalletId WalletId,

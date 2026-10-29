@@ -10,5 +10,8 @@
     "build:frontend": "npm run build --prefix frontend",
     "build:backend": "dotnet build backend/Zenbet.EventsMarkets.sln",
     "test:backend": "dotnet test backend/Zenbet.EventsMarkets.sln"
+  },
+  "dependencies": {
+    "react-icons": "^5.7.0"
   }
 }

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
+using FluentValidation;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Threading.RateLimiting;
@@ -11,11 +13,17 @@ using Zenbet.EventsMarkets.Api.Endpoints;
 using Zenbet.EventsMarkets.Api.ExceptionHandling;
 using Zenbet.EventsMarkets.Api.Hubs;
 using Zenbet.EventsMarkets.Api.Services;
+using Zenbet.EventsMarkets.Application.Behaviors;
+using Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Exceptions;
 using Zenbet.EventsMarkets.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Hide Kestrel's Server response header; the middleware below removes headers
+// that might be added by hosting integrations or application packages.
+builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
 // Add CORS policy for local development
 builder.Services.AddCors(options =>
@@ -107,6 +115,10 @@ builder.Services.AddProblemDetails(options =>
 // Add Exception Handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
+builder.Services.AddValidatorsFromAssemblyContaining<PlaceBetCommandValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<PlaceBetRequestValidator>();
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // Sesión de jugador: token HMAC emitido por /api/auth y validado en cada request.
@@ -129,6 +141,23 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        context.Response.Headers.Remove("Server");
+        context.Response.Headers.Remove("X-Powered-By");
+        context.Response.Headers.Remove("X-AspNet-Version");
+        context.Response.Headers.Remove("X-AspNetMvc-Version");
+        context.Response.Headers.Remove("X-Framework-Version");
+        context.Response.Headers.Remove("X-Runtime");
+        context.Response.Headers.Remove("X-Generator");
+        return Task.CompletedTask;
+    });
+
+    await next();
+});
 
 // Apply CORS before other middleware
 app.UseCors("DevelopmentCors");
@@ -166,6 +195,8 @@ app.MapAuthEndpoints();
 app.MapBetsEndpoints();
 app.MapWalletEndpoints();
 app.MapEventsEndpoints();
+app.MapPromotionsEndpoints();
+app.MapUpcomingEventsEndpoint();
 app.MapFootballEndpoints();
 app.MapFightersEndpoints();
 

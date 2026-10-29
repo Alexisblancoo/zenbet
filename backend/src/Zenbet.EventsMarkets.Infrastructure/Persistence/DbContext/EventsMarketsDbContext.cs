@@ -14,6 +14,8 @@ using Zenbet.EventsMarkets.Infrastructure.Persistence.Seeding;
 public sealed class EventsMarketsDbContext : DbContext
 {
     public DbSet<Event> Events => Set<Event>();
+    public DbSet<Promotion> Promotions => Set<Promotion>();
+    public DbSet<FightingEvent> FightingEvents => Set<FightingEvent>();
     public DbSet<Market> Markets => Set<Market>();
     public DbSet<Selection> Selections => Set<Selection>();
     public DbSet<Wallet> Wallets => Set<Wallet>();
@@ -37,6 +39,8 @@ public sealed class EventsMarketsDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new EventConfiguration());
+        modelBuilder.ApplyConfiguration(new PromotionConfiguration());
+        modelBuilder.ApplyConfiguration(new FightingEventConfiguration());
         modelBuilder.ApplyConfiguration(new MarketConfiguration());
         modelBuilder.ApplyConfiguration(new SelectionConfiguration());
         modelBuilder.ApplyConfiguration(new WalletConfiguration());
