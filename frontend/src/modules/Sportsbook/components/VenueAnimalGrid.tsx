@@ -34,7 +34,7 @@ function FighterPhoto({ side }: { readonly side: VersusSide }) {
       {side.imageUrl ? (
         <img src={side.imageUrl} alt={side.name} loading='lazy' decoding='async' />
       ) : (
-        <span className='hx-serif absolute inset-0 grid place-items-center px-2 text-center text-[28px] leading-none text-[color:var(--ac)]'>
+        <span className='hx-serif absolute inset-0 grid place-items-center px-2 text-center text-[18px] leading-tight text-[color:var(--ac)]'>
           {side.name}
         </span>
       )}
@@ -93,7 +93,7 @@ function VenueAnimalGrid({
           <span className='hx-mono text-[color:var(--hx-accent)]'>/ {kicker}</span>
           <h2
             id='venue-grid-title'
-            className='hx-serif m-0 text-[clamp(34px,4.4vw,52px)] leading-none tracking-[-0.015em] text-[#F3E5AB]'
+            className='hx-serif m-0 text-[clamp(26px,3.4vw,40px)] leading-[1.08] tracking-tight text-[#F3E5AB]'
           >
             {title} <em className='text-[color:var(--hx-accent)]'>{titleAccent}</em>
           </h2>
@@ -142,7 +142,7 @@ function VenueAnimalGrid({
                       <>
                         <FighterPhoto side={item.versus.left} />
                         <span
-                          className='hx-serif absolute left-1/2 top-1/2 z-[3] -translate-x-1/2 -translate-y-1/2 border bg-[#0B0B0A] px-2.5 pb-1 pt-0.5 text-[24px] italic leading-none'
+                          className='hx-serif absolute left-1/2 top-1/2 z-[3] -translate-x-1/2 -translate-y-1/2 border bg-[#0B0B0A] px-2.5 pb-1 pt-0.5 text-[16px] leading-none'
                           style={{ color: accent, borderColor: accent }}
                           aria-label='contra'
                         >
@@ -178,7 +178,7 @@ function VenueAnimalGrid({
                     <div className='flex items-start justify-between gap-3'>
                       <div className='flex min-w-0 flex-col gap-2'>
                         <span className='hx-mono text-[10px] text-[#9C9C9C]'>{item.place}</span>
-                        <span className='hx-serif text-[30px] leading-[1.02] text-[#F3E5AB]'>{item.title}</span>
+                        <span className='hx-serif text-[21px] leading-[1.12] text-[#F3E5AB]'>{item.title}</span>
                         {item.detail && (
                           <span className='text-[13.5px] leading-snug text-[#B9B9B9]'>{item.detail}</span>
                         )}
@@ -222,7 +222,7 @@ function VenueAnimalGrid({
                       className='flex flex-col gap-2 border border-[#2C2C2C] bg-[#0B0B0A] p-3.5'
                     >
                       <span className='hx-mono text-[10px] text-[color:var(--hx-accent)]'>Sobre la sede</span>
-                      <span className='hx-serif text-[24px] leading-none text-[#F3E5AB]'>{item.venue}</span>
+                      <span className='hx-serif text-[18px] leading-tight text-[#F3E5AB]'>{item.venue}</span>
                       <dl className='m-0 flex flex-col gap-1 text-[13px] leading-snug text-[#B9B9B9]'>
                         <div><dt className='inline text-[#9C9C9C]'>Ciudad: </dt><dd className='inline'>{item.place}</dd></div>
                         {item.whenLabel && (

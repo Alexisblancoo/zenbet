@@ -59,7 +59,7 @@ function SportsbookHeroBanner({
           <div className='flex min-w-0 flex-[1.45_1_440px] flex-col gap-7 px-6 py-10 sm:px-10 sm:py-12'>
             <h1
               id='hero-title'
-              className='hx-serif m-0 text-[clamp(40px,5.2vw,64px)] leading-none tracking-[-0.02em] text-[#F3E5AB]'
+              className='hx-serif m-0 text-[clamp(28px,4vw,46px)] leading-[1.08] tracking-tight text-[#F3E5AB]'
             >
               Cada cuota, <em className='text-[color:var(--hx-accent)]'>con su procedencia.</em>
             </h1>

@@ -278,43 +278,46 @@ export default function Sidebar() {
       </div>
 
       <div className='mt-auto p-3'>
-        <div className='relative overflow-hidden border border-burgundy-hi/50 bg-linear-to-br from-burgundy/40 via-transparent to-transparent p-3'>
-          <span
-            aria-hidden='true'
-            className='pointer-events-none absolute -right-3 -top-4 font-display text-[64px] font-black leading-none text-white/[0.025]'
-          >
-            {cardNumber}
-          </span>
-          <p className='relative shibuya-kicker text-cream'>Main event</p>
-          <p className='relative mt-1 font-display text-[11px] font-bold uppercase leading-tight text-white'>
-            <span className='block'>
-              {featuredMainEvent
-                ? shortFighterName(featuredMainEvent.bout.red.name)
-                : 'Cartelera UFC'}
+        {/* En el Sportsbook el evento estelar ya aparece en la página: aquí solo se repetiría. */}
+        {!onSportsbook && (
+          <div className='relative overflow-hidden border border-burgundy-hi/50 bg-linear-to-br from-burgundy/40 via-transparent to-transparent p-3'>
+            <span
+              aria-hidden='true'
+              className='pointer-events-none absolute -right-3 -top-4 font-display text-[64px] font-black leading-none text-white/[0.025]'
+            >
+              {cardNumber}
             </span>
-            <span className='my-0.5 flex items-center gap-1.5 font-mono text-[8px] font-bold text-crimson'>
-              <span className='h-px w-3 bg-crimson/50' aria-hidden='true' />
-              vs
-            </span>
-            <span className='block'>
-              {featuredMainEvent
-                ? shortFighterName(featuredMainEvent.bout.blue.name)
-                : 'Próximo sábado'}
-            </span>
-          </p>
-          <p className='relative mt-1 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
-            {featuredCard
-              ? `${formatCardDayBadge(featuredCard.startTime)} · ${cardCity(featuredCard.location)}`
-              : 'Carteleras por confirmar'}
-          </p>
-          <Link
-            to={featuredCard ? `/sportsbook?card=${featuredCard.key}` : '/sportsbook'}
-            className='relative mt-2.5 inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wide text-lime-400 transition-colors hover:text-cream'
-          >
-            Ver mercados
-            <ChevronRight size={10} aria-hidden='true' />
-          </Link>
-        </div>
+            <p className='relative shibuya-kicker text-cream'>Main event</p>
+            <p className='relative mt-1 font-display text-[11px] font-bold uppercase leading-tight text-white'>
+              <span className='block'>
+                {featuredMainEvent
+                  ? shortFighterName(featuredMainEvent.bout.red.name)
+                  : 'Cartelera UFC'}
+              </span>
+              <span className='my-0.5 flex items-center gap-1.5 font-mono text-[8px] font-bold text-crimson'>
+                <span className='h-px w-3 bg-crimson/50' aria-hidden='true' />
+                vs
+              </span>
+              <span className='block'>
+                {featuredMainEvent
+                  ? shortFighterName(featuredMainEvent.bout.blue.name)
+                  : 'Próximo sábado'}
+              </span>
+            </p>
+            <p className='relative mt-1 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
+              {featuredCard
+                ? `${formatCardDayBadge(featuredCard.startTime)} · ${cardCity(featuredCard.location)}`
+                : 'Carteleras por confirmar'}
+            </p>
+            <Link
+              to={featuredCard ? `/sportsbook?card=${featuredCard.key}` : '/sportsbook'}
+              className='relative mt-2.5 inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wide text-lime-400 transition-colors hover:text-cream'
+            >
+              Ver mercados
+              <ChevronRight size={10} aria-hidden='true' />
+            </Link>
+          </div>
+        )}
 
         <p className='mt-2 flex items-center gap-1.5 font-mono text-[8px] uppercase leading-relaxed tracking-wide text-metallic-slate'>
           <ShieldCheck size={9} className='shrink-0 text-sage' aria-hidden='true' />
