@@ -46,7 +46,7 @@ export function createFightHubConnection(): HubConnection {
   return new HubConnectionBuilder()
     .withUrl(FIGHT_HUB_URL, {
       accessTokenFactory: () => authToken.get() ?? '',
-      withCredentials: false,
+      withCredentials: true,
     })
     .withAutomaticReconnect(oddsHubRetryPolicy)
     .configureLogging(import.meta.env.DEV ? LogLevel.Warning : LogLevel.Error)

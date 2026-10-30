@@ -28,18 +28,31 @@ builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 // Add CORS policy for local development
 builder.Services.AddCors(options =>
 {
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173",    // Vite dev server
+                "http://127.0.0.1:5173",    // Vite dev server (IPv4 loopback)
+                "http://localhost:3000",    // React dev server
+                "http://localhost:4200",    // Angular dev server
+                "http://localhost:8080",    // Vue dev server
+                "https://localhost:5173",   // HTTPS variants
+                "https://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials(); // Required for SignalR
+    });
+
     options.AddPolicy("DevelopmentCors", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:3000",    // React dev server
                 "http://localhost:5173",    // Vite dev server
                 "http://127.0.0.1:5173",    // Vite dev server (IPv4 loopback)
+                "http://localhost:3000",    // React dev server
                 "http://localhost:4200",    // Angular dev server
                 "http://localhost:8080",    // Vue dev server
-                "https://localhost:3000",   // HTTPS variants
-                "https://localhost:5173",
-                "https://localhost:4200",
-                "https://localhost:8080")
+                "https://localhost:5173",   // HTTPS variants
+                "https://localhost:3000")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials(); // Required for SignalR
@@ -49,18 +62,6 @@ builder.Services.AddCors(options =>
 // Add Rate Limiting - Sliding Window policy for /api/v1/bets
 builder.Services.AddRateLimiter(options =>
 {
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
-        RateLimitPartition.GetSlidingWindowLimiter(
-            partitionKey: httpContext.User?.Identity?.Name ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
-            factory: _ => new SlidingWindowRateLimiterOptions
-            {
-                PermitLimit = 5,
-                Window = TimeSpan.FromSeconds(1),
-                SegmentsPerWindow = 2,
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = 0
-            }));
-
     options.AddPolicy("BettingPolicy", httpContext =>
         RateLimitPartition.GetSlidingWindowLimiter(
             partitionKey: httpContext.User?.Identity?.Name ?? httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
@@ -142,6 +143,9 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Apply Exception Handler first
+app.UseExceptionHandler();
+
 app.Use(async (context, next) =>
 {
     context.Response.OnStarting(() =>
@@ -159,19 +163,18 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Apply CORS before other middleware
-app.UseCors("DevelopmentCors");
+// Explicit Routing must precede CORS for endpoint-specific policies
+app.UseRouting();
 
-// Apply Exception Handler before other middleware
-app.UseExceptionHandler();
+// Apply CORS before Authentication and Authorization
+app.UseCors("DevelopmentCors");
 
 // La identidad se resuelve antes del rate limit para particionar por jugador.
 app.UseAuthentication();
+app.UseAuthorization();
 
 // Apply Rate Limiting
 app.UseRateLimiter();
-
-app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -183,11 +186,11 @@ else
     app.UseHttpsRedirection();
 }
 
-// Map SignalR hubs
-app.MapHub<OddsHub>("/odds-hub");
-app.MapHub<FightHub>("/fight-hub");
-app.MapHub<FootballHub>("/football-hub");
-app.MapHub<WalletHub>("/wallet-hub").RequireAuthorization();
+// Map SignalR hubs with CORS policy and no rate limiting
+app.MapHub<OddsHub>("/odds-hub").RequireCors("DevelopmentCors").DisableRateLimiting();
+app.MapHub<FightHub>("/fight-hub").RequireCors("DevelopmentCors").DisableRateLimiting();
+app.MapHub<FootballHub>("/football-hub").RequireCors("DevelopmentCors").DisableRateLimiting();
+app.MapHub<WalletHub>("/wallet-hub").RequireCors("DevelopmentCors").DisableRateLimiting().RequireAuthorization();
 
 // Los grupos de endpoints declaran su propio prefijo y sus políticas. No
 // envolverlos con otro MapGroup: eso duplicaba /api/v1/bets en la ruta real.

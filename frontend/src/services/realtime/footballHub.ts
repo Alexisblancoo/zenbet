@@ -4,8 +4,8 @@ import {
   type HubConnection,
 } from '@microsoft/signalr';
 
-import { authToken } from '@/api';
-import { oddsHubRetryPolicy, ODDS_HUB_URL } from './oddsHub';
+import { API_BASE_URL, authToken } from '@/api';
+import { oddsHubRetryPolicy } from './oddsHub';
 
 export const FOOTBALL_ODDS_UPDATED_EVENT = 'zenbet:football-odds-updated';
 export const FOOTBALL_SCORE_UPDATED_EVENT = 'zenbet:football-score-updated';
@@ -26,15 +26,28 @@ export interface FootballScoreUpdatePayload {
   readonly period: string;
 }
 
+export const FOOTBALL_HUB_PATH = '/football-hub';
+
+export const FOOTBALL_HUB_URL: string = (() => {
+  const override = import.meta.env.VITE_FOOTBALL_HUB_URL?.trim();
+  if (override) return override.replace(/\/+$/, '');
+
+  try {
+    return new URL(FOOTBALL_HUB_PATH, API_BASE_URL).href;
+  } catch {
+    return FOOTBALL_HUB_PATH;
+  }
+})();
+
 let hubConnection: HubConnection | null = null;
 
 export function getFootballHubConnection(): HubConnection {
   if (hubConnection) return hubConnection;
 
   hubConnection = new HubConnectionBuilder()
-    .withUrl(ODDS_HUB_URL, {
+    .withUrl(FOOTBALL_HUB_URL, {
       accessTokenFactory: () => authToken.get() ?? '',
-      withCredentials: false,
+      withCredentials: true,
     })
     .withAutomaticReconnect(oddsHubRetryPolicy)
     .configureLogging(import.meta.env.DEV ? LogLevel.Warning : LogLevel.Error)

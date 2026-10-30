@@ -117,7 +117,7 @@ function buildConnection(
   return new HubConnectionBuilder()
     .withUrl(url, {
       accessTokenFactory,
-      withCredentials: false,
+      withCredentials: true,
     })
     .withAutomaticReconnect(reconnectPolicy)
     .configureLogging(
