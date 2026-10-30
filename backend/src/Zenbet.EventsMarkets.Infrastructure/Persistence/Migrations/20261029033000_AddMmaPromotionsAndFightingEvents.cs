@@ -6,9 +6,7 @@ using Zenbet.EventsMarkets.Infrastructure.Persistence;
 
 namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations;
 
-[DbContext(typeof(EventsMarketsDbContext))]
-[Migration("20261029033000_AddMmaPromotionsAndFightingEvents")]
-public sealed class AddMmaPromotionsAndFightingEvents : Migration
+public partial class AddMmaPromotionsAndFightingEvents : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
@@ -48,14 +46,22 @@ public sealed class AddMmaPromotionsAndFightingEvents : Migration
         migrationBuilder.CreateIndex("ix_fighting_events_promotion_start_time", "fighting_events", new[] { "promotion_id", "start_time" }, schema: "events_markets");
         migrationBuilder.CreateIndex("ux_fighting_events_promotion_slug", "fighting_events", new[] { "promotion_id", "slug" }, schema: "events_markets", unique: true);
 
-        migrationBuilder.InsertData(table: "promotions", schema: "events_markets", columns: new[] { "id", "country_code", "name", "slug", "tier" },
+        migrationBuilder.InsertData(
+            table: "promotions",
+            schema: "events_markets",
+            columns: new[] { "id", "country_code", "name", "slug", "tier" },
+            columnTypes: new[] { "uuid", "character varying(2)", "character varying(120)", "character varying(120)", "integer" },
             values: new object[,] {
                 { Guid.Parse("10000000-0000-0000-0000-000000000001"), "US", "UFC", "ufc", 1 },
                 { Guid.Parse("10000000-0000-0000-0000-000000000002"), "GB", "Cage Warriors", "cage-warriors", 2 },
                 { Guid.Parse("10000000-0000-0000-0000-000000000003"), "BR", "Jungle Fight", "jungle-fight", 3 },
                 { Guid.Parse("10000000-0000-0000-0000-000000000004"), "BO", "ZenBet Regional Development Circuit", "zenbet-regional-development", 4 }
             });
-        migrationBuilder.InsertData(table: "fighting_events", schema: "events_markets", columns: new[] { "id", "name", "promotion_id", "slug", "start_time" },
+        migrationBuilder.InsertData(
+            table: "fighting_events",
+            schema: "events_markets",
+            columns: new[] { "id", "name", "promotion_id", "slug", "start_time" },
+            columnTypes: new[] { "uuid", "character varying(160)", "uuid", "character varying(160)", "timestamp with time zone" },
             values: new object[,] {
                 { Guid.Parse("20000000-0000-0000-0000-000000000001"), "UFC 334: Gane vs Hokit", Guid.Parse("10000000-0000-0000-0000-000000000001"), "ufc-334-gane-vs-hokit", new DateTimeOffset(2026, 11, 14, 22, 0, 0, TimeSpan.Zero) },
                 { Guid.Parse("20000000-0000-0000-0000-000000000002"), "Cage Warriors Q4 Showcase", Guid.Parse("10000000-0000-0000-0000-000000000002"), "cage-warriors-q4-showcase", new DateTimeOffset(2026, 11, 21, 18, 0, 0, TimeSpan.Zero) },

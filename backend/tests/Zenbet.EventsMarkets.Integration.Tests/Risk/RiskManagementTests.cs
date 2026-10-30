@@ -132,36 +132,21 @@ public sealed class RiskManagementTests : IAsyncLifetime
     [Fact]
     public async Task PlaceBet_Exceeds_MaxMarketExposure_Returns_Failure()
     {
-        // Arrange: Create market with 10000 exposure limit
-        // Place bets totaling 9000, then try to place another that would exceed 10000
-        var (walletIds, selectionIds, marketId) = await SeedMarketWithBetsAsync();
+        // Arrange: la exposición se calcula como stake * cuota vigente. Con la
+        // cuota fijada en 2.0, cinco apuestas de 1000 consumen exactamente el
+        // límite de 10 000 sin superarlo.
+        var (walletIds, selectionIds, _) = await SeedMarketWithBetsAsync();
         var winningSelectionId = selectionIds[0];
-        var winningOdd = new Odd(2.0m, DateTimeOffset.UtcNow);
-        await UpdateSelectionOddAsync(winningSelectionId, winningOdd);
+        await UpdateSelectionOddAsync(winningSelectionId, new Odd(2.0m, DateTimeOffset.UtcNow));
 
-        // Place 5 bets of 1000 each (total 10000 exposure at odd 2.0 = 20000, but wait...
-        // Actually exposure = bet_amount * odd, so 5 * 1000 * 2.0 = 10000
-        // Let's use odd 1.0 to make exposure = bet amount
-        var testOdd = new Odd(1.0m, DateTimeOffset.UtcNow);
-        await UpdateSelectionOddAsync(winningSelectionId, testOdd);
+        await PlaceBetsAsync(walletIds, winningSelectionId, count: 5, new Money(1000m), "exposure test");
 
-        // Place 9 bets of 1000 each = 9000 exposure
-        for (int i = 0; i < 9; i++)
-        {
-            var betCommand = new PlaceBetCommand(
-                walletIds[i],
-                winningSelectionId,
-                new Money(1000m),
-                "exposure test",
-                Guid.NewGuid());
-            await _serviceProvider.GetRequiredService<IMediator>().Send(betCommand);
-        }
-
-        // Now try to place a 2000 bet (would exceed 10000 limit)
+        // La sexta apuesta añadiría 2000 de exposición (12 000 > 10 000) pero
+        // respeta el límite por usuario, así que debe fallar por exposición.
         var excessCommand = new PlaceBetCommand(
-            walletIds[9],
+            walletIds[5],
             winningSelectionId,
-            new Money(2000m),
+            new Money(1000m),
             "exposure test exceed",
             Guid.NewGuid());
 
@@ -178,27 +163,16 @@ public sealed class RiskManagementTests : IAsyncLifetime
     [Fact]
     public async Task PlaceBet_At_MaxMarketExposure_Limit_Succeeds()
     {
-        // Arrange: Current exposure is 9000, limit is 10000
-        var (walletIds, selectionIds, marketId) = await SeedMarketWithBetsAsync();
+        // Arrange: cuatro apuestas de 1000 a cuota 2.0 dejan 8000 de exposición;
+        // la quinta llega justo a 10 000, que es el límite permitido.
+        var (walletIds, selectionIds, _) = await SeedMarketWithBetsAsync();
         var winningSelectionId = selectionIds[0];
-        var testOdd = new Odd(1.0m, DateTimeOffset.UtcNow);
-        await UpdateSelectionOddAsync(winningSelectionId, testOdd);
+        await UpdateSelectionOddAsync(winningSelectionId, new Odd(2.0m, DateTimeOffset.UtcNow));
 
-        // Place 9 bets of 1000 each = 9000 exposure
-        for (int i = 0; i < 9; i++)
-        {
-            var betCommand = new PlaceBetCommand(
-                walletIds[i],
-                winningSelectionId,
-                new Money(1000m),
-                "exposure test at limit",
-                Guid.NewGuid());
-            await _serviceProvider.GetRequiredService<IMediator>().Send(betCommand);
-        }
+        await PlaceBetsAsync(walletIds, winningSelectionId, count: 4, new Money(1000m), "exposure test at limit");
 
-        // Now place exactly 1000 to reach limit
         var limitCommand = new PlaceBetCommand(
-            walletIds[9],
+            walletIds[4],
             winningSelectionId,
             new Money(1000m),
             "exposure test at limit",
@@ -210,7 +184,29 @@ public sealed class RiskManagementTests : IAsyncLifetime
         var result = await mediator.Send(limitCommand);
 
         // Assert
-        Assert.True(result.Success);
+        Assert.True(result.Success, result.ErrorMessage);
+    }
+
+    private async Task PlaceBetsAsync(
+        IReadOnlyList<WalletId> walletIds,
+        SelectionId selectionId,
+        int count,
+        Money amount,
+        string description)
+    {
+        var mediator = _serviceProvider.GetRequiredService<IMediator>();
+
+        for (var index = 0; index < count; index++)
+        {
+            var result = await mediator.Send(new PlaceBetCommand(
+                walletIds[index],
+                selectionId,
+                amount,
+                description,
+                Guid.NewGuid()));
+
+            Assert.True(result.Success, $"Preparation bet {index + 1} failed: {result.ErrorMessage}");
+        }
     }
 
     private async Task<(WalletId, SelectionId)> SeedWalletAndSelectionAsync()
@@ -259,8 +255,9 @@ public sealed class RiskManagementTests : IAsyncLifetime
             .Select((id, i) => new Selection(id, i == 0 ? "Home" : i == 1 ? "Draw" : "Away", new Odd(1.0m, DateTimeOffset.UtcNow)))
             .ToList();
 
-        var market = new Market(marketId, eventId, "Match Winner", MarketType.MatchWinner, selections);
-        @event.AddMarket("Match Winner", MarketType.MatchWinner, selections);
+        // El mercado debe ser el mismo agregado que se persiste: crearlo aparte
+        // y añadir otro con `AddMarket` deja el `marketId` fuera de la BD.
+        var market = @event.AddMarket(marketId, "Match Winner", MarketType.MatchWinner, selections);
 
         _dbContext.Wallets.AddRange(wallets);
         _dbContext.Events.Add(@event);

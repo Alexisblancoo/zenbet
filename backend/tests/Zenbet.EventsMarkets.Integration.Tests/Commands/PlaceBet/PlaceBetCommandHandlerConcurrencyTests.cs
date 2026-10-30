@@ -73,8 +73,7 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
     public async Task Concurrent_PlaceBet_50_Parallel_Bets_Same_Selection_No_OverSpending()
     {
         // Arrange: Create wallet with 5000 balance, event with market and selection
-        var (walletId, selectionId) = await SeedWalletAndSelectionAsync();
-        var initialBalance = new Money(5000m);
+        var (walletId, selectionId) = await SeedWalletAndSelectionAsync(5000m);
         var betAmount = new Money(100m); // 50 bets * 100 = 5000 (exact balance)
 
         const int concurrency = 50;
@@ -117,7 +116,7 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
     [Fact]
     public async Task Concurrent_PlaceBet_Across_Selections_In_Same_Market_Does_Not_Double_Spend()
     {
-        var (walletId, selectionIds) = await SeedWalletAndSelectionsAsync();
+        var (walletId, selectionIds) = await SeedWalletAndSelectionsAsync(5000m);
         const int concurrency = 50;
         var commands = Enumerable.Range(0, concurrency)
             .Select(index => new PlaceBetCommand(
@@ -154,7 +153,7 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
     public async Task Concurrent_PlaceBet_Insufficient_Funds_Only_Valid_Bets_Succeed()
     {
         // Arrange: Wallet with 3000 balance, 50 bets of 100 = 5000 (only 30 should succeed)
-        var (walletId, selectionId) = await SeedWalletAndSelectionAsync();
+        var (walletId, selectionId) = await SeedWalletAndSelectionAsync(3000m);
         var betAmount = new Money(100m);
 
         const int concurrency = 50;
@@ -325,27 +324,23 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task PlaceBet_Negative_Amount_Throws_ValidationError()
+    public void Negative_Amount_Is_Rejected_By_Money_ValueObject()
     {
-        var (walletId, selectionId) = await SeedWalletAndSelectionAsync();
-        // Money constructor throws for negative, so we test via validator
-        // This test verifies the validator catches it before handler
-        var command = new PlaceBetCommand(walletId, selectionId, new Money(-10m), "test", Guid.NewGuid());
-
-        var mediator = _serviceProvider.GetRequiredService<IMediator>();
-
-        var result = await mediator.Send(command);
-        Assert.NotNull(result);
-        Assert.False(result.Success);
+        // `Money` es el límite real del modelo: un importe negativo no se puede
+        // construir, así que ningún `PlaceBetCommand` puede llegar al handler
+        // con esa cantidad. El test fija esa invariante de dominio.
+        var exception = Assert.Throws<ArgumentException>(() => new Money(-10m));
+        Assert.Equal("amount", exception.ParamName);
     }
 
-    private async Task<(WalletId, SelectionId)> SeedWalletAndSelectionAsync()
+    private async Task<(WalletId, SelectionId)> SeedWalletAndSelectionAsync(decimal initialBalance = 5000m)
     {
-        var (walletId, selectionIds) = await SeedWalletAndSelectionsAsync();
+        var (walletId, selectionIds) = await SeedWalletAndSelectionsAsync(initialBalance);
         return (walletId, selectionIds[0]);
     }
 
-    private async Task<(WalletId WalletId, SelectionId[] SelectionIds)> SeedWalletAndSelectionsAsync()
+    private async Task<(WalletId WalletId, SelectionId[] SelectionIds)> SeedWalletAndSelectionsAsync(
+        decimal initialBalance = 5000m)
     {
         var walletId = WalletId.New();
         var userId = UserId.New();
@@ -353,7 +348,7 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
         var selectionIds = new[] { SelectionId.New(), SelectionId.New(), SelectionId.New() };
 
         var wallet = new Wallet(walletId, userId);
-        wallet.Deposit(new Money(5000m), "Initial deposit for testing");
+        wallet.Deposit(new Money(initialBalance), "Initial deposit for testing");
 
         var @event = new Event(eventId, "Test Match", SportType.Football, DateTimeOffset.UtcNow.AddHours(2));
         var selections = selectionIds

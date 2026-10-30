@@ -6,9 +6,7 @@ using Zenbet.EventsMarkets.Infrastructure.Persistence;
 
 namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations;
 
-[DbContext(typeof(EventsMarketsDbContext))]
-[Migration("20261029100000_AddMissingGlobalAndRegionalPromotions")]
-public sealed class AddMissingGlobalAndRegionalPromotions : Migration
+public partial class AddMissingGlobalAndRegionalPromotions : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
@@ -59,19 +57,29 @@ public sealed class AddMissingGlobalAndRegionalPromotions : Migration
             keyValue: Guid.Parse("20000000-0000-0000-0000-000000000004"),
             column: "name", value: "ZenBet Regional Amateur Showcase (simulated)", schema: "events_markets");
 
-        migrationBuilder.InsertData(table: "promotions", schema: "events_markets", columns: ["id", "country_code", "name", "slug", "tier"], values: new object[,]
-        {
-            { Guid.Parse("10000000-0000-0000-0000-000000000005"), "US", "Professional Fighters League", "pfl", 1 },
-            { Guid.Parse("10000000-0000-0000-0000-000000000006"), "SG", "ONE Championship", "one-championship", 1 },
-            { Guid.Parse("10000000-0000-0000-0000-000000000007"), "CZ", "OKTAGON MMA", "oktagon-mma", 2 }
-        });
-        migrationBuilder.InsertData(table: "fighting_events", schema: "events_markets", columns: ["id", "name", "promotion_id", "slug", "start_time"], values: new object[,]
-        {
-            { Guid.Parse("20000000-0000-0000-0000-000000000005"), "PFL Q4 Simulated Championship Showcase", Guid.Parse("10000000-0000-0000-0000-000000000005"), "pfl-q4-championship-showcase", new DateTimeOffset(2026, 11, 21, 22, 0, 0, TimeSpan.Zero) },
-            { Guid.Parse("20000000-0000-0000-0000-000000000006"), "ONE Friday Fights 177", Guid.Parse("10000000-0000-0000-0000-000000000006"), "one-friday-fights-177", new DateTimeOffset(2026, 11, 6, 12, 30, 0, TimeSpan.Zero) },
-            { Guid.Parse("20000000-0000-0000-0000-000000000007"), "OKTAGON 100: Prague", Guid.Parse("10000000-0000-0000-0000-000000000007"), "oktagon-100-prague", new DateTimeOffset(2026, 12, 29, 17, 0, 0, TimeSpan.Zero) },
-            { Guid.Parse("20000000-0000-0000-0000-000000000008"), "UFC Fight Night: Bonfim vs. Brady", Guid.Parse("10000000-0000-0000-0000-000000000001"), "ufc-fight-night-bonfim-vs-brady", new DateTimeOffset(2026, 11, 7, 22, 0, 0, TimeSpan.Zero) }
-        });
+        migrationBuilder.InsertData(
+            table: "promotions",
+            schema: "events_markets",
+            columns: ["id", "country_code", "name", "slug", "tier"],
+            columnTypes: ["uuid", "character varying(2)", "character varying(120)", "character varying(120)", "integer"],
+            values: new object[,]
+            {
+                { Guid.Parse("10000000-0000-0000-0000-000000000005"), "US", "Professional Fighters League", "pfl", 1 },
+                { Guid.Parse("10000000-0000-0000-0000-000000000006"), "SG", "ONE Championship", "one-championship", 1 },
+                { Guid.Parse("10000000-0000-0000-0000-000000000007"), "CZ", "OKTAGON MMA", "oktagon-mma", 2 }
+            });
+        migrationBuilder.InsertData(
+            table: "fighting_events",
+            schema: "events_markets",
+            columns: ["id", "name", "promotion_id", "slug", "start_time"],
+            columnTypes: ["uuid", "character varying(160)", "uuid", "character varying(160)", "timestamp with time zone"],
+            values: new object[,]
+            {
+                { Guid.Parse("20000000-0000-0000-0000-000000000005"), "PFL Q4 Simulated Championship Showcase", Guid.Parse("10000000-0000-0000-0000-000000000005"), "pfl-q4-championship-showcase", new DateTimeOffset(2026, 11, 21, 22, 0, 0, TimeSpan.Zero) },
+                { Guid.Parse("20000000-0000-0000-0000-000000000006"), "ONE Friday Fights 177", Guid.Parse("10000000-0000-0000-0000-000000000006"), "one-friday-fights-177", new DateTimeOffset(2026, 11, 6, 12, 30, 0, TimeSpan.Zero) },
+                { Guid.Parse("20000000-0000-0000-0000-000000000007"), "OKTAGON 100: Prague", Guid.Parse("10000000-0000-0000-0000-000000000007"), "oktagon-100-prague", new DateTimeOffset(2026, 12, 29, 17, 0, 0, TimeSpan.Zero) },
+                { Guid.Parse("20000000-0000-0000-0000-000000000008"), "UFC Fight Night: Bonfim vs. Brady", Guid.Parse("10000000-0000-0000-0000-000000000001"), "ufc-fight-night-bonfim-vs-brady", new DateTimeOffset(2026, 11, 7, 22, 0, 0, TimeSpan.Zero) }
+            });
     }
 
     protected override void Down(MigrationBuilder migrationBuilder)

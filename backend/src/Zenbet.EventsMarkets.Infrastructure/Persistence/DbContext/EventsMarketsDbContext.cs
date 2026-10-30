@@ -13,31 +13,36 @@ using Zenbet.EventsMarkets.Infrastructure.Persistence.Seeding;
 
 public sealed class EventsMarketsDbContext : DbContext
 {
-    public DbSet<Event> Events => Set<Event>();
-    public DbSet<Promotion> Promotions => Set<Promotion>();
-    public DbSet<FightingEvent> FightingEvents => Set<FightingEvent>();
-    public DbSet<Market> Markets => Set<Market>();
-    public DbSet<Selection> Selections => Set<Selection>();
-    public DbSet<Wallet> Wallets => Set<Wallet>();
-    public DbSet<Transaction> Transactions => Set<Transaction>();
-    public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
-    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
-    public DbSet<IdempotencyKey> IdempotencyKeys => Set<IdempotencyKey>();
-    public DbSet<SettlementAuditEntry> SettlementAudit => Set<SettlementAuditEntry>();
-    public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
-    public DbSet<DeadLetterEntry> DeadLetters => Set<DeadLetterEntry>();
-    public DbSet<UfcSeedState> UfcSeedStates => Set<UfcSeedState>();
-    public DbSet<FootballLeague> FootballLeagues => Set<FootballLeague>();
-    public DbSet<FootballTeam> FootballTeams => Set<FootballTeam>();
-    public DbSet<FootballMatch> FootballMatches => Set<FootballMatch>();
-    public DbSet<FootballMarket> FootballMarkets => Set<FootballMarket>();
-    public DbSet<FootballSelection> FootballSelections => Set<FootballSelection>();
+    public DbSet<Event> Events { get; set; } = null!;
+    public DbSet<Promotion> Promotions { get; set; } = null!;
+    public DbSet<FightingEvent> FightingEvents { get; set; } = null!;
+    public DbSet<Market> Markets { get; set; } = null!;
+    public DbSet<Selection> Selections { get; set; } = null!;
+    public DbSet<Wallet> Wallets { get; set; } = null!;
+    public DbSet<Transaction> Transactions { get; set; } = null!;
+    public DbSet<UserAccount> UserAccounts { get; set; } = null!;
+    public DbSet<OutboxMessage> OutboxMessages { get; set; } = null!;
+    public DbSet<IdempotencyKey> IdempotencyKeys { get; set; } = null!;
+    public DbSet<SettlementAuditEntry> SettlementAudit { get; set; } = null!;
+    public DbSet<InboxMessage> InboxMessages { get; set; } = null!;
+    public DbSet<DeadLetterEntry> DeadLetters { get; set; } = null!;
+    public DbSet<UfcSeedState> UfcSeedStates { get; set; } = null!;
+    public DbSet<FootballLeague> FootballLeagues { get; set; } = null!;
+    public DbSet<FootballTeam> FootballTeams { get; set; } = null!;
+    public DbSet<FootballMatch> FootballMatches { get; set; } = null!;
+    public DbSet<FootballMarket> FootballMarkets { get; set; } = null!;
+    public DbSet<FootballSelection> FootballSelections { get; set; } = null!;
 
     public EventsMarketsDbContext(DbContextOptions<EventsMarketsDbContext> options)
         : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Promotion>(entity =>
+        {
+            entity.ToTable("promotions", "events_markets");
+        });
+
         modelBuilder.ApplyConfiguration(new EventConfiguration());
         modelBuilder.ApplyConfiguration(new PromotionConfiguration());
         modelBuilder.ApplyConfiguration(new FightingEventConfiguration());

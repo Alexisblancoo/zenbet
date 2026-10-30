@@ -3,6 +3,7 @@ namespace Zenbet.EventsMarkets.Integration.Tests.Workers;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -15,6 +16,7 @@ using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.Events;
 using Zenbet.EventsMarkets.Domain.Enums;
+using Zenbet.EventsMarkets.Domain.Exceptions;
 using Zenbet.EventsMarkets.Domain.Repositories;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 using Zenbet.EventsMarkets.Infrastructure.Messaging;
@@ -34,6 +36,7 @@ public sealed class PayoutWorkerConcurrencyTests : IAsyncLifetime
 
     private ServiceProvider _serviceProvider = null!;
     private EventsMarketsDbContext _dbContext = null!;
+    private readonly List<IHostedService> _hostedServices = new();
 
     public async Task InitializeAsync()
     {
@@ -72,10 +75,30 @@ public sealed class PayoutWorkerConcurrencyTests : IAsyncLifetime
         _dbContext = _serviceProvider.GetRequiredService<EventsMarketsDbContext>();
 
         await _dbContext.Database.EnsureCreatedAsync();
+
+        // `BuildServiceProvider` no arranca los hosted services: hay que
+        // iniciarlos explícitamente para que PayoutWorker procese la cola.
+        _hostedServices.AddRange(_serviceProvider.GetServices<IHostedService>());
+        foreach (var hostedService in _hostedServices)
+        {
+            await hostedService.StartAsync(CancellationToken.None);
+        }
     }
 
     public async Task DisposeAsync()
     {
+        foreach (var hostedService in _hostedServices)
+        {
+            try
+            {
+                await hostedService.StopAsync(CancellationToken.None);
+            }
+            catch (OperationCanceledException)
+            {
+                // El worker se detiene al cancelar su token de ejecución.
+            }
+        }
+
         await _serviceProvider.DisposeAsync();
         await _postgres.DisposeAsync();
     }
@@ -92,7 +115,7 @@ public sealed class PayoutWorkerConcurrencyTests : IAsyncLifetime
         await UpdateSelectionOddAsync(winnerSelectionId, winningOdd);
 
         // Place 100 bets of 100 each on winning selection (total 10000)
-        await Place100BetsAsync(walletIds, winnerSelectionId, new Money(100m));
+        await PlaceBetsAsync(walletIds, winnerSelectionId, new Money(100m));
 
         // Record initial balances
         var initialBalances = new Dictionary<WalletId, Money>();
@@ -145,7 +168,7 @@ public sealed class PayoutWorkerConcurrencyTests : IAsyncLifetime
         var winningOdd = new Odd(3.0m, DateTimeOffset.UtcNow);
 
         await UpdateSelectionOddAsync(winnerSelectionId, winningOdd);
-        await Place100BetsAsync(walletIds.Take(1).ToArray(), winnerSelectionId, new Money(100m));
+        await PlaceBetsAsync(walletIds.Take(1), winnerSelectionId, new Money(100m));
 
         var walletId = walletIds[0];
         var initialBalance = (await _dbContext.Wallets.AsNoTracking().FirstAsync(w => w.Id == walletId)).Balance;
@@ -165,7 +188,8 @@ public sealed class PayoutWorkerConcurrencyTests : IAsyncLifetime
 
         var balanceAfterFirst = (await _dbContext.Wallets.AsNoTracking().FirstAsync(w => w.Id == walletId)).Balance;
 
-        // Second settlement (should be idempotent - no additional payout)
+        // Segundo intento con una clave nueva: el mercado ya está liquidado,
+        // por lo que el dominio rechaza la operación en lugar de pagar dos veces.
         var settleCommand2 = new SettleMarketCommand(
             marketId,
             winnerSelectionId,
@@ -173,13 +197,17 @@ public sealed class PayoutWorkerConcurrencyTests : IAsyncLifetime
             "test-settler",
             Guid.NewGuid());
 
-        await mediator.Send(settleCommand2);
-        await Task.Delay(2000); // Give worker time to process (or skip due to idempotency)
+        await Assert.ThrowsAsync<MarketAlreadySettledException>(() => mediator.Send(settleCommand2));
+
+        // El worker no debe encontrar apuestas pendientes nuevas.
+        await Task.Delay(1000);
 
         var balanceAfterSecond = (await _dbContext.Wallets.AsNoTracking().FirstAsync(w => w.Id == walletId)).Balance;
 
         // Balance should not change after second settlement
         Assert.Equal(balanceAfterFirst, balanceAfterSecond);
+        Assert.Equal(1, await _dbContext.Transactions.CountAsync(t =>
+            t.WalletId == walletId && t.Type == TransactionType.BetSettlement));
     }
 
     private async Task<(WalletId[] walletIds, SelectionId[] selectionIds, MarketId marketId)> SeedMarketWith100BetsAsync()
@@ -203,9 +231,9 @@ public sealed class PayoutWorkerConcurrencyTests : IAsyncLifetime
             .Select((id, i) => new Selection(id, i == 0 ? "Home" : i == 1 ? "Draw" : "Away", new Odd(2.0m + i * 0.5m, DateTimeOffset.UtcNow)))
             .ToList();
 
-        // We need to manually add market since AddMarket creates a new one
-        var market = new Market(marketId, eventId, "Match Winner", MarketType.MatchWinner, selections);
-        @event.AddMarket("Match Winner", MarketType.MatchWinner, selections);
+        // Se persiste el mercado con el id conocido: el worker de pagos y el
+        // comando de liquidación resuelven el agregado por ese id.
+        var market = @event.AddMarket(marketId, "Match Winner", MarketType.MatchWinner, selections);
 
         _dbContext.Wallets.AddRange(wallets);
         _dbContext.Events.Add(@event);
@@ -222,25 +250,21 @@ public sealed class PayoutWorkerConcurrencyTests : IAsyncLifetime
         await _dbContext.SaveChangesAsync();
     }
 
-    private async Task Place100BetsAsync(WalletId[] walletIds, SelectionId selectionId, Money amount)
+    private async Task PlaceBetsAsync(IEnumerable<WalletId> walletIds, SelectionId selectionId, Money amount)
     {
         var mediator = _serviceProvider.GetRequiredService<IMediator>();
-        
-        var commands = walletIds.Select(walletId => new PlaceBetCommand(
-            walletId,
-            selectionId,
-            amount,
-            "test bet",
-            Guid.NewGuid())).ToArray();
 
-        var tasks = commands.Select(c => Task.Run(async () =>
+        foreach (var walletId in walletIds)
         {
-            using var scope = _serviceProvider.CreateScope();
-            var med = scope.ServiceProvider.GetRequiredService<IMediator>();
-            try { return await med.Send(c); } catch { return null; }
-        })).ToArray();
+            var result = await mediator.Send(new PlaceBetCommand(
+                walletId,
+                selectionId,
+                amount,
+                "test bet",
+                Guid.NewGuid()));
 
-        await Task.WhenAll(tasks);
+            Assert.True(result.Success, result.ErrorMessage);
+        }
     }
 
     private async Task WaitForPayoutsToCompleteAsync(int expectedCount, TimeSpan timeout)

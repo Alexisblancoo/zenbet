@@ -50,7 +50,14 @@ public sealed class PayoutWorker : BackgroundService
                 _logger.LogError(ex, "Error processing payout batch");
             }
 
-            await Task.Delay(_options.PollInterval, stoppingToken);
+            try
+            {
+                await Task.Delay(_options.PollInterval, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
         }
     }
 
