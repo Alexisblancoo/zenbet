@@ -1,4 +1,3 @@
-import { formatLocalFightDateTime } from '@/utils/localTimezone';
 /**
  * Contrato de lectura de la cartelera UFC.
  *
@@ -573,8 +572,12 @@ function normalizeFighter(value: unknown): UfcFighter | null {
 
   const id = readString(raw.id);
   const name = readString(raw.name);
-  const division = readString(raw.division);
-  if (!id || !name || !division) return null;
+  if (!id || !name) return null;
+
+  const division =
+    readString(raw.division) ??
+    readString(raw.weightDivision) ??
+    'catchweight';
 
   const record = readString(raw.record) ?? '—';
   const recordBreakdown = parseFighterRecord(record);
@@ -612,14 +615,23 @@ function normalizeBout(value: unknown): UfcBout | null {
   const fighter1ImageUrl = readString(raw.fighter1ImageUrl) ?? red.imageUrl;
   const fighter2ImageUrl = readString(raw.fighter2ImageUrl) ?? blue.imageUrl;
 
+  const rawBilling = readString(raw.billing) ?? 'prelims';
+  const billing = rawBilling === 'early' ? 'early_prelims' : rawBilling;
+
   return {
     weightDivision: readString(raw.weightDivision) ?? red.division,
     weightDivisionLabel: readString(raw.weightDivisionLabel) ?? red.divisionLabel,
     weightLimitLbs: readNumber(raw.weightLimitLbs) ?? 0,
     scheduledRounds: readNumber(raw.scheduledRounds) ?? 3,
     isTitleFight: readBoolean(raw.isTitleFight),
-    billing: readString(raw.billing) ?? 'prelims',
-    billingLabel: readString(raw.billingLabel) ?? 'Preliminares',
+    billing,
+    billingLabel:
+      readString(raw.billingLabel) ??
+      (billing === 'early_prelims'
+        ? 'Primeras preliminares'
+        : billing === 'main'
+          ? 'Cartelera estelar'
+          : 'Preliminares'),
     billingOrder: readNumber(raw.billingOrder) ?? 99,
     venue: readString(raw.venue) ?? '',
     location: readString(raw.location) ?? '',
@@ -827,7 +839,11 @@ export function eventsForBilling(
   billing: string,
 ): readonly UfcEvent[] {
   return events
-    .filter((event) => event.bout.billing === billing)
+    .filter((event) => {
+      const b = event.bout.billing;
+      if (billing === 'early_prelims') return b === 'early_prelims' || b === 'early';
+      return b === billing;
+    })
     .sort((a, b) => a.bout.billingOrder - b.bout.billingOrder);
 }
 
@@ -1077,7 +1093,12 @@ export function findSelectionByCode(
   market: UfcMarket | undefined,
   code: string,
 ): UfcSelection | undefined {
-  return market?.selections.find((selection) => selection.code === code);
+  if (!market) return undefined;
+  const match = market.selections.find((selection) => selection.code === code);
+  if (match) return match;
+  if (code === 'red' && market.selections.length > 0) return market.selections[0];
+  if (code === 'blue' && market.selections.length > 1) return market.selections[1];
+  return undefined;
 }
 
 /** Nombre de la fuente tal como se muestra; «Zenbet Reference» va en árabe libanés. */

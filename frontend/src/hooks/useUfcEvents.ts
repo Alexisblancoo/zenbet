@@ -1,12 +1,21 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { UfcEventsPage } from '@/domain/ufc';
 import {
+  clearUfcCache,
   describeUfcLoadError,
   getCachedUfcEvents,
   listUfcEvents,
   UFC_EVENTS_CACHE_EVENT,
 } from '@/services/ufcService';
+
+export interface UseUfcEventsOptions {
+  readonly from?: string;
+  readonly to?: string;
+  readonly pageSize?: number;
+  readonly status?: 'scheduled' | 'live' | 'finished';
+  readonly competition?: string;
+}
 
 interface UfcEventsState {
   readonly data: UfcEventsPage | null;
@@ -17,7 +26,7 @@ interface UfcEventsState {
 
 function getInitialState(): UfcEventsState {
   const cached = getCachedUfcEvents();
-  if (cached) {
+  if (cached && cached.data.items.length > 0) {
     return {
       data: cached.data,
       isLoading: false,
@@ -37,36 +46,44 @@ function getInitialState(): UfcEventsState {
 const EMPTY_EVENTS: UfcEventsPage['items'] = [];
 
 /**
- * Ventana de carga: ayer para no perder una cartelera que terminó tarde y una
- * semana hacia adelante para que el selector tenga contexto. No se filtra por
- * estado para conservar los combates en vivo y finalizados del día.
+ * Ventana de carga por defecto:
+ * - `from`: 14 días atrás para conservar eventos y carteleras recientemente finalizadas.
+ * - `to`: 90 días hacia adelante para capturar todos los eventos numerados (UFC 334, etc.)
+ *   y Fight Nights programados en el calendario de la base de datos.
  */
-function loadWindow(): { from: string; to: string } {
+function loadDefaultWindow(): { from: string; to: string } {
   const now = new Date();
   const from = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1),
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 14),
   );
   const to = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 8),
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 90),
   );
 
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
 /**
- * Carga la cartelera pública con patrón SWR (Stale-While-Revalidate).
- * Si hay datos en caché en memoria o sesión, se hidratan en el frame 0 (sin spinner),
- * revalidando en segundo plano de manera transparente.
+ * Carga la cartelera pública de UFC / MMA con patrón SWR (Stale-While-Revalidate).
+ * Si hay datos en caché en memoria o sesión con combates válidos, se hidratan
+ * en el frame 0, revalidando contra la API en segundo plano sin bloquear la UI.
  */
-export function useUfcEvents() {
+export function useUfcEvents(options: UseUfcEventsOptions = {}) {
   const [state, setState] = useState<UfcEventsState>(getInitialState);
   const [reloadToken, setReloadToken] = useState(0);
 
-  // Escucha actualizaciones emitidas por otras partes de la app
+  const defaultDates = useMemo(loadDefaultWindow, []);
+  const from = options.from ?? defaultDates.from;
+  const to = options.to ?? defaultDates.to;
+  const pageSize = options.pageSize ?? 100;
+  const status = options.status;
+  const competition = options.competition;
+
+  // Escucha actualizaciones emitidas por el bus de eventos de caché
   useEffect(() => {
     const handleCacheUpdate = (event: Event) => {
       const detail = (event as CustomEvent<{ data: UfcEventsPage; timestamp: number }>).detail;
-      if (detail?.data) {
+      if (detail?.data && detail.data.items.length > 0) {
         setState((previous) => ({
           ...previous,
           data: detail.data,
@@ -81,11 +98,19 @@ export function useUfcEvents() {
     return () => window.removeEventListener(UFC_EVENTS_CACHE_EVENT, handleCacheUpdate);
   }, []);
 
+  // Petición REST inicial y revalidación en segundo plano
   useEffect(() => {
     const controller = new AbortController();
-    const { from, to } = loadWindow();
 
-    void listUfcEvents({ signal: controller.signal, from, to, pageSize: 100 })
+    void listUfcEvents({
+      signal: controller.signal,
+      from,
+      to,
+      pageSize,
+      status,
+      competition,
+      forceRefresh: reloadToken > 0,
+    })
       .then((data) => {
         if (controller.signal.aborted) return;
 
@@ -101,19 +126,22 @@ export function useUfcEvents() {
 
         setState((previous) => ({
           ...previous,
-          // Si ya teníamos datos cacheados, conservarlos en error transitorio
           isLoading: false,
-          error: previous.data ? null : describeUfcLoadError(error),
+          error:
+            previous.data && previous.data.items.length > 0
+              ? null
+              : describeUfcLoadError(error),
         }));
       });
 
     return () => controller.abort();
-  }, [reloadToken]);
+  }, [from, to, pageSize, status, competition, reloadToken]);
 
   const reload = useCallback(() => {
+    clearUfcCache();
     setState((previous) => ({
       ...previous,
-      isLoading: !previous.data,
+      isLoading: !previous.data || previous.data.items.length === 0,
       error: null,
     }));
     setReloadToken((token) => token + 1);

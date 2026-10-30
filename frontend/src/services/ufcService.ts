@@ -20,6 +20,7 @@ export interface ListUfcEventsOptions {
   readonly status?: 'scheduled' | 'live' | 'finished';
   readonly from?: string;
   readonly to?: string;
+  readonly forceRefresh?: boolean;
 }
 
 interface CachedEntry<T> {
@@ -38,10 +39,29 @@ const memoryCompareCache = new Map<string, CachedEntry<UfcFighterComparison>>();
 const inFlightRequests = new Map<string, Promise<unknown>>();
 
 /**
+ * Invalida el caché local de carteleras en memoria y en sessionStorage.
+ */
+export function clearUfcCache(): void {
+  memoryEventsCache = null;
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      window.sessionStorage.removeItem(EVENTS_CACHE_KEY);
+    } catch {
+      // Ignora errores de sessionStorage
+    }
+  }
+}
+
+/**
  * Lee la cartelera UFC del cache local en memoria o sessionStorage si aún es utilizable.
+ * No devuelve entradas vacías para no envenenar la carga inicial con carteleras sin combates.
  */
 export function getCachedUfcEvents(): { data: UfcEventsPage; loadedAt: number } | null {
-  if (memoryEventsCache && Date.now() - memoryEventsCache.timestamp < EVENTS_CACHE_TTL_MS) {
+  if (
+    memoryEventsCache &&
+    memoryEventsCache.data.items.length > 0 &&
+    Date.now() - memoryEventsCache.timestamp < EVENTS_CACHE_TTL_MS
+  ) {
     return { data: memoryEventsCache.data, loadedAt: memoryEventsCache.timestamp };
   }
 
@@ -50,7 +70,11 @@ export function getCachedUfcEvents(): { data: UfcEventsPage; loadedAt: number } 
       const raw = window.sessionStorage.getItem(EVENTS_CACHE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as CachedEntry<UfcEventsPage>;
-        if (parsed && Date.now() - parsed.timestamp < EVENTS_CACHE_TTL_MS) {
+        if (
+          parsed &&
+          parsed.data?.items?.length > 0 &&
+          Date.now() - parsed.timestamp < EVENTS_CACHE_TTL_MS
+        ) {
           memoryEventsCache = parsed;
           return { data: parsed.data, loadedAt: parsed.timestamp };
         }
@@ -60,7 +84,7 @@ export function getCachedUfcEvents(): { data: UfcEventsPage; loadedAt: number } 
     }
   }
 
-  return memoryEventsCache
+  return memoryEventsCache && memoryEventsCache.data.items.length > 0
     ? { data: memoryEventsCache.data, loadedAt: memoryEventsCache.timestamp }
     : null;
 }
@@ -103,6 +127,9 @@ export function prefetchFighterComparison(eventId: string): void {
 }
 
 function saveEventsToCache(data: UfcEventsPage): void {
+  // Evita persistir respuestas vacías que envenenan la hidratación del frame 0
+  if (!data || data.items.length === 0) return;
+
   const entry: CachedEntry<UfcEventsPage> = { data, timestamp: Date.now() };
   memoryEventsCache = entry;
 
@@ -141,11 +168,17 @@ export async function listUfcEvents({
   status,
   from,
   to,
+  forceRefresh = false,
 }: ListUfcEventsOptions = {}): Promise<UfcEventsPage> {
   const cacheKey = `events_${page}_${pageSize}_${competition ?? ''}_${status ?? ''}_${from ?? ''}_${to ?? ''}`;
 
-  const ongoing = inFlightRequests.get(cacheKey) as Promise<UfcEventsPage> | undefined;
-  if (ongoing) return ongoing;
+  if (forceRefresh) {
+    clearUfcCache();
+    inFlightRequests.delete(cacheKey);
+  } else {
+    const ongoing = inFlightRequests.get(cacheKey) as Promise<UfcEventsPage> | undefined;
+    if (ongoing) return ongoing;
+  }
 
   const promise = (async () => {
     try {
@@ -181,9 +214,6 @@ export async function listUfcEvents({
       const pageResult = normalizeEventsPage(payload);
       saveEventsToCache(pageResult);
       return pageResult;
-    } catch (err) {
-      // Manejo limpio de errores de red sin inventar datos locales
-      throw err;
     } finally {
       inFlightRequests.delete(cacheKey);
     }
