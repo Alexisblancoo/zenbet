@@ -3,7 +3,7 @@
  *
  * Sin React, Axios ni localStorage. Aquí viven los contratos, los estados, los
  * formateadores y los cálculos que alimentan el dashboard. La fuente de datos
- * (demo o HTTP) se inyecta desde la capa de servicios.
+ * se inyecta desde la capa de servicios (HTTP).
  */
 
 import { roundMoney, type BetReceipt } from './bets';
@@ -11,7 +11,7 @@ import { roundMoney, type BetReceipt } from './bets';
 export type WalletBetStatus = 'pending' | 'won' | 'lost' | 'cancelled';
 export type WalletBetType = 'single' | 'combined';
 export type WalletBetFilter = 'all' | WalletBetStatus;
-export type WalletActivitySource = 'session' | 'live';
+export type WalletActivitySource = 'live';
 
 export type WalletTransactionType =
   | 'deposit'
@@ -441,106 +441,6 @@ export function buildDailyActivity(
       net: roundMoney(inflow - outflow),
     };
   });
-}
-
-/* -------------------------------------------------------------------------- */
-/* Puente entre el boleto de la sesión y el historial                         */
-/* -------------------------------------------------------------------------- */
-
-export function receiptToWalletBet(receipt: BetReceipt): WalletBet | null {
-  // El read model identifica la apuesta por la transacción que movió el saldo.
-  // Usar el mismo id permite deduplicar el recibo de sesión cuando la API ya
-  // devolvió la apuesta persistida.
-  const id = receipt.transactionId || receipt.betId;
-  if (!id || receipt.idempotentReplay) return null;
-
-  const placedAt = new Date(receipt.placedAt);
-  const placedAtIso = Number.isNaN(placedAt.getTime())
-    ? new Date().toISOString()
-    : placedAt.toISOString();
-
-  return {
-    id,
-    ticket: formatTicket(id),
-    eventName: receipt.eventName?.trim() || 'Apuesta Zenbet',
-    selectionName: receipt.selectionName?.trim() || 'Selección',
-    marketLabel: receipt.marketLabel?.trim() || 'Moneyline',
-    type: receipt.selectionCount > 1 ? 'combined' : 'single',
-    legs: Math.max(1, receipt.selectionCount),
-    stake: roundMoney(receipt.stake),
-    odds: receipt.odds,
-    potentialPayout: roundMoney(receipt.potentialPayout),
-    payout: null,
-    status: 'pending',
-    placedAt: placedAtIso,
-    settledAt: null,
-    source: 'session',
-  };
-}
-
-export function receiptToWalletTransaction(receipt: BetReceipt): WalletTransaction | null {
-  const id = receipt.transactionId || receipt.betId;
-  if (!id || receipt.idempotentReplay) return null;
-
-  const createdAt = new Date(receipt.placedAt);
-  const createdAtIso = Number.isNaN(createdAt.getTime())
-    ? new Date().toISOString()
-    : createdAt.toISOString();
-
-  return {
-    id,
-    type: 'bet',
-    status: 'completed',
-    amount: -roundMoney(receipt.stake),
-    description: `Apuesta · ${receipt.eventName?.trim() || 'Zenbet'}`,
-    reference: formatTicket(receipt.transactionId || receipt.betId),
-    createdAt: createdAtIso,
-    source: 'session',
-  };
-}
-
-/**
- * Inserta los recibos de la sesión actual sobre el snapshot histórico.
- * Se exige `accountId` para no mezclar movimientos entre cuentas en la misma
- * pestaña. Los replays idempotentes se omiten para evitar duplicados.
- */
-export function mergeSessionActivity(
-  snapshot: WalletSnapshot,
-  receipts: readonly BetReceipt[],
-  accountId: string,
-): WalletSnapshot {
-  if (!accountId) return snapshot;
-
-  const eligible = receipts.filter(
-    (receipt) => receipt.accountId === accountId && !receipt.idempotentReplay,
-  );
-
-  if (eligible.length === 0) return snapshot;
-
-  const existingBetIds = new Set(snapshot.bets.map((bet) => bet.id));
-  const existingTransactionIds = new Set(
-    snapshot.transactions.map((transaction) => transaction.id),
-  );
-
-  const sessionBets = eligible
-    .map(receiptToWalletBet)
-    .filter((bet): bet is WalletBet => bet !== null && !existingBetIds.has(bet.id));
-
-  const sessionTransactions = eligible
-    .map(receiptToWalletTransaction)
-    .filter(
-      (transaction): transaction is WalletTransaction =>
-        transaction !== null && !existingTransactionIds.has(transaction.id),
-    );
-
-  return {
-    ...snapshot,
-    bets: sortBetsByDate([...sessionBets, ...snapshot.bets]),
-    transactions: sortTransactionsByDate([
-      ...sessionTransactions,
-      ...snapshot.transactions,
-    ]),
-  };
 }
 
 export function sumActivityNet(activity: readonly DailyActivityPoint[]): number {

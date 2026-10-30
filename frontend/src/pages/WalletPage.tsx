@@ -25,8 +25,8 @@ import { WalletSkeleton } from '@/modules/Wallet/components/WalletSkeleton';
  *
  * La vista solo compone: el saldo vive en AuthContext, los datos históricos
  * llegan del caso de uso `useWalletDashboard` y los cálculos se resuelven en
- * `domain/wallet.ts`. El modo demo se declara en la UI; nunca se disfraza de
- * información financiera real.
+ * `domain/wallet.ts`. Todo dato proviene de la API; si falla se muestra el
+ * ProblemDetails del servidor, nunca datos de relleno.
  */
 export default function WalletPage() {
   const { user } = useAuth();

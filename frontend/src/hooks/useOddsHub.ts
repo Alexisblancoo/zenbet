@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HubConnectionState, type HubConnection } from '@microsoft/signalr';
 
+import { WALLET_REFRESH_EVENT } from '@/context/authState';
 import {
+  authToken,
   AUTH_TOKEN_CHANGED_EVENT,
   AUTH_UNAUTHORIZED_EVENT,
   type AuthTokenChangeDetail,
@@ -142,6 +144,12 @@ export function useOddsHub(options: UseOddsHubOptions = {}): UseOddsHubResult {
       next.add(settlement.marketId);
       return next;
     });
+
+    // La liquidación pudo pagar apuestas del jugador: se relee billetera e
+    // historial desde la API (la liquidación corre en el servidor, no aquí).
+    if (authToken.has()) {
+      window.dispatchEvent(new CustomEvent(WALLET_REFRESH_EVENT));
+    }
   }, []);
 
   /* ---------------------------------------------------------------------- */

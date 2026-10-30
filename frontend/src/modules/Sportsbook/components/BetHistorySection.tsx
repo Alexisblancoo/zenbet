@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -17,8 +17,6 @@ import {
   Zap,
 } from 'lucide-react';
 
-import { useAuth } from '@/context/authState';
-import { useBetSlip } from '@/context/betSlipState';
 import { triggerSaldoFlashElements } from '@/hooks/useSaldoFlash';
 import { useWalletDashboard } from '@/hooks/useWalletDashboard';
 import { formatDecimalOdds, formatAmericanOdds } from '@/domain/odds';
@@ -56,64 +54,18 @@ function BetHistorySection({
   className = '',
   compact = false,
 }: BetHistorySectionProps) {
-  const { user } = useAuth();
-  const { receipts } = useBetSlip();
   const { snapshot, status, refresh } = useWalletDashboard();
 
   const [activeTab, setActiveTab] = useState<BetHistoryFilter>(defaultTab);
   const [toasts, setToasts] = useState<readonly ToastNotification[]>([]);
-  const [localBetsOverride, setLocalBetsOverride] = useState<
-    Readonly<Record<string, { status: WalletBetStatus; payout: number | null }>>
-  >({});
 
   // Sincroniza la pestaña si defaultTab cambia desde el componente padre
   useEffect(() => {
     setActiveTab(defaultTab);
   }, [defaultTab]);
 
-  // Lista base combinada de apuestas
-  const rawBets = useMemo(() => {
-    const list: WalletBet[] = [...(snapshot?.bets ?? [])];
-
-    // Asegura que los recibos de la sesión actual aparezcan de inmediato
-    for (const receipt of receipts) {
-      if (!list.some((b) => b.id === receipt.betId || b.ticket.includes(receipt.betId.slice(-6)))) {
-        list.unshift({
-          id: receipt.betId,
-          ticket: `TKT-${receipt.betId.slice(0, 8).toUpperCase()}`,
-          eventName: receipt.eventName ?? 'Combate Seleccionado',
-          selectionName: receipt.selectionName ?? 'Ganador',
-          marketLabel: receipt.marketLabel ?? 'Línea de Dinero',
-          type: receipt.selectionCount > 1 ? 'combined' : 'single',
-          legs: receipt.selectionCount,
-          stake: receipt.stake,
-          odds: receipt.odds,
-          potentialPayout: receipt.potentialPayout,
-          payout: null,
-          status: 'pending',
-          placedAt: new Date(receipt.placedAt).toISOString(),
-          settledAt: null,
-          source: 'session',
-        });
-      }
-    }
-
-    return list;
-  }, [snapshot?.bets, receipts]);
-
-  // Aplica overrides locales provocados por eventos de SignalR en tiempo real
-  const bets = useMemo(() => {
-    return rawBets.map((bet) => {
-      const override = localBetsOverride[bet.id];
-      if (!override) return bet;
-      return {
-        ...bet,
-        status: override.status,
-        payout: override.payout,
-        settledAt: bet.settledAt ?? new Date().toISOString(),
-      };
-    });
-  }, [rawBets, localBetsOverride]);
+  // Las apuestas salen únicamente de la API (`/wallet` y `/bets`).
+  const bets = useMemo(() => snapshot?.bets ?? [], [snapshot?.bets]);
 
   // Conteos
   const activeBets = useMemo(() => bets.filter((b) => b.status === 'pending'), [bets]);
@@ -137,59 +89,35 @@ function BetHistorySection({
     }, 5000);
   }, []);
 
-  // Liquidación en tiempo real (SignalR / Custom Event)
-  const handleSettleBet = useCallback(
-    (betId: string, outcome: 'won' | 'lost', customPayout?: number) => {
-      const targetBet = bets.find((b) => b.id === betId);
-      const payout =
-        outcome === 'won'
-          ? customPayout !== undefined
-            ? customPayout
-            : (targetBet?.potentialPayout ?? 50)
-          : 0;
+  // Liquidación real: cuando la API devuelve como ganada/perdida una apuesta que
+  // antes estaba pendiente (tras `ReceiveMarketSettled` o `SaldoActualizado`),
+  // se avisa con los importes que entrega el servidor. La primera carga no avisa.
+  const previousStatuses = useRef<ReadonlyMap<string, WalletBetStatus> | null>(null);
+  useEffect(() => {
+    const previous = previousStatuses.current;
+    previousStatuses.current = new Map(bets.map((bet) => [bet.id, bet.status]));
+    if (!previous) return;
 
-      // Actualizar estado local inmediato
-      setLocalBetsOverride((prev) => ({
-        ...prev,
-        [betId]: {
-          status: outcome,
-          payout: outcome === 'won' ? payout : 0,
-        },
-      }));
+    for (const bet of bets) {
+      if (previous.get(bet.id) !== 'pending') continue;
 
-      if (outcome === 'won') {
-        // Destello Shibuya Lime en el saldo
+      if (bet.status === 'won') {
         triggerSaldoFlashElements();
-
         pushToast({
           title: '▲ APUESTA GANADA',
-          message: `${targetBet?.eventName ?? 'Tu apuesta'} ha sido liquidada exitosamente. +${formatWalletMoney(payout)} acreditados al instante.`,
+          message: `${bet.eventName || 'Tu apuesta'} fue liquidada. Se acreditaron ${formatWalletMoney(bet.payout ?? 0)}.`,
           type: 'won',
-          amount: payout,
+          ...(bet.payout ? { amount: bet.payout } : {}),
         });
-      } else {
+      } else if (bet.status === 'lost') {
         pushToast({
           title: '▼ APUESTA LIQUIDADA',
-          message: `${targetBet?.eventName ?? 'Tu apuesta'} finalizó. Resultado registrado en el historial.`,
+          message: `${bet.eventName || 'Tu apuesta'} finalizó. Resultado registrado en el historial.`,
           type: 'lost',
         });
       }
-    },
-    [bets, pushToast],
-  );
-
-  // Escuchar eventos globales de liquidación
-  useEffect(() => {
-    const onBetSettled = (e: Event) => {
-      const custom = e as CustomEvent<{ betId: string; outcome: 'won' | 'lost'; payout?: number }>;
-      if (custom.detail?.betId) {
-        handleSettleBet(custom.detail.betId, custom.detail.outcome, custom.detail.payout);
-      }
-    };
-
-    window.addEventListener('zenbet:bet-settled', onBetSettled);
-    return () => window.removeEventListener('zenbet:bet-settled', onBetSettled);
-  }, [handleSettleBet]);
+    }
+  }, [bets, pushToast]);
 
   return (
     <div className={`flex flex-col ${className}`}>
@@ -311,7 +239,6 @@ function BetHistorySection({
           </div>
         ) : (
           displayedBets.map((bet) => {
-            const isPending = bet.status === 'pending';
             const isWon = bet.status === 'won';
             const isLost = bet.status === 'lost';
 
@@ -404,27 +331,6 @@ function BetHistorySection({
                     </span>
                   </div>
                 </div>
-
-                {/* Botón de Demostración para Liquidar en Vivo (solo en apuestas activas) */}
-                {isPending && (
-                  <div className='mt-2 flex items-center justify-end gap-1.5 border-t border-white/[0.04] pt-1.5'>
-                    <span className='font-mono text-[7px] text-metallic-slate/40'>TEST SIGNALR:</span>
-                    <button
-                      type='button'
-                      onClick={() => handleSettleBet(bet.id, 'won')}
-                      className='border border-[#D4FF3F]/30 bg-[#D4FF3F]/[0.08] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase text-[#D4FF3F] hover:bg-[#D4FF3F]/20'
-                    >
-                      ✓ Simular Ganada
-                    </button>
-                    <button
-                      type='button'
-                      onClick={() => handleSettleBet(bet.id, 'lost')}
-                      className='border border-crimson/30 bg-crimson/[0.08] px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase text-crimson hover:bg-crimson/20'
-                    >
-                      ✕ Simular Perdida
-                    </button>
-                  </div>
-                )}
               </article>
             );
           })

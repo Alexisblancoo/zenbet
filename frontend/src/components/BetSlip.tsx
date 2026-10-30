@@ -362,7 +362,7 @@ export default function BetSlip({
         ? { label: 'Conectando', dot: 'bg-sage', ping: false }
         : hubStatus === 'reconnecting'
           ? { label: 'Reconectando', dot: 'bg-sage', ping: false }
-          : { label: 'Snapshot', dot: 'bg-sage', ping: false };
+          : { label: 'Sin conexión', dot: 'bg-sage', ping: false };
 
   const promoSection = (
     <section

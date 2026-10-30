@@ -1,4 +1,4 @@
-import { memo, useDeferredValue, useMemo, useState, type ReactNode } from 'react';
+import { memo, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ArrowDownRight, ArrowUpRight, Check, Minus, Search, X } from 'lucide-react';
 
 import { formatDecimalOdds, type OddsQuote } from '@/domain/odds';
@@ -104,6 +104,18 @@ export const MarketTile = memo(function MarketTile({
       ? quote.odds
       : selection.decimalOdds;
   const trend = quote?.trend ?? 'unchanged';
+
+  // Destello neón cuando OddsHub empuja un cambio de cuota (no en el primer pintado).
+  const previousOdds = useRef(liveOdds);
+  const [isFlashing, setIsFlashing] = useState(false);
+  useEffect(() => {
+    if (previousOdds.current === liveOdds) return undefined;
+    previousOdds.current = liveOdds;
+    setIsFlashing(true);
+    const timer = window.setTimeout(() => setIsFlashing(false), 1200);
+    return () => window.clearTimeout(timer);
+  }, [liveOdds]);
+
   const disabled = closed || selection.settled || market.status !== 'open';
   const trendTone =
     trend === 'up' ? 'text-odds-up' : trend === 'down' ? 'text-odds-down' : 'text-metallic-slate';
@@ -120,7 +132,7 @@ export const MarketTile = memo(function MarketTile({
       data-selected={selected}
       data-trend={trend}
       data-closed={closed}
-      className={`market-tile group relative min-w-0 transition-all duration-150 ${method ? 'market-tile--method' : ''} ${
+      className={`market-tile group relative min-w-0 transition-all duration-150 ${isFlashing ? 'zb-odds-lime-flash' : ''} ${method ? 'market-tile--method' : ''} ${
         closed
           ? 'cursor-not-allowed border-white/[0.045] bg-[#050505] opacity-55 grayscale'
           : disabled
