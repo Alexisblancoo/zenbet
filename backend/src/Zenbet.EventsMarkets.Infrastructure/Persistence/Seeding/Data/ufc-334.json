@@ -1,5 +1,5 @@
 {
-    "schemaVersion": 4,
+    "schemaVersion": 5,
     "card": {
         "seedKey": "ufc-334",
         "competition": "UFC 334: Gane vs. Hokit",
@@ -1100,7 +1100,7 @@
         {
             "id": "ufc-334-ciryl-gane-vs-josh-hokit",
             "name": "Gane vs. Hokit",
-            "billing": "main",
+            "billing": "main_event",
             "order": 1,
             "startTime": "2026-11-14T22:00Z",
             "division": "heavyweight",

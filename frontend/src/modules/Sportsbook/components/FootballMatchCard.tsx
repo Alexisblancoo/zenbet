@@ -24,6 +24,8 @@ export interface FootballMatchCardProps {
   readonly flashingSelectionIds?: ReadonlySet<string>;
   readonly onAddSelection: (selection: SelectionInput) => void;
   readonly onRemoveSelection: (selectionId: string) => void;
+  readonly onSelectMatch?: (match: FootballMatch) => void;
+  readonly isSelected?: boolean;
   readonly featured?: boolean;
 }
 
@@ -65,10 +67,13 @@ function FootballMatchCard({
   flashingSelectionIds,
   onAddSelection,
   onRemoveSelection,
+  onSelectMatch,
+  isSelected = false,
   featured = false,
 }: FootballMatchCardProps) {
   const headingId = useId();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  const isExpanded = internalExpanded || isSelected;
 
   const isClosed = match.isExpired || !match.isBettingOpen || match.status === 'finished';
   const isLive = match.status === 'live';
@@ -135,24 +140,28 @@ function FootballMatchCard({
       data-closed={isClosed}
       data-live={isLive}
       className={`group relative min-w-0 overflow-hidden border transition-all duration-200 ${
-        isClosed
-          ? 'border-white/[0.055] bg-[#050505]'
-          : featured
-            ? 'border-lime-400/50 shadow-[0_0_0_1px_rgba(212,255,63,0.15),0_18px_60px_-38px_rgba(212,255,63,0.35)]'
-            : isLive
-              ? 'border-lime-400/35 bg-[#0A0A0A] shadow-[0_0_24px_-12px_rgba(212,255,63,0.2)]'
-              : 'border-white/[0.08] bg-[#0A0A0A] hover:border-lime-400/30 hover:shadow-[0_18px_48px_-38px_rgba(0,0,0,0.9)]'
+        isSelected
+          ? 'border-lime-400 bg-[#0B0B0B] shadow-[0_0_28px_-6px_rgba(212,255,63,0.45)] ring-1 ring-lime-400/60'
+          : isClosed
+            ? 'border-white/[0.055] bg-[#050505]'
+            : featured
+              ? 'border-lime-400/50 shadow-[0_0_0_1px_rgba(212,255,63,0.15),0_18px_60px_-38px_rgba(212,255,63,0.35)]'
+              : isLive
+                ? 'border-lime-400/35 bg-[#0A0A0A] shadow-[0_0_24px_-12px_rgba(212,255,63,0.2)]'
+                : 'border-white/[0.08] bg-[#0A0A0A] hover:border-lime-400/30 hover:shadow-[0_18px_48px_-38px_rgba(0,0,0,0.9)]'
       }`}
     >
       {/* Franja superior de acento */}
       <div
         aria-hidden='true'
         className={`h-[2px] w-full ${
-          isLive
+          isSelected
             ? 'bg-linear-to-r from-transparent via-lime-400 to-transparent'
-            : featured
-              ? 'bg-linear-to-r from-transparent via-lime-400/70 to-transparent'
-              : 'bg-linear-to-r from-transparent via-white/12 to-transparent'
+            : isLive
+              ? 'bg-linear-to-r from-transparent via-lime-400 to-transparent'
+              : featured
+                ? 'bg-linear-to-r from-transparent via-lime-400/70 to-transparent'
+                : 'bg-linear-to-r from-transparent via-white/12 to-transparent'
         }`}
       />
 
@@ -176,6 +185,11 @@ function FootballMatchCard({
 
         {/* Estado en vivo o fecha/hora local */}
         <div className='flex items-center gap-2 font-mono text-[9px]'>
+          {isSelected && (
+            <span className='border border-lime-400 bg-lime-400/[0.12] px-1.5 py-0.5 font-bold text-lime-400'>
+              EN FOCO
+            </span>
+          )}
           {isLive ? (
             <div className='flex items-center gap-1.5 border border-lime-400/40 bg-lime-400/[0.08] px-2 py-0.5 text-lime-400 shadow-[0_0_10px_rgba(212,255,63,0.2)]'>
               <span className='h-1.5 w-1.5 rounded-full bg-lime-400 motion-safe:animate-pulse' />
@@ -200,7 +214,25 @@ function FootballMatchCard({
       </header>
 
       {/* ARENA DE EQUIPOS & MARCADOR */}
-      <div className='p-3 sm:p-4'>
+      <div
+        role={onSelectMatch ? 'button' : undefined}
+        tabIndex={onSelectMatch ? 0 : undefined}
+        onClick={onSelectMatch ? () => onSelectMatch(match) : undefined}
+        onKeyDown={
+          onSelectMatch
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectMatch(match);
+                }
+              }
+            : undefined
+        }
+        aria-label={onSelectMatch ? `Ver detalles de ${match.homeTeam.name} vs ${match.awayTeam.name}` : undefined}
+        className={`p-3 sm:p-4 transition-colors ${
+          onSelectMatch ? 'cursor-pointer hover:bg-white/[0.025] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400' : ''
+        }`}
+      >
         <div className='grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4'>
           {/* Equipo Local con Escudo */}
           <div className='flex min-w-0 items-center gap-2.5'>
@@ -408,7 +440,7 @@ function FootballMatchCard({
       {/* BOTÓN DESPLEGABLE NEO-BRUTALISTA */}
       <button
         type='button'
-        onClick={() => setIsExpanded((prev) => !prev)}
+        onClick={() => setInternalExpanded((prev) => !prev)}
         aria-expanded={isExpanded}
         className='group/acc flex w-full items-center justify-between border-t border-b border-white/[0.08] bg-[#0B0B0B] px-3 py-2 font-mono text-[9px] uppercase tracking-wider transition-colors hover:border-lime-400/40 hover:bg-lime-400/[0.04]'
       >

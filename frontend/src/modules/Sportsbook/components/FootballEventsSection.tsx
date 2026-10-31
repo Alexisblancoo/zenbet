@@ -1,4 +1,5 @@
 import { memo, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle,
   Calendar,
@@ -18,6 +19,7 @@ import type { OddsQuote } from '@/domain/odds';
 import type { FootballMatch } from '@/domain/football';
 import { useFootballEvents } from '@/hooks/useFootballEvents';
 import FootballMatchCard from './FootballMatchCard';
+import CyberEmptyState from './CyberEmptyState';
 
 export interface FootballEventsSectionProps {
   readonly selectedIds: readonly string[];
@@ -82,6 +84,21 @@ export default function FootballEventsSection({
   } = useFootballEvents();
 
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>(activeLeagueId || 'all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedEventId = searchParams.get('event');
+
+  const handleSelectMatch = useCallback(
+    (match: FootballMatch) => {
+      const next = new URLSearchParams(searchParams);
+      if (next.get('event') === match.id) {
+        next.delete('event');
+      } else {
+        next.set('event', match.id);
+      }
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
 
   useEffect(() => {
     if (activeLeagueId !== undefined) {
@@ -325,22 +342,21 @@ export default function FootballEventsSection({
 
       {/* LISTA DE PARTIDOS DE FÚTBOL */}
       {filteredMatches.length === 0 ? (
-        <div className='flex flex-col items-center justify-center rounded-xl border border-white/[0.06] bg-[#0A0A0A] p-8 text-center'>
-          <Database size={24} className='text-metallic-slate/40' aria-hidden='true' />
-          <h3 className='mt-2 font-display text-sm font-bold uppercase tracking-wider text-white'>
-            No se encontraron partidos
-          </h3>
-          <p className='mt-1 max-w-sm font-mono text-[10px] text-metallic-slate'>
-            No hay partidos que coincidan con los filtros seleccionados o el término de búsqueda.
-          </p>
-          <button
-            type='button'
-            onClick={handleResetFilters}
-            className='mt-3 inline-flex border border-lime-400/40 bg-lime-400/[0.08] px-3 py-1.5 font-mono text-[9px] font-bold uppercase tracking-wider text-lime-400 hover:bg-lime-400/[0.15]'
-          >
-            Restablecer Filtros
-          </button>
-        </div>
+        <CyberEmptyState
+          title={
+            searchTerm
+              ? `Sin partidos para "${searchTerm}"`
+              : selectedLeagueId !== 'all'
+                ? 'Sin partidos activos en esta competición'
+                : 'Sin eventos activos / Próximamente en esta sede'
+          }
+          subtitle='No hay partidos de fútbol disponibles bajo los filtros seleccionados. Los eventos se sincronizan en vivo con los proveedores oficiales.'
+          sportLabel='Fútbol'
+          cyrillicBadge='ФУТБОЛ // НЕТ ДАННЫХ'
+          telemetryCode='SOCCER_FEED // EMPTY_STATE'
+          actionLabel='Restablecer Filtros'
+          onAction={handleResetFilters}
+        />
       ) : (
         <div className='flex flex-col gap-3'>
           {filteredMatches.map((match) => (
@@ -353,6 +369,8 @@ export default function FootballEventsSection({
               onRemoveSelection={onRemoveSelection}
               oddsMap={oddsMap}
               flashingSelectionIds={flashingSelectionIds}
+              isSelected={match.id === selectedEventId}
+              onSelectMatch={handleSelectMatch}
             />
           ))}
         </div>

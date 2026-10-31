@@ -168,8 +168,18 @@ export function useOddsHub(options: UseOddsHubOptions = {}): UseOddsHubResult {
   }, []);
 
   const rejoinMarkets = useCallback(async () => {
-    for (const marketId of desiredMarketsRef.current) {
-      await invokeGroupMethod(ODDS_HUB_METHODS.joinMarket, marketId);
+    const markets = Array.from(desiredMarketsRef.current);
+    if (markets.length === 0) return;
+
+    const connection = connectionRef.current;
+    if (!connection || connection.state !== HubConnectionState.Connected) return;
+
+    try {
+      await connection.invoke(ODDS_HUB_METHODS.joinMarkets, markets);
+    } catch {
+      for (const marketId of markets) {
+        await invokeGroupMethod(ODDS_HUB_METHODS.joinMarket, marketId);
+      }
     }
   }, [invokeGroupMethod]);
 
@@ -333,21 +343,44 @@ export function useOddsHub(options: UseOddsHubOptions = {}): UseOddsHubResult {
     };
   }, [enabled, enqueueOddsUpdate, handleMarketSettled, publishStatus, rejoinMarkets, scheduleRestart, clearWatchdog]);
 
-  /** Sincroniza los grupos con los mercados visibles (join nuevos, leave salidos). */
+  /** Sincroniza los grupos con los mercados visibles en lote (batch multiplexing). */
   useEffect(() => {
     const desired = desiredMarketsRef.current;
     const next = new Set(marketsKey ? marketsKey.split(MARKET_KEY_SEPARATOR) : []);
 
+    const toLeave: string[] = [];
     for (const marketId of [...desired]) {
-      if (next.has(marketId)) continue;
-      desired.delete(marketId);
-      void invokeGroupMethod(ODDS_HUB_METHODS.leaveMarket, marketId);
+      if (!next.has(marketId)) {
+        desired.delete(marketId);
+        toLeave.push(marketId);
+      }
     }
 
+    const toJoin: string[] = [];
     for (const marketId of next) {
-      if (desired.has(marketId)) continue;
-      desired.add(marketId);
-      void invokeGroupMethod(ODDS_HUB_METHODS.joinMarket, marketId);
+      if (!desired.has(marketId)) {
+        desired.add(marketId);
+        toJoin.push(marketId);
+      }
+    }
+
+    const connection = connectionRef.current;
+    if (!connection || connection.state !== HubConnectionState.Connected) return;
+
+    if (toLeave.length > 0) {
+      connection.invoke(ODDS_HUB_METHODS.leaveMarkets, toLeave).catch(() => {
+        for (const m of toLeave) {
+          void invokeGroupMethod(ODDS_HUB_METHODS.leaveMarket, m);
+        }
+      });
+    }
+
+    if (toJoin.length > 0) {
+      connection.invoke(ODDS_HUB_METHODS.joinMarkets, toJoin).catch(() => {
+        for (const m of toJoin) {
+          void invokeGroupMethod(ODDS_HUB_METHODS.joinMarket, m);
+        }
+      });
     }
   }, [marketsKey, invokeGroupMethod]);
 

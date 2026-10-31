@@ -22,12 +22,16 @@ export const ODDS_HUB_EVENTS = {
   marketSettled: 'ReceiveMarketSettled',
 } as const;
 
-/** Métodos cliente → servidor (grupos por mercado/evento). */
+/** Métodos cliente → servidor (grupos por mercado/evento y operaciones batch). */
 export const ODDS_HUB_METHODS = {
   joinMarket: 'JoinMarketGroup',
   leaveMarket: 'LeaveMarketGroup',
+  joinMarkets: 'JoinMarketGroups',
+  leaveMarkets: 'LeaveMarketGroups',
   joinEvent: 'JoinEventGroup',
   leaveEvent: 'LeaveEventGroup',
+  joinEvents: 'JoinEventGroups',
+  leaveEvents: 'LeaveEventGroups',
 } as const;
 
 export const ODDS_HUB_URL: string = (() => {

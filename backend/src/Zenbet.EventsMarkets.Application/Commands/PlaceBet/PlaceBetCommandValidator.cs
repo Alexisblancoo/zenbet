@@ -32,5 +32,20 @@ public sealed class PlaceBetCommandValidator : AbstractValidator<PlaceBetCommand
             .MaximumLength(40)
             .When(x => !string.IsNullOrWhiteSpace(x.PromoCode))
             .WithMessage("El código promocional no puede superar 40 caracteres");
+
+        RuleFor(x => x.ExpectedOdds)
+            .GreaterThan(1m)
+            .When(x => x.ExpectedOdds.HasValue)
+            .WithMessage("Expected odds must be greater than 1.0");
+
+        RuleFor(x => x.MaxSlippagePercent)
+            .InclusiveBetween(0m, 100m)
+            .When(x => x.MaxSlippagePercent.HasValue)
+            .WithMessage("Max slippage percent must be between 0 and 100");
+
+        RuleFor(x => x.MinAcceptedOdds)
+            .GreaterThan(1m)
+            .When(x => x.MinAcceptedOdds.HasValue)
+            .WithMessage("Min accepted odds must be greater than 1.0");
     }
 }

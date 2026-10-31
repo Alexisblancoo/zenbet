@@ -333,6 +333,102 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
         Assert.Equal("amount", exception.ParamName);
     }
 
+    [Fact]
+    public async Task Concurrent_PlaceBet_MultiUser_With_Dynamic_Odds_Shift_Enforces_Slippage_Tolerance()
+    {
+        // Arrange: Crear 20 billeteras con $5,000 c/u y un mercado con cuota inicial 2.50
+        const int userCount = 20;
+        var wallets = new List<WalletId>();
+        var selectionIds = new[] { SelectionId.New(), SelectionId.New(), SelectionId.New() };
+        var targetSelectionId = selectionIds[0];
+
+        var eventId = DomainEventId.New();
+        var @event = new Event(eventId, "UFC 300 Championship", SportType.Mma, DateTimeOffset.UtcNow.AddHours(3));
+        var selections = selectionIds
+            .Select((id, i) => new Selection(id, i == 0 ? "Fighter A" : i == 1 ? "Draw" : "Fighter B", new Odd(2.50m, DateTimeOffset.UtcNow)))
+            .ToList();
+        @event.AddMarket("Moneyline", MarketType.Moneyline, selections);
+        _dbContext.Events.Add(@event);
+
+        for (var i = 0; i < userCount; i++)
+        {
+            var wid = WalletId.New();
+            var wallet = new Wallet(wid, UserId.New());
+            wallet.Deposit(new Money(5000m), $"Seed wallet {i}");
+            _dbContext.Wallets.Add(wallet);
+            wallets.Add(wid);
+        }
+
+        await _dbContext.SaveChangesAsync();
+        _dbContext.ChangeTracker.Clear();
+
+        // Simular cambio dinámico de cuota en vivo (la cuota baja de 2.50 a 2.20)
+        var selectionEntity = await _dbContext.Selections.SingleAsync(s => s.Id == targetSelectionId);
+        selectionEntity.UpdateOdds(new Odd(2.20m, DateTimeOffset.UtcNow));
+        await _dbContext.SaveChangesAsync();
+        _dbContext.ChangeTracker.Clear();
+
+        // 10 usuarios con tolerancia estricta (2% -> cuota mínima aceptable = 2.45)
+        // 10 usuarios con tolerancia flexible (20% -> cuota mínima aceptable = 2.00)
+        var commands = new List<PlaceBetCommand>();
+        for (var i = 0; i < userCount; i++)
+        {
+            var isStrict = i < 10;
+            var maxSlippage = isStrict ? 2.0m : 20.0m;
+
+            commands.Add(new PlaceBetCommand(
+                wallets[i],
+                targetSelectionId,
+                new Money(100m),
+                $"quickbet-concurrent-{i}",
+                Guid.NewGuid(),
+                ExpectedOdds: 2.50m,
+                MaxSlippagePercent: maxSlippage
+            ));
+        }
+
+        // Act: Disparar las 20 apuestas de forma concurrente
+        using var startGate = new ManualResetEventSlim(false);
+        var tasks = commands.Select(cmd => Task.Run(async () =>
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            startGate.Wait();
+            return await mediator.Send(cmd);
+        })).ToArray();
+
+        startGate.Set();
+        var results = await Task.WhenAll(tasks);
+
+        // Assert:
+        // Los 10 estrictos deben ser rechazados con ODDS_CHANGED
+        var strictResults = results.Take(10).ToList();
+        Assert.All(strictResults, res =>
+        {
+            Assert.False(res.Success);
+            Assert.Equal("ODDS_CHANGED", res.ErrorCode);
+            Assert.Equal(2.20m, res.CurrentOdds);
+        });
+
+        // Los 10 flexibles deben haber tenido éxito
+        var flexibleResults = results.Skip(10).ToList();
+        Assert.All(flexibleResults, res =>
+        {
+            Assert.True(res.Success, res.ErrorMessage);
+            Assert.NotNull(res.TransactionId);
+        });
+
+        // Invariante de Ledger: exactamente 10 transacciones creadas de tipo BetPlacement
+        var totalTransactions = await _dbContext.Transactions.CountAsync(t => t.Type == TransactionType.BetPlacement);
+        Assert.Equal(10, totalTransactions);
+
+        // Invariante de Billeteras: Las 10 estrictas conservan $5,000; las 10 flexibles tienen $4,900
+        var allWallets = await _dbContext.Wallets.AsNoTracking().Where(w => wallets.Contains(w.Id)).ToListAsync();
+        var totalBalance = allWallets.Sum(w => w.Balance.Amount);
+        var expectedTotalBalance = (10 * 5000m) + (10 * 4900m); // 99,000
+        Assert.Equal(expectedTotalBalance, totalBalance);
+    }
+
     private async Task<(WalletId, SelectionId)> SeedWalletAndSelectionAsync(decimal initialBalance = 5000m)
     {
         var (walletId, selectionIds) = await SeedWalletAndSelectionsAsync(initialBalance);

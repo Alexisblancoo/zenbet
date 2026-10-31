@@ -37,6 +37,9 @@ interface PlaceBetWireRequest {
   readonly description: string;
   readonly idempotencyKey: string;
   readonly promoCode?: string;
+  readonly expectedOdds?: number;
+  readonly maxSlippagePercent?: number;
+  readonly minAcceptedOdds?: number;
 }
 
 interface PlaceBetWireResponse {
@@ -53,6 +56,9 @@ export interface PlaceBetCommand {
   readonly stake: number;
   readonly idempotencyKey: string;
   readonly promoCode?: string;
+  readonly expectedOdds?: number;
+  readonly maxSlippagePercent?: number;
+  readonly minAcceptedOdds?: number;
 }
 
 export interface PlacedBet {
@@ -82,6 +88,14 @@ const FAILURE_COPY: Readonly<Record<BetFailureCode, { title: string; message: st
   ODDS_CHANGED: {
     title: 'Cuotas desactualizadas',
     message: 'Acepta las nuevas cuotas antes de confirmar la apuesta.',
+  },
+  EXPOSURE_LIMIT_EXCEEDED: {
+    title: 'Límite de riesgo alcanzado',
+    message: 'El mercado ha alcanzado el límite máximo de exposición financiera. Intenta con un monto menor o en otro mercado.',
+  },
+  USER_LIMIT_EXCEEDED: {
+    title: 'Límite por apuesta excedido',
+    message: 'El monto ingresado supera el límite máximo permitido por apuesta para tu cuenta.',
   },
   EVENT_CLOSED: {
     title: 'Combate finalizado',
@@ -213,6 +227,16 @@ const KNOWN_BACKEND_MESSAGES: readonly (readonly [RegExp, BetFailureCode, string
     'INVALID_SELECTION',
     'La selección ya no está disponible en el mercado.',
   ],
+  [
+    /exposure limit.*exceeded/i,
+    'EXPOSURE_LIMIT_EXCEEDED',
+    'El mercado ha alcanzado el límite de exposición financiera. Intenta con un monto menor.',
+  ],
+  [
+    /exceeds maximum allowed bet per user/i,
+    'USER_LIMIT_EXCEEDED',
+    'El monto ingresado supera el límite máximo permitido por apuesta.',
+  ],
 ];
 
 function translateBackendMessage(detail: string | undefined): {
@@ -289,6 +313,47 @@ function fromProblemDetails(problem: ProblemDetailsException): BetFailure {
     });
   }
 
+  // Intercepción específica de cuota cambiada (Slippage exceeded) RFC 7807
+  const code = problem.code ?? (problem.extensions?.code as string | undefined);
+  if (
+    code === 'ODDS_CHANGED' ||
+    code === 'SLIPPAGE_EXCEEDED' ||
+    problem.type.includes('odds-changed') ||
+    (typeof problem.detail === 'string' && problem.detail.toLowerCase().includes('cuota'))
+  ) {
+    return createBetFailure('ODDS_CHANGED', {
+      status,
+      title: problem.title ?? FAILURE_COPY.ODDS_CHANGED.title,
+      message: problem.detail ?? FAILURE_COPY.ODDS_CHANGED.message,
+      ...(fieldErrors.length > 0 ? { fieldErrors } : {}),
+    });
+  }
+
+  // Intercepción específica de límites de riesgo financiero RFC 7807
+  if (
+    code === 'EXPOSURE_LIMIT_EXCEEDED' ||
+    problem.type.includes('exposure-limit-exceeded')
+  ) {
+    return createBetFailure('EXPOSURE_LIMIT_EXCEEDED', {
+      status,
+      title: problem.title ?? FAILURE_COPY.EXPOSURE_LIMIT_EXCEEDED.title,
+      message: problem.detail ?? FAILURE_COPY.EXPOSURE_LIMIT_EXCEEDED.message,
+      ...(fieldErrors.length > 0 ? { fieldErrors } : {}),
+    });
+  }
+
+  if (
+    code === 'USER_LIMIT_EXCEEDED' ||
+    problem.type.includes('user-limit-exceeded')
+  ) {
+    return createBetFailure('USER_LIMIT_EXCEEDED', {
+      status,
+      title: problem.title ?? FAILURE_COPY.USER_LIMIT_EXCEEDED.title,
+      message: problem.detail ?? FAILURE_COPY.USER_LIMIT_EXCEEDED.message,
+      ...(fieldErrors.length > 0 ? { fieldErrors } : {}),
+    });
+  }
+
   const known = translateBackendMessage(problem.detail);
 
   if (known) {
@@ -348,6 +413,9 @@ export const betService = {
     stake,
     idempotencyKey,
     promoCode,
+    expectedOdds,
+    maxSlippagePercent,
+    minAcceptedOdds,
   }: PlaceBetCommand): Promise<PlacedBet> {
     if (!isUuid(walletId)) {
       throw new BetSlipError(
@@ -378,6 +446,9 @@ export const betService = {
         amount,
         description: buildDescription(selection),
         idempotencyKey,
+        expectedOdds: expectedOdds ?? selection.odds,
+        ...(maxSlippagePercent !== undefined ? { maxSlippagePercent } : {}),
+        ...(minAcceptedOdds !== undefined ? { minAcceptedOdds } : {}),
         ...(promoCode ? { promoCode } : {}),
       },
       {

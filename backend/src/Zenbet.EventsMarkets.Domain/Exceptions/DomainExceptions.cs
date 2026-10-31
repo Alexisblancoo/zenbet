@@ -55,6 +55,22 @@ public sealed class InvalidOddsTransitionException : DomainException
     public InvalidOddsTransitionException(string message) : base(message) { }
 }
 
+public sealed class OddsChangedException : DomainException
+{
+    public decimal RequestedOdds { get; }
+    public decimal CurrentOdds { get; }
+    public decimal? MinAllowedOdds { get; }
+    public string Code => "ODDS_CHANGED";
+
+    public OddsChangedException(decimal requestedOdds, decimal currentOdds, decimal? minAllowedOdds = null)
+        : base($"La cuota actual ({currentOdds:F2}) difiere de la cuota solicitada ({requestedOdds:F2}) excediendo la tolerancia permitida.")
+    {
+        RequestedOdds = requestedOdds;
+        CurrentOdds = currentOdds;
+        MinAllowedOdds = minAllowedOdds;
+    }
+}
+
 public sealed class DivisionMismatchException : DomainException
 {
     public DivisionMismatchException(string message) : base(message) { }
@@ -141,3 +157,19 @@ public abstract class DomainException : Exception
 {
     protected DomainException(string message) : base(message) { }
 }
+
+public sealed class KycVerificationRequiredException : DomainException
+{
+    public Guid UserId { get; }
+    public Enums.KycStatus KycStatus { get; }
+    public string Code { get; }
+
+    public KycVerificationRequiredException(Guid userId, Enums.KycStatus kycStatus)
+        : base($"El usuario '{userId}' no puede retirar fondos con estado KYC '{kycStatus}'. Se requiere verificación completa (VERIFIED).")
+    {
+        UserId = userId;
+        KycStatus = kycStatus;
+        Code = "KYC_VERIFICATION_REQUIRED";
+    }
+}
+

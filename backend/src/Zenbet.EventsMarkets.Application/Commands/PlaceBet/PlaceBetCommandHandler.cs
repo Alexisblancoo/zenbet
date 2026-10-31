@@ -22,6 +22,7 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
     private readonly IOutboxWriter _outboxWriter;
     private readonly IIdempotencyService _idempotencyService;
     private readonly ILogger<PlaceBetCommandHandler> _logger;
+    private readonly IRiskManagementService? _riskManagementService;
 
     public PlaceBetCommandHandler(
         IWalletRepository walletRepository,
@@ -32,7 +33,8 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
         IUnitOfWork unitOfWork,
         IOutboxWriter outboxWriter,
         IIdempotencyService idempotencyService,
-        ILogger<PlaceBetCommandHandler> logger)
+        ILogger<PlaceBetCommandHandler> logger,
+        IRiskManagementService? riskManagementService = null)
     {
         _walletRepository = walletRepository;
         _selectionRepository = selectionRepository;
@@ -43,6 +45,7 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
         _outboxWriter = outboxWriter;
         _idempotencyService = idempotencyService;
         _logger = logger;
+        _riskManagementService = riskManagementService;
     }
 
     public async Task<PlaceBetResult> Handle(PlaceBetCommand request, CancellationToken cancellationToken)
@@ -54,6 +57,9 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
             amount = request.Amount.Amount,
             request.Description,
             request.PromoCode,
+            request.ExpectedOdds,
+            request.MaxSlippagePercent,
+            request.MinAcceptedOdds,
         });
 
         PromoCodeDefinition? promoCode = null;
@@ -217,6 +223,68 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
                     "El mercado ya no está abierto para apuestas.");
             }
 
+            var currentOdds = selection.CurrentOdd.Value;
+
+            // Validación de tolerancia al deslizamiento de cuotas (Anti-Slippage)
+            if (request.ExpectedOdds.HasValue || request.MinAcceptedOdds.HasValue)
+            {
+                var minAllowedOdds = request.MinAcceptedOdds ??
+                    (request.ExpectedOdds.HasValue && request.MaxSlippagePercent.HasValue
+                        ? Math.Round(request.ExpectedOdds.Value * (1m - (request.MaxSlippagePercent.Value / 100m)), 4)
+                        : request.ExpectedOdds);
+
+                if (minAllowedOdds.HasValue && currentOdds < minAllowedOdds.Value)
+                {
+                    await _unitOfWork.RollbackAsync(cancellationToken);
+                    _logger.LogWarning(
+                        "Slippage excedido para billetera {WalletId}, selección {SelectionId}. Solicitada: {Expected}, Actual: {Current}, Mínima: {MinAllowed}",
+                        request.WalletId, request.SelectionId, request.ExpectedOdds, currentOdds, minAllowedOdds);
+
+                    return new PlaceBetResult(
+                        false,
+                        null,
+                        null,
+                        null,
+                        $"La cuota actual ({currentOdds:F2}) es inferior a la cuota mínima aceptada ({minAllowedOdds.Value:F2}). Acepta el cambio para continuar.",
+                        ErrorCode: "ODDS_CHANGED",
+                        CurrentOdds: currentOdds,
+                        ExpectedOdds: request.ExpectedOdds);
+                }
+            }
+
+            // Validación atómica de riesgo financiero bajo AdvisoryLock
+            if (_riskManagementService is not null)
+            {
+                var riskResult = await _riskManagementService.ValidatePlaceBetAsync(
+                    request.WalletId,
+                    request.SelectionId,
+                    request.Amount,
+                    cancellationToken);
+
+                if (!riskResult.IsValid)
+                {
+                    await _unitOfWork.RollbackAsync(cancellationToken);
+                    _logger.LogWarning(
+                        "Límite de riesgo excedido bajo lock para billetera {WalletId}, mercado {MarketId}: {ErrorMessage}",
+                        request.WalletId, market.Id, riskResult.ErrorMessage);
+
+                    var errorCode = riskResult.ViolationType switch
+                    {
+                        RiskViolationType.MaxMarketExposureExceeded => "EXPOSURE_LIMIT_EXCEEDED",
+                        RiskViolationType.MaxUserBetLimitExceeded => "USER_LIMIT_EXCEEDED",
+                        _ => "RISK_VALIDATION_FAILED"
+                    };
+
+                    return new PlaceBetResult(
+                        false,
+                        null,
+                        null,
+                        null,
+                        riskResult.ErrorMessage ?? "Límite de riesgo financiero excedido.",
+                        ErrorCode: errorCode);
+                }
+            }
+
             // 4. Execute domain logic - PlaceBet validates balance and creates transaction.
             // La versión debe capturarse antes de mutar el agregado: PlaceBet la
             // incrementa y EF la usa como token de concurrencia.
@@ -297,6 +365,44 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
                 null,
                 null,
                 "La selección ya no está disponible.");
+        }
+        catch (OddsChangedException ex)
+        {
+            await _unitOfWork.RollbackAsync(cancellationToken);
+            _logger.LogWarning(ex, "Slippage tolerance exceeded for wallet {WalletId}", request.WalletId);
+            return new PlaceBetResult(
+                false,
+                null,
+                null,
+                null,
+                ex.Message,
+                ErrorCode: ex.Code,
+                CurrentOdds: ex.CurrentOdds,
+                ExpectedOdds: ex.RequestedOdds);
+        }
+        catch (MaxMarketExposureExceededException ex)
+        {
+            await _unitOfWork.RollbackAsync(cancellationToken);
+            _logger.LogWarning(ex, "Max market exposure exceeded for market {MarketId}", ex.MarketId);
+            return new PlaceBetResult(
+                false,
+                null,
+                null,
+                null,
+                ex.Message,
+                ErrorCode: "EXPOSURE_LIMIT_EXCEEDED");
+        }
+        catch (MaxUserBetLimitExceededException ex)
+        {
+            await _unitOfWork.RollbackAsync(cancellationToken);
+            _logger.LogWarning(ex, "Max user bet limit exceeded for wallet {WalletId}", ex.WalletId);
+            return new PlaceBetResult(
+                false,
+                null,
+                null,
+                null,
+                ex.Message,
+                ErrorCode: "USER_LIMIT_EXCEEDED");
         }
         catch (Exception ex)
         {

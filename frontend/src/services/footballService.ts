@@ -28,6 +28,8 @@ export interface ListFootballOptions {
   readonly leagueId?: string;
   readonly signal?: AbortSignal;
   readonly forceRefresh?: boolean;
+  readonly from?: string;
+  readonly to?: string;
 }
 
 interface CachedEntry<T> {
@@ -292,14 +294,49 @@ export function normalizeMatchesPayload(payload: unknown): readonly FootballMatc
 }
 
 /* --------------------------------------------------------------------------
-   Caché SWR en Memoria y Sesión
+   Caché SWR en Memoria y Sesión & Ventana Temporal
    -------------------------------------------------------------------------- */
+
+/**
+ * Ventana de búsqueda de fútbol por defecto:
+ * - 14 días al pasado para resultados recientes.
+ * - 90 días hacia adelante para el fixture completo de las ligas sembradas.
+ */
+export function defaultFootballWindow(): { from: string; to: string } {
+  const now = new Date();
+  const from = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 14),
+  );
+  const to = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 90),
+  );
+
+  return { from: from.toISOString(), to: to.toISOString() };
+}
+
+/**
+ * Invalida el caché local de partidos en memoria y sessionStorage.
+ */
+export function clearFootballCache(): void {
+  memoryMatchesCache = null;
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      window.sessionStorage.removeItem(FOOTBALL_CACHE_KEY);
+    } catch {
+      // Ignora errores
+    }
+  }
+}
 
 export function getCachedFootballMatches(): {
   matches: readonly FootballMatch[];
   loadedAt: number;
 } | null {
-  if (memoryMatchesCache && Date.now() - memoryMatchesCache.timestamp < FOOTBALL_CACHE_TTL_MS) {
+  if (
+    memoryMatchesCache &&
+    memoryMatchesCache.data.length > 0 &&
+    Date.now() - memoryMatchesCache.timestamp < FOOTBALL_CACHE_TTL_MS
+  ) {
     return { matches: memoryMatchesCache.data, loadedAt: memoryMatchesCache.timestamp };
   }
 
@@ -308,7 +345,12 @@ export function getCachedFootballMatches(): {
       const raw = window.sessionStorage.getItem(FOOTBALL_CACHE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as CachedEntry<readonly FootballMatch[]>;
-        if (parsed && Date.now() - parsed.timestamp < FOOTBALL_CACHE_TTL_MS) {
+        if (
+          parsed &&
+          parsed.data &&
+          parsed.data.length > 0 &&
+          Date.now() - parsed.timestamp < FOOTBALL_CACHE_TTL_MS
+        ) {
           memoryMatchesCache = parsed;
           return { matches: parsed.data, loadedAt: parsed.timestamp };
         }
@@ -318,12 +360,15 @@ export function getCachedFootballMatches(): {
     }
   }
 
-  return memoryMatchesCache
+  return memoryMatchesCache && memoryMatchesCache.data.length > 0
     ? { matches: memoryMatchesCache.data, loadedAt: memoryMatchesCache.timestamp }
     : null;
 }
 
 function saveMatchesToCache(matches: readonly FootballMatch[]): void {
+  // Evita persistir respuestas vacías que envenenan la hidratación del frame 0
+  if (!matches || matches.length === 0) return;
+
   const entry: CachedEntry<readonly FootballMatch[]> = { data: matches, timestamp: Date.now() };
   memoryMatchesCache = entry;
 
@@ -350,15 +395,21 @@ export const footballService = {
    */
   async listMatches(options: ListFootballOptions = {}): Promise<readonly FootballMatch[]> {
     const { status, leagueId, signal, forceRefresh } = options;
-    const cacheKey = `football_${status ?? 'all'}_${leagueId ?? 'all'}`;
+    const defaultWindow = defaultFootballWindow();
+    const from = options.from ?? defaultWindow.from;
+    const to = options.to ?? defaultWindow.to;
+    const cacheKey = `football_${status ?? 'all'}_${leagueId ?? 'all'}_${from}_${to}`;
 
-    if (!forceRefresh) {
+    if (forceRefresh) {
+      clearFootballCache();
+      inFlightRequests.delete(cacheKey);
+    } else {
       const cached = getCachedFootballMatches();
-      if (cached) {
+      if (cached && cached.matches.length > 0) {
         let filtered = cached.matches;
         if (status) filtered = filtered.filter((m) => m.status === status);
         if (leagueId) filtered = filtered.filter((m) => m.league.id === leagueId);
-        return filtered;
+        if (filtered.length > 0) return filtered;
       }
     }
 
@@ -374,7 +425,9 @@ export const footballService = {
           payload = await apiClient.get<unknown>(FOOTBALL_MATCHES_ENDPOINT, {
             params: {
               ...(status ? { status } : {}),
-              ...(leagueId ? { competition: leagueId } : {}),
+              ...(leagueId ? { competition: leagueId, league: leagueId } : {}),
+              from,
+              to,
             },
             signal,
           });
@@ -385,6 +438,8 @@ export const footballService = {
               sport: 'soccer',
               ...(status ? { status } : {}),
               ...(leagueId ? { competition: leagueId } : {}),
+              from,
+              to,
             },
             signal,
           });

@@ -1,6 +1,7 @@
 import { memo, useState } from 'react';
 
 import { animalForPlace, AnimalInk } from './placeAnimals';
+import CyberEmptyState from './CyberEmptyState';
 
 export interface VenueCardItem {
   readonly id: string;
@@ -107,7 +108,17 @@ function VenueAnimalGrid({
       </div>
 
       {items.length === 0 ? (
-        <p className='hx-mono text-[#9C9C9C]'>{isLoading ? 'Cargando…' : emptyMessage}</p>
+        isLoading ? (
+          <p className='hx-mono text-[#9C9C9C]'>Cargando sedes…</p>
+        ) : (
+          <CyberEmptyState
+            title='Sin sedes o eventos activos / Próximamente'
+            subtitle={emptyMessage}
+            sportLabel={kicker}
+            cyrillicBadge='ЛОКАЦИИ // ПУСТО'
+            telemetryCode='VENUE_FEED // IDLE'
+          />
+        )
       ) : (
         <div className='grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4'>
           {items.map((item, index) => {

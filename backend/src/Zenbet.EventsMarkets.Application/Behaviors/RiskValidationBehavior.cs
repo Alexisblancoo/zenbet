@@ -46,12 +46,20 @@ public sealed class RiskValidationBehavior<TRequest, TResponse> : IPipelineBehav
                 if (typeof(TResponse) == typeof(PlaceBetResult))
                 {
                     var errorMessage = riskResult.ErrorMessage ?? "Risk validation failed";
+                    var errorCode = riskResult.ViolationType switch
+                    {
+                        RiskViolationType.MaxMarketExposureExceeded => "EXPOSURE_LIMIT_EXCEEDED",
+                        RiskViolationType.MaxUserBetLimitExceeded => "USER_LIMIT_EXCEEDED",
+                        _ => "RISK_VALIDATION_FAILED"
+                    };
+
                     var failedResult = (TResponse)(object)new PlaceBetResult(
                         false,
                         null,
                         null,
                         null,
-                        errorMessage);
+                        errorMessage,
+                        ErrorCode: errorCode);
                     return failedResult;
                 }
 

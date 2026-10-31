@@ -20,7 +20,7 @@ import FightHeader from './FightHeader';
 import MarketMatrix from './MarketMatrix';
 import SourceBadge from './SourceBadge';
 
-interface FightCardProps {
+export interface FightCardProps {
   readonly event: UfcEvent;
   readonly selectedIds: readonly string[];
   readonly onAddSelection: (selection: SelectionInput) => void;
@@ -28,6 +28,8 @@ interface FightCardProps {
   readonly onOpenComparison: (event: UfcEvent) => void;
   readonly oddsMap: Readonly<Record<string, OddsQuote>>;
   readonly featured?: boolean;
+  readonly isSelected?: boolean;
+  readonly onSelectEvent?: (event: UfcEvent) => void;
 }
 
 /**
@@ -45,6 +47,8 @@ function FightCard({
   onOpenComparison,
   oddsMap,
   featured = false,
+  isSelected = false,
+  onSelectEvent,
 }: FightCardProps) {
   const headingId = useId();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -128,23 +132,27 @@ function FightCard({
       data-expired={event.isExpired}
       data-effective-status={event.status}
       className={`fight-card group relative min-w-0 overflow-hidden border transition-all duration-200 ${
-        isClosed
-          ? 'border-white/[0.055] bg-[#050505]'
-          : featured
-            ? 'border-crimson/40 shadow-[0_0_0_1px_rgb(255_42_85_/_0.1),0_18px_60px_-38px_rgb(255_42_85_/_0.42)]'
-            : 'border-white/[0.08] hover:border-lime-400/30 hover:shadow-[0_18px_48px_-38px_rgb(0_0_0_/_0.9)]'
+        isSelected
+          ? 'border-lime-400 bg-[#0B0B0B] shadow-[0_0_30px_-6px_rgba(212,255,63,0.45)] ring-1 ring-lime-400/60'
+          : isClosed
+            ? 'border-white/[0.055] bg-[#050505]'
+            : featured
+              ? 'border-crimson/40 shadow-[0_0_0_1px_rgb(255_42_85_/_0.1),0_18px_60px_-38px_rgb(255_42_85_/_0.42)]'
+              : 'border-white/[0.08] hover:border-lime-400/30 hover:shadow-[0_18px_48px_-38px_rgb(0_0_0_/_0.9)]'
       }`}
     >
       <div
         aria-hidden='true'
         className={`h-[2px] w-full ${
-          isClosed
-            ? 'bg-linear-to-r from-transparent via-white/12 to-transparent'
-            : featured
-              ? 'bg-linear-to-r from-crimson/20 via-crimson to-crimson/20'
-              : bout.isTitleFight
-                ? 'bg-linear-to-r from-crimson/10 via-crimson to-crimson/10'
-                : 'bg-linear-to-r from-transparent via-white/15 to-transparent'
+          isSelected
+            ? 'bg-linear-to-r from-transparent via-lime-400 to-transparent'
+            : isClosed
+              ? 'bg-linear-to-r from-transparent via-white/12 to-transparent'
+              : featured
+                ? 'bg-linear-to-r from-crimson/20 via-crimson to-crimson/20'
+                : bout.isTitleFight
+                  ? 'bg-linear-to-r from-crimson/10 via-crimson to-crimson/10'
+                  : 'bg-linear-to-r from-transparent via-white/15 to-transparent'
         }`}
       />
 
@@ -177,6 +185,8 @@ function FightCard({
         headingId={headingId}
         selectedInEvent={selectedInEvent}
         selectionCount={selectionCount}
+        onHeaderClick={() => (onSelectEvent ? onSelectEvent(event) : onOpenComparison(event))}
+        isSelected={isSelected}
       />
 
       {/* LÍNEA PRINCIPAL DE GANADOR (MONEYLINE) - Visible por defecto */}
@@ -332,7 +342,7 @@ function FightCard({
         <div className='flex shrink-0 items-center gap-2'>
           <button
             type='button'
-            onClick={() => onOpenComparison(event)}
+            onClick={() => (onSelectEvent ? onSelectEvent(event) : onOpenComparison(event))}
             onMouseEnter={() => prefetchFighterComparison(event.id)}
             onFocus={() => prefetchFighterComparison(event.id)}
             aria-label={`Abrir ficha técnica de ${bout.red.name} vs ${bout.blue.name}`}
@@ -353,9 +363,11 @@ function FightCard({
 function areFightCardPropsEqual(prev: FightCardProps, next: FightCardProps): boolean {
   if (prev.event !== next.event) return false;
   if (prev.featured !== next.featured) return false;
+  if (prev.isSelected !== next.isSelected) return false;
   if (prev.onAddSelection !== next.onAddSelection) return false;
   if (prev.onRemoveSelection !== next.onRemoveSelection) return false;
   if (prev.onOpenComparison !== next.onOpenComparison) return false;
+  if (prev.onSelectEvent !== next.onSelectEvent) return false;
 
   for (const market of prev.event.markets) {
     for (const sel of market.selections) {

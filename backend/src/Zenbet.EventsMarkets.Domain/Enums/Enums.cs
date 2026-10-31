@@ -158,3 +158,10 @@ public enum MmaVictoryMethod
     Submission = 2,
     Decision = 3
 }
+
+public enum KycStatus
+{
+    Unverified = 0,
+    Pending = 1,
+    Verified = 2
+}

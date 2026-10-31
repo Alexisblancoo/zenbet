@@ -7,7 +7,9 @@ using Zenbet.EventsMarkets.Domain.Repositories;
 public record GetFootballMatchesQuery(
     string? Status,
     string? LeagueId,
-    string? Search
+    string? Search,
+    DateTimeOffset? From = null,
+    DateTimeOffset? To = null
 ) : IRequest<IReadOnlyList<FootballMatchDto>>;
 
 public sealed class GetFootballMatchesQueryHandler : IRequestHandler<GetFootballMatchesQuery, IReadOnlyList<FootballMatchDto>>
@@ -27,6 +29,8 @@ public sealed class GetFootballMatchesQueryHandler : IRequestHandler<GetFootball
             request.Status,
             request.LeagueId,
             request.Search,
+            request.From,
+            request.To,
             cancellationToken);
 
         return matches.Select(FootballReadMapper.ToDto).ToList();

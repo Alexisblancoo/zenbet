@@ -9,7 +9,10 @@ public sealed record PlaceBetCommand(
     Money Amount,
     string Description,
     Guid IdempotencyKey,
-    string? PromoCode = null) : IRequest<PlaceBetResult>;
+    string? PromoCode = null,
+    decimal? ExpectedOdds = null,
+    decimal? MaxSlippagePercent = null,
+    decimal? MinAcceptedOdds = null) : IRequest<PlaceBetResult>;
 
 public sealed record PlaceBetResult(
     bool Success,
@@ -17,7 +20,10 @@ public sealed record PlaceBetResult(
     TransactionId? TransactionId,
     Money? NewBalance,
     string? ErrorMessage,
-    bool IdempotentReplay = false);
+    bool IdempotentReplay = false,
+    string? ErrorCode = null,
+    decimal? CurrentOdds = null,
+    decimal? ExpectedOdds = null);
 
 public readonly record struct BetId(Guid Value)
 {

@@ -1,33 +1,110 @@
 namespace Zenbet.EventsMarkets.Api.Hubs;
 
 using Microsoft.AspNetCore.SignalR;
-using Zenbet.EventsMarkets.Domain.ValueObjects;
 
+/// <summary>
+/// Hub de cuotas en tiempo real (SignalR).
+/// Permite suscripciones granulares por viewport para mercados y eventos,
+/// soportando subscripciones individuales y en lote (batch multiplexing)
+/// para optimizar el tráfico de red bajo alta concurrencia.
+/// </summary>
 public sealed class OddsHub : Hub
 {
     public async Task JoinMarketGroup(string marketId)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"market-{marketId}");
+        var id = Normalize(marketId);
+        if (id is not null)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"market-{id}");
+        }
     }
 
     public async Task LeaveMarketGroup(string marketId)
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"market-{marketId}");
+        var id = Normalize(marketId);
+        if (id is not null)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"market-{id}");
+        }
+    }
+
+    public async Task JoinMarketGroups(IReadOnlyList<string> marketIds)
+    {
+        if (marketIds is null || marketIds.Count == 0) return;
+
+        foreach (var marketId in marketIds)
+        {
+            var id = Normalize(marketId);
+            if (id is not null)
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"market-{id}");
+            }
+        }
+    }
+
+    public async Task LeaveMarketGroups(IReadOnlyList<string> marketIds)
+    {
+        if (marketIds is null || marketIds.Count == 0) return;
+
+        foreach (var marketId in marketIds)
+        {
+            var id = Normalize(marketId);
+            if (id is not null)
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"market-{id}");
+            }
+        }
     }
 
     public async Task JoinEventGroup(string eventId)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"event-{eventId}");
+        var id = Normalize(eventId);
+        if (id is not null)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"event-{id}");
+        }
     }
 
     public async Task LeaveEventGroup(string eventId)
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"event-{eventId}");
+        var id = Normalize(eventId);
+        if (id is not null)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"event-{id}");
+        }
     }
 
-    public override async Task OnDisconnectedAsync(Exception? exception)
+    public async Task JoinEventGroups(IReadOnlyList<string> eventIds)
     {
-        // Clean up group memberships on disconnect
-        await base.OnDisconnectedAsync(exception);
+        if (eventIds is null || eventIds.Count == 0) return;
+
+        foreach (var eventId in eventIds)
+        {
+            var id = Normalize(eventId);
+            if (id is not null)
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, $"event-{id}");
+            }
+        }
+    }
+
+    public async Task LeaveEventGroups(IReadOnlyList<string> eventIds)
+    {
+        if (eventIds is null || eventIds.Count == 0) return;
+
+        foreach (var eventId in eventIds)
+        {
+            var id = Normalize(eventId);
+            if (id is not null)
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"event-{id}");
+            }
+        }
+    }
+
+    private static string? Normalize(string? value)
+    {
+        var trimmed = value?.Trim();
+        return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 }

@@ -102,6 +102,18 @@ public sealed class Wallet : AggregateRoot<WalletId>
         return transaction;
     }
 
+    public Transaction Withdraw(
+        Money amount,
+        KycStatus userKycStatus,
+        string? description = null,
+        string? referenceId = null)
+    {
+        if (userKycStatus != KycStatus.Verified)
+            throw new KycVerificationRequiredException(UserId, userKycStatus);
+
+        return Withdraw(amount, description, referenceId);
+    }
+
     public Transaction PlaceBet(
         Money amount,
         SelectionId selectionId,

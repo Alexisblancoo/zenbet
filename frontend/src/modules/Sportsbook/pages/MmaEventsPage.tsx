@@ -1,4 +1,4 @@
-﻿import { memo, useCallback, useDeferredValue, useEffect, useId, useMemo, useState } from 'react';
+import { memo, useCallback, useDeferredValue, useEffect, useId, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -67,6 +67,7 @@ import FighterComparisonModal from '../components/FighterComparisonModal';
 import HubStatusBadge from '../components/HubStatusBadge';
 import SourceBadge from '../components/SourceBadge';
 import SportComingSoon from '../components/SportComingSoon';
+import CyberEmptyState from '../components/CyberEmptyState';
 import SportsBentoGrid from '../components/SportsBentoGrid';
 import VenueAnimalGrid, { type VenueCardItem } from '../components/VenueAnimalGrid';
 import SportsbookHeroBanner from '../components/SportsbookHeroBanner';
@@ -162,17 +163,13 @@ function EventsError({ message, onRetry }: { message: string; onRetry: () => voi
 
 function EventsEmpty() {
   return (
-    <div className='shibuya-glass flex flex-col items-start gap-3 p-6'>
-      <Database size={20} className='text-metallic-slate' aria-hidden='true' />
-      <div>
-        <h2 className='font-display text-sm font-bold uppercase tracking-wide text-white'>
-          Cartelera sin eventos
-        </h2>
-        <p className='mt-1 max-w-xl text-xs leading-relaxed text-metallic-titanium'>
-          No hay combates programados en este momento. Vuelve a consultar en unos minutos.
-        </p>
-      </div>
-    </div>
+    <CyberEmptyState
+      title='Cartelera sin eventos / Próximamente en esta sede'
+      subtitle='No hay combates programados en este momento para la cartelera seleccionada. Las cuotas y eventos se sincronizan en vivo desde los canales de UFC y proveedores oficiales.'
+      sportLabel='UFC / MMA'
+      cyrillicBadge='ММА // НЕТ СОБЫТИЙ'
+      telemetryCode='FIGHT_FEED // IDLE'
+    />
   );
 }
 
@@ -623,6 +620,7 @@ export default function MmaEventsPage() {
   const [comparisonEvent, setComparisonEvent] = useState<UfcEvent | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
   const activeSport = parseSportsbookSport(searchParams.get('sport'));
+  const eventParam = searchParams.get('event');
   const activeSportDefinition =
     SPORTSBOOK_SPORT_BY_ID.get(activeSport) ?? SPORTSBOOK_SPORT_BY_ID.get('mma')!;
   const isMma = activeSport === 'mma';
@@ -789,9 +787,39 @@ export default function MmaEventsPage() {
     [addSelection],
   );
 
-  const handleOpenComparison = useCallback((event: UfcEvent) => {
-    setComparisonEvent(event);
-  }, []);
+  const handleOpenComparison = useCallback(
+    (event: UfcEvent) => {
+      setComparisonEvent(event);
+      const next = new URLSearchParams(searchParams);
+      next.set('event', event.id);
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
+
+  const handleCloseComparison = useCallback(() => {
+    setComparisonEvent(null);
+    const next = new URLSearchParams(searchParams);
+    if (next.has('event')) {
+      next.delete('event');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (!eventParam) return;
+    const targetEvent = events.find((e) => e.id === eventParam);
+    if (!targetEvent) return;
+
+    if (comparisonEvent?.id !== targetEvent.id) {
+      setComparisonEvent(targetEvent);
+    }
+
+    const containingCard = cards.find((c) => c.events.some((e) => e.id === targetEvent.id));
+    if (containingCard && containingCard.key !== activeKey) {
+      handleSelectCard(containingCard.key);
+    }
+  }, [eventParam, events, cards, activeKey, comparisonEvent?.id, handleSelectCard]);
 
   const mainEvent = activeCard?.mainEvent;
   const liveComparisonEvent = comparisonEvent
@@ -1217,6 +1245,8 @@ export default function MmaEventsPage() {
                         onAddSelection={handleAddSelection}
                         onRemoveSelection={removeSelection}
                         onOpenComparison={handleOpenComparison}
+                        onSelectEvent={handleOpenComparison}
+                        isSelected={event.id === eventParam}
                         oddsMap={quotes}
                       />
                     ))}
@@ -1256,6 +1286,8 @@ export default function MmaEventsPage() {
                       onAddSelection={handleAddSelection}
                       onRemoveSelection={removeSelection}
                       onOpenComparison={handleOpenComparison}
+                      onSelectEvent={handleOpenComparison}
+                      isSelected={event.id === eventParam}
                       oddsMap={quotes}
                     />
                   ))}
@@ -1323,7 +1355,7 @@ export default function MmaEventsPage() {
           oddsMap={quotes}
           onAddSelection={handleAddSelection}
           onRemoveSelection={removeSelection}
-          onClose={() => setComparisonEvent(null)}
+          onClose={handleCloseComparison}
         />
       )}
     </div>

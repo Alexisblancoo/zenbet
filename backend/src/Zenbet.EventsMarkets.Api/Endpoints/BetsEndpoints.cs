@@ -188,15 +188,62 @@ public static class BetsEndpoints
                 new Money(request.Amount),
                 request.Description!,
                 idempotencyKey,
-                request.PromoCode),
+                request.PromoCode,
+                request.ExpectedOdds,
+                request.MaxSlippagePercent,
+                request.MinAcceptedOdds),
             cancellationToken);
 
         if (!result.Success)
         {
+            if (result.ErrorCode is "ODDS_CHANGED" or "SLIPPAGE_EXCEEDED")
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status422UnprocessableEntity,
+                    title: "Cuota desactualizada",
+                    detail: result.ErrorMessage,
+                    type: "https://zenbet.com/errors/odds-changed",
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["code"] = result.ErrorCode,
+                        ["currentOdds"] = result.CurrentOdds,
+                        ["expectedOdds"] = result.ExpectedOdds
+                    });
+            }
+
+            if (result.ErrorCode is "EXPOSURE_LIMIT_EXCEEDED")
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status422UnprocessableEntity,
+                    title: "Límite de riesgo excedido",
+                    detail: result.ErrorMessage,
+                    type: "https://zenbet.com/errors/exposure-limit-exceeded",
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["code"] = result.ErrorCode
+                    });
+            }
+
+            if (result.ErrorCode is "USER_LIMIT_EXCEEDED")
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status422UnprocessableEntity,
+                    title: "Límite de usuario excedido",
+                    detail: result.ErrorMessage,
+                    type: "https://zenbet.com/errors/user-limit-exceeded",
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["code"] = result.ErrorCode
+                    });
+            }
+
             return Results.Problem(
                 statusCode: StatusCodes.Status422UnprocessableEntity,
                 title: "No se pudo realizar la apuesta",
-                detail: result.ErrorMessage);
+                detail: result.ErrorMessage,
+                extensions: result.ErrorCode is not null
+                    ? new Dictionary<string, object?> { ["code"] = result.ErrorCode }
+                    : null);
         }
 
         return Results.Created($"/api/v1/bets/{result.BetId}", new PlaceBetResponse(
@@ -214,7 +261,10 @@ public sealed record PlaceBetRequest(
     Guid SelectionId,
     decimal Amount,
     string Description,
-    string? PromoCode = null);
+    string? PromoCode = null,
+    decimal? ExpectedOdds = null,
+    decimal? MaxSlippagePercent = null,
+    decimal? MinAcceptedOdds = null);
 
 public sealed record PlaceBetResponse(
     bool Success,

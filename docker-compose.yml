@@ -1,56 +1,66 @@
 services:
+  # ============================================================================
+  # POSTGRESQL 16+ (Persistencia para Ledger inmutable, Outbox y Eventos)
+  # ============================================================================
   postgres:
     image: postgres:16-alpine
+    container_name: zenbet-postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-zenbet_events_markets}
       POSTGRES_USER: ${POSTGRES_USER:-zenbet}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zenbet_secret_pass_2026}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zenbet} -d ${POSTGRES_DB:-zenbet_events_markets}"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 5
+      start_period: 10s
     networks:
-      - zenbet
+      - zenbet-network
 
+  # ============================================================================
+  # BACKEND .NET 10 API & WORKERS EN SEGUNDO PLANO (Perfil: api / full)
+  # ============================================================================
   backend:
+    profiles: ["api", "full"]
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: zenbet-backend
     restart: unless-stopped
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:5000
-      ConnectionStrings__EventsMarkets: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-zenbet_events_markets};Username=${POSTGRES_USER:-zenbet};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
-      Auth__SigningKey: ${JWT_SIGNING_KEY:?JWT_SIGNING_KEY is required}
-      Settlement__ApiKey: ${SETTLEMENT_API_KEY:?SETTLEMENT_API_KEY is required}
+      ConnectionStrings__EventsMarkets: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-zenbet_events_markets};Username=${POSTGRES_USER:-zenbet};Password=${POSTGRES_PASSWORD:-zenbet_secret_pass_2026}"
+      Auth__SigningKey: ${JWT_SIGNING_KEY:-e8e72c60620f262e75cdacfa004fa1cc59b4ff14435a225c54deff7a6c676359}
+      Settlement__ApiKey: ${SETTLEMENT_API_KEY:-5d37d3fd58bd182dda72486f4ec207e5}
       Seeding__Ufc__Enabled: "true"
       Seeding__Ufc__ApplyMigrations: "true"
       Seeding__Ufc__ForceRefresh: "false"
     ports:
-      - "5000:5000"
+      - "${API_PORT:-5000}:5000"
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget -qO- http://localhost:5000/health >/dev/null || exit 1",
-        ]
-      interval: 30s
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/healthz >/dev/null || wget -qO- http://localhost:5000/health >/dev/null || exit 1"]
+      interval: 15s
       timeout: 5s
       retries: 3
-      start_period: 60s
+      start_period: 30s
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - zenbet
+      - zenbet-network
 
+  # ============================================================================
+  # FRONTEND REACT 19 + VITE (Perfil: full)
+  # ============================================================================
   frontend:
+    profiles: ["full"]
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -59,11 +69,12 @@ services:
         VITE_AUTH_URL: ${VITE_AUTH_URL:-/api}
         VITE_HUB_URL: ${VITE_HUB_URL:-/odds-hub}
         VITE_FIGHT_HUB_URL: ${VITE_FIGHT_HUB_URL:-/fight-hub}
+    container_name: zenbet-frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "${FRONTEND_PORT:-80}:80"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/ >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost/healthz >/dev/null || wget -qO- http://localhost/ >/dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -72,11 +83,19 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - zenbet
+      - zenbet-network
 
+# ==============================================================================
+# VOLÚMENES PERSISTENTES
+# ==============================================================================
 volumes:
   postgres_data:
+    name: zenbet_postgres_data
 
+# ==============================================================================
+# RED DE COMUNICACIÓN AISLADA
+# ==============================================================================
 networks:
-  zenbet:
+  zenbet-network:
+    name: zenbet-network
     driver: bridge

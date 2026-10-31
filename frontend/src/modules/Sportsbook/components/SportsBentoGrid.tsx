@@ -178,6 +178,9 @@ export default function SportsBentoGrid({
             <span className='font-mono text-[9px] font-bold tracking-widest uppercase text-[#D4FF3F]'>
               / DISCIPLINA & AGON
             </span>
+            <span className='font-mono text-[8px] font-semibold tracking-wider text-[#FF3F7F] border border-[#FF3F7F]/30 bg-[#FF3F7F]/10 px-1.5 py-0.5 rounded'>
+              SYS // #FF3F7F
+            </span>
           </div>
           <h2
             id='sports-bento-title'
@@ -192,16 +195,16 @@ export default function SportsBentoGrid({
 
         <div className='flex items-center gap-2'>
           <span
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-[8px] font-bold uppercase tracking-wider backdrop-blur-md ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-[8px] font-bold uppercase tracking-wider backdrop-blur-md transition-all duration-300 ${
               mmaStats.liveCount > 0
-                ? 'border-[#D4FF3F]/35 bg-[#D4FF3F]/[0.08] text-[#D4FF3F]'
+                ? 'border-[#FF3F7F]/45 bg-[#FF3F7F]/[0.10] text-[#FF3F7F] shadow-[0_0_15px_rgba(255,63,127,0.22)]'
                 : 'border-white/[0.08] bg-white/[0.03] text-neutral-400'
             }`}
           >
             <span
               className={`h-1.5 w-1.5 rounded-full ${
                 mmaStats.liveCount > 0
-                  ? 'bg-[#D4FF3F] motion-safe:animate-pulse'
+                  ? 'bg-[#FF3F7F] motion-safe:animate-pulse shadow-[0_0_6px_#FF3F7F]'
                   : 'bg-neutral-500'
               }`}
               aria-hidden='true'
@@ -235,8 +238,10 @@ export default function SportsBentoGrid({
               data-available={sport.available}
               className={`group relative flex min-h-[148px] sm:min-h-[156px] min-w-0 flex-col justify-between overflow-hidden rounded-xl border p-3.5 sm:p-4 text-left transition-[border-color,box-shadow,transform] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4FF3F] motion-reduce:transition-none ${
                 active
-                  ? 'border-[#D4FF3F] bg-[#0D0D0D] shadow-[0_0_20px_rgba(212,255,63,0.15)] z-10'
-                  : 'border-neutral-800 bg-[#0D0D0D] hover:border-neutral-700 hover:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.8)]'
+                  ? 'border-[#D4FF3F] bg-[#0D0D0D] shadow-[0_0_24px_rgba(212,255,63,0.18),inset_0_0_0_1px_rgba(255,63,127,0.30)] z-10'
+                  : sport.available
+                    ? 'border-neutral-800 bg-[#0D0D0D] hover:border-[#FF3F7F]/60 hover:shadow-[0_0_24px_rgba(255,63,127,0.18)] hover:-translate-y-0.5'
+                    : 'border-neutral-800/80 bg-[#0D0D0D] hover:border-neutral-700'
               } ${sport.id === 'mma' ? 'col-span-2' : 'col-span-1'}`}
             >
               {/* 1. Puntillismo Hermes: semitono monocromo en Shibuya Lime (#D4FF3F) sobre negro */}
@@ -264,51 +269,58 @@ export default function SportsBentoGrid({
                 className='pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#121212]/70 via-[#121212]/30 to-transparent'
               />
 
-              {/* 5. Resplandor sutil Shibuya en hover/active */}
+              {/* 5. Resplandor dual Shibuya Lime (#D4FF3F) + Crimson Neon (#FF3F7F) */}
               <div
                 aria-hidden='true'
                 className={`pointer-events-none absolute inset-0 transition-opacity duration-500 ${
                   active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                 }`}
                 style={{
-                  background:
-                    'radial-gradient(ellipse at 86% 14%, rgba(212, 255, 63, 0.14) 0%, transparent 48%)',
+                  background: active
+                    ? 'radial-gradient(ellipse at 86% 14%, rgba(212, 255, 63, 0.16) 0%, transparent 48%), radial-gradient(ellipse at 16% 86%, rgba(255, 63, 127, 0.12) 0%, transparent 44%)'
+                    : 'radial-gradient(ellipse at 86% 14%, rgba(255, 63, 127, 0.14) 0%, transparent 50%)',
                 }}
               />
 
-              {/* Fila superior: Icono de disciplina + Código clásico + Estado */}
+              {/* Fila superior: Icono de disciplina de línea fina + Estado */}
               <div className='relative z-10 flex items-start justify-between gap-2'>
                 <div className='flex items-center gap-2'>
                   <span
-                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border backdrop-blur-md transition-colors duration-200 ${
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border backdrop-blur-md transition-all duration-200 ${
                       active
-                        ? 'border-[#D4FF3F]/50 bg-[#D4FF3F]/15 text-[#D4FF3F]'
-                        : sport.available
-                          ? 'border-neutral-700 bg-neutral-900/80 text-white group-hover:border-[#D4FF3F]/40 group-hover:text-[#D4FF3F]'
-                          : 'border-neutral-800 bg-neutral-950/80 text-neutral-400 group-hover:border-neutral-700'
+                        ? 'border-[#D4FF3F]/60 bg-[#D4FF3F]/15 text-[#D4FF3F] shadow-[0_0_12px_rgba(212,255,63,0.22)]'
+                        : activity.isLive
+                          ? 'border-[#FF3F7F]/60 bg-[#FF3F7F]/15 text-[#FF3F7F] shadow-[0_0_12px_rgba(255,63,127,0.25)]'
+                          : sport.available
+                            ? 'border-neutral-700 bg-neutral-900/80 text-white group-hover:border-[#FF3F7F]/50 group-hover:bg-[#FF3F7F]/10 group-hover:text-[#FF3F7F]'
+                            : 'border-neutral-800 bg-neutral-950/80 text-neutral-400 group-hover:border-neutral-700'
                     }`}
                   >
-                    <Icon size={15} strokeWidth={2} aria-hidden='true' />
+                    <Icon size={16} strokeWidth={1.75} aria-hidden='true' />
                   </span>
                 </div>
 
-                {/* Badge de disponibilidad */}
+                {/* Badge de disponibilidad con acento Crimson en eventos en vivo */}
                 <span
-                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-md border px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wider backdrop-blur-md ${
+                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-md border px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wider backdrop-blur-md transition-all duration-200 ${
                     activity.isLive
-                      ? 'border-[#D4FF3F]/40 bg-[#D4FF3F]/10 text-[#D4FF3F]'
-                      : sport.available
-                        ? 'border-neutral-700/80 bg-neutral-900/80 text-neutral-300'
-                        : 'border-neutral-800/80 bg-neutral-950/70 text-neutral-400'
+                      ? 'border-[#FF3F7F]/50 bg-[#FF3F7F]/15 text-[#FF3F7F] shadow-[0_0_10px_rgba(255,63,127,0.25)]'
+                      : active
+                        ? 'border-[#D4FF3F]/40 bg-[#D4FF3F]/10 text-[#D4FF3F]'
+                        : sport.available
+                          ? 'border-neutral-700/80 bg-neutral-900/80 text-neutral-300 group-hover:border-[#FF3F7F]/40 group-hover:text-[#F3E5AB]'
+                          : 'border-neutral-800/80 bg-neutral-950/70 text-neutral-400'
                   }`}
                 >
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${
                       activity.isLive
-                        ? 'bg-[#D4FF3F] motion-safe:animate-pulse'
-                        : sport.available
-                          ? 'bg-[#D4FF3F]/60'
-                          : 'bg-neutral-600'
+                        ? 'bg-[#FF3F7F] motion-safe:animate-pulse shadow-[0_0_6px_#FF3F7F]'
+                        : active
+                          ? 'bg-[#D4FF3F]'
+                          : sport.available
+                            ? 'bg-[#D4FF3F]/60'
+                            : 'bg-neutral-600'
                     }`}
                     aria-hidden='true'
                   />
@@ -324,10 +336,14 @@ export default function SportsBentoGrid({
                     {art.title} · {art.epoch}
                   </span>
 
-                  {/* Nombre del deporte: crema #F3E5AB; lima #D4FF3F en hover/activo */}
+                  {/* Nombre del deporte: crema #F3E5AB; lima #D4FF3F en activo; crimson en live hover */}
                   <span
                     className={`mt-1.5 block break-words font-serif [text-shadow:0_1px_6px_rgba(0,0,0,0.85)] text-[14px] font-bold uppercase leading-tight tracking-tight transition-colors duration-200 sm:text-[15px] ${
-                      active ? 'text-[#D4FF3F]' : 'text-[#F3E5AB] group-hover:text-[#D4FF3F]'
+                      active
+                        ? 'text-[#D4FF3F]'
+                        : activity.isLive
+                          ? 'text-[#F3E5AB] group-hover:text-[#FF3F7F]'
+                          : 'text-[#F3E5AB] group-hover:text-[#D4FF3F]'
                     }`}
                   >
                     {sport.label}
@@ -340,16 +356,22 @@ export default function SportsBentoGrid({
                     <span
                       className={`h-1.5 w-1.5 shrink-0 rounded-full ${
                         activity.isLive
-                          ? 'bg-[#D4FF3F] motion-safe:animate-pulse'
-                          : sport.available
-                            ? 'bg-[#D4FF3F]/60'
-                            : 'bg-neutral-600'
+                          ? 'bg-[#FF3F7F] motion-safe:animate-pulse shadow-[0_0_6px_#FF3F7F]'
+                          : active
+                            ? 'bg-[#D4FF3F]'
+                            : sport.available
+                              ? 'bg-[#D4FF3F]/60'
+                              : 'bg-neutral-600'
                       }`}
                       aria-hidden='true'
                     />
                     <span
                       className={
-                        activity.isLive ? 'font-semibold text-[#D4FF3F]' : 'text-neutral-300'
+                        activity.isLive
+                          ? 'font-bold text-[#FF3F7F]'
+                          : active
+                            ? 'font-semibold text-[#D4FF3F]'
+                            : 'text-neutral-300'
                       }
                     >
                       {activity.label}
@@ -369,7 +391,9 @@ export default function SportsBentoGrid({
                     className={`shrink-0 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 motion-reduce:transition-none ${
                       active
                         ? 'text-[#D4FF3F]'
-                        : 'text-neutral-400 group-hover:text-[#D4FF3F]'
+                        : activity.isLive
+                          ? 'text-[#FF3F7F]'
+                          : 'text-neutral-400 group-hover:text-[#FF3F7F]'
                     }`}
                     aria-hidden='true'
                   />

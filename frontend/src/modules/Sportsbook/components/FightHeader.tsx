@@ -22,6 +22,8 @@ interface FightHeaderProps {
   readonly headingId: string;
   readonly selectedInEvent: number;
   readonly selectionCount: number;
+  readonly onHeaderClick?: () => void;
+  readonly isSelected?: boolean;
 }
 
 type Corner = 'red' | 'blue';
@@ -98,6 +100,8 @@ function FightHeader({
   headingId,
   selectedInEvent,
   selectionCount,
+  onHeaderClick,
+  isSelected = false,
 }: FightHeaderProps) {
   const { bout } = event;
   const isFinished = event.isExpired || isTerminalEventStatus(event.status);
@@ -160,6 +164,11 @@ function FightHeader({
         </div>
 
         <div className='flex shrink-0 items-center gap-2 font-mono text-[8px] uppercase tracking-wide'>
+          {isSelected && (
+            <span className='border border-lime-400 bg-lime-400/[0.12] px-1.5 py-0.5 font-bold text-lime-400'>
+              EN FOCO
+            </span>
+          )}
           <span
             className={`inline-flex items-center gap-1.5 ${
               selectedInEvent > 0 ? 'text-money' : 'text-metallic-slate'
@@ -178,11 +187,31 @@ function FightHeader({
         </div>
       </div>
 
-      <div className='relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-3 py-3 sm:gap-4 sm:px-4'>
+      <div
+        role={onHeaderClick ? 'button' : undefined}
+        tabIndex={onHeaderClick ? 0 : undefined}
+        onClick={onHeaderClick}
+        onKeyDown={
+          onHeaderClick
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onHeaderClick();
+                }
+              }
+            : undefined
+        }
+        aria-label={onHeaderClick ? `Ver análisis y ficha H2H de ${bout.red.name} vs ${bout.blue.name}` : undefined}
+        className={`group/header relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-3 py-3 sm:gap-4 sm:px-4 transition-colors ${
+          onHeaderClick ? 'cursor-pointer hover:bg-white/[0.025] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-lime-400/80' : ''
+        }`}
+      >
         <ArenaCorner fighter={bout.red} corner='red' />
 
         <div className='flex min-w-[44px] flex-col items-center gap-1 text-center'>
-          <span className='grid h-8 w-8 place-items-center border border-crimson/35 bg-crimson/[0.08] font-odds text-[10px] font-bold tracking-wide text-crimson shadow-[0_0_22px_-12px_rgb(239_68_68_/_0.8)] sm:h-9 sm:w-9 sm:text-[11px]'>
+          <span className={`grid h-8 w-8 place-items-center border border-crimson/35 bg-crimson/[0.08] font-odds text-[10px] font-bold tracking-wide text-crimson shadow-[0_0_22px_-12px_rgb(239_68_68_/_0.8)] transition-all sm:h-9 sm:w-9 sm:text-[11px] ${
+            onHeaderClick ? 'group-hover/header:border-lime-400/60 group-hover/header:text-lime-400' : ''
+          }`}>
             VS
           </span>
           <span className='font-mono text-[8px] font-bold uppercase leading-tight tracking-wide text-metallic-titanium'>
@@ -191,6 +220,11 @@ function FightHeader({
           <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
             {bout.scheduledRounds} RDS
           </span>
+          {onHeaderClick && (
+            <span className='font-mono text-[7px] font-bold text-lime-400/70 group-hover/header:text-lime-400 transition-colors uppercase tracking-wider'>
+              H2H ↗
+            </span>
+          )}
         </div>
 
         <ArenaCorner fighter={bout.blue} corner='blue' />

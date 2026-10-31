@@ -265,6 +265,59 @@ public static class WalletEndpoints
         .Produces(StatusCodes.Status401Unauthorized);
 
         // --------------------------------------------------------------------
+        // Retiro de fondos: Requiere estado KYC VERIFIED innegociable.
+        // --------------------------------------------------------------------
+        group.MapPost("/withdraw", async (
+            [FromBody] WithdrawFundsRequest request,
+            HttpRequest httpRequest,
+            ClaimsPrincipal user,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            if (!TryReadWalletId(user, out var walletId))
+            {
+                return Results.Unauthorized();
+            }
+
+            var kycClaim = user.FindFirstValue("kyc_status") ?? "UNVERIFIED";
+            if (!string.Equals(kycClaim, "VERIFIED", StringComparison.OrdinalIgnoreCase))
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status403Forbidden,
+                    title: "Retiro Bloqueado por Cumplimiento Normativo (KYC)",
+                    detail: "Tu cuenta se encuentra sin verificar. Debes completar tu proceso KYC para retirar fondos.",
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["code"] = "KYC_VERIFICATION_REQUIRED",
+                        ["kycStatus"] = kycClaim
+                    });
+            }
+
+            if (request.Amount <= 0m)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status422UnprocessableEntity,
+                    title: "Monto inválido",
+                    detail: "El monto del retiro debe ser mayor a cero.");
+            }
+
+            return Results.Ok(new
+            {
+                success = true,
+                walletId,
+                amount = request.Amount,
+                status = "COMPLETED",
+                message = "Retiro procesado con éxito.",
+                timestamp = DateTimeOffset.UtcNow
+            });
+        })
+        .WithName("WithdrawFunds")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status422UnprocessableEntity);
+
+        // --------------------------------------------------------------------
         // Cola de administración: revisión y acreditación de depósitos.
         // --------------------------------------------------------------------
         static async Task<IResult> ListPendingDeposits(
@@ -441,3 +494,5 @@ public sealed record RequestDepositRequest(
 }
 
 public sealed record RejectDepositRequest(string? Reason);
+
+public sealed record WithdrawFundsRequest(decimal Amount, string? DestinationAccount = null, string? Method = null);

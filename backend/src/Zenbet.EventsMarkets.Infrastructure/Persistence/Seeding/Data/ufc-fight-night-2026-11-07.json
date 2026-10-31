@@ -1,9 +1,9 @@
 {
-    "schemaVersion": 4,
+    "schemaVersion": 5,
     "card": {
         "seedKey": "ufc-fight-night-2026-11-07",
-        "competition": "UFC Fight Night: Bonfim vs. Brady",
-        "title": "UFC Fight Night: Bonfim vs. Brady",
+        "competition": "UFC Fight Night: Suarez vs. Jandiroba",
+        "title": "UFC Fight Night: Suarez vs. Jandiroba",
         "venue": "Meta APEX",
         "location": "Las Vegas, Nevada, Estados Unidos",
         "date": "2026-11-07"
@@ -944,167 +944,13 @@
             ]
         },
         {
-            "id": "ufc-fight-night-2026-11-07-gabriel-bonfim-vs-sean-brady",
-            "name": "Bonfim vs. Brady",
-            "billing": "main",
-            "order": 1,
-            "startTime": "2026-11-07T22:00Z",
-            "division": "welterweight",
-            "rounds": 5,
-            "titleFight": false,
-            "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
-            "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4921516.png",
-            "fighter2ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4295192.png",
-            "red": {
-                "id": "gabriel-bonfim",
-                "name": "Gabriel Bonfim",
-                "countryCode": "BR",
-                "country": "Brazil",
-                "record": "20-1-0",
-                "rank": null,
-                "division": "welterweight",
-                "reachInches": 73,
-                "stance": "orthodox",
-                "takedownDefensePercent": 74.2,
-                "strikingAccuracyPercent": 51.2
-            },
-            "blue": {
-                "id": "sean-brady",
-                "name": "Sean Brady",
-                "countryCode": "US",
-                "country": "USA",
-                "record": "19-2-0",
-                "rank": null,
-                "division": "welterweight",
-                "reachInches": 72,
-                "stance": "orthodox",
-                "takedownDefensePercent": 76.1,
-                "strikingAccuracyPercent": 47.4
-            },
-            "markets": [
-                {
-                    "type": "moneyline",
-                    "name": "Ganador",
-                    "displayOrder": 1,
-                    "selections": [
-                        {
-                            "code": "red",
-                            "name": "Gabriel Bonfim",
-                            "displayOrder": 1,
-                            "decimalOdds": 1.9009,
-                            "americanOdds": "-111"
-                        },
-                        {
-                            "code": "blue",
-                            "name": "Sean Brady",
-                            "displayOrder": 2,
-                            "decimalOdds": 1.9174,
-                            "americanOdds": "-109"
-                        }
-                    ]
-                },
-                {
-                    "type": "method_of_victory",
-                    "name": "Método de victoria",
-                    "displayOrder": 2,
-                    "selections": [
-                        {
-                            "code": "red_ko",
-                            "name": "Gabriel Bonfim por KO/TKO",
-                            "displayOrder": 1,
-                            "decimalOdds": 4.8,
-                            "americanOdds": "+380"
-                        },
-                        {
-                            "code": "red_submission",
-                            "name": "Gabriel Bonfim por sumisión",
-                            "displayOrder": 2,
-                            "decimalOdds": 9,
-                            "americanOdds": "+800"
-                        },
-                        {
-                            "code": "red_decision",
-                            "name": "Gabriel Bonfim por decisión",
-                            "displayOrder": 3,
-                            "decimalOdds": 3.2,
-                            "americanOdds": "+220"
-                        },
-                        {
-                            "code": "blue_ko",
-                            "name": "Sean Brady por KO/TKO",
-                            "displayOrder": 4,
-                            "decimalOdds": 5.4,
-                            "americanOdds": "+440"
-                        },
-                        {
-                            "code": "blue_submission",
-                            "name": "Sean Brady por sumisión",
-                            "displayOrder": 5,
-                            "decimalOdds": 10,
-                            "americanOdds": "+900"
-                        },
-                        {
-                            "code": "blue_decision",
-                            "name": "Sean Brady por decisión",
-                            "displayOrder": 6,
-                            "decimalOdds": 3.6,
-                            "americanOdds": "+260"
-                        }
-                    ]
-                },
-                {
-                    "type": "total_rounds",
-                    "name": "Total de asaltos",
-                    "displayOrder": 3,
-                    "line": 4.5,
-                    "selections": [
-                        {
-                            "code": "over",
-                            "name": "Más de 4.5 asaltos",
-                            "displayOrder": 1,
-                            "decimalOdds": 1.8475,
-                            "americanOdds": "-118"
-                        },
-                        {
-                            "code": "under",
-                            "name": "Menos de 4.5 asaltos",
-                            "displayOrder": 2,
-                            "decimalOdds": 2.05,
-                            "americanOdds": "+105"
-                        }
-                    ]
-                },
-                {
-                    "type": "go_to_decision",
-                    "name": "¿Llega a decisión?",
-                    "displayOrder": 4,
-                    "selections": [
-                        {
-                            "code": "yes",
-                            "name": "Sí, llega a decisión",
-                            "displayOrder": 1,
-                            "decimalOdds": 1.8,
-                            "americanOdds": "-125"
-                        },
-                        {
-                            "code": "no",
-                            "name": "No, no llega a decisión",
-                            "displayOrder": 2,
-                            "decimalOdds": 2.05,
-                            "americanOdds": "+105"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "id": "ufc-fight-night-2026-11-07-tatiana-suarez-vs-virna-jandiroba",
             "name": "Suarez vs. Jandiroba",
-            "billing": "main",
-            "order": 2,
+            "billing": "main_event",
+            "order": 1,
             "startTime": "2026-11-07T22:00Z",
             "division": "womens-strawweight",
-            "rounds": 3,
+            "rounds": 5,
             "titleFight": false,
             "sourceId": "zenbet-reference-ufc-fight-night-2026-11-07",
             "fighter1ImageUrl": "https://a.espncdn.com/i/headshots/mma/players/full/4020435.png",
@@ -1210,18 +1056,18 @@
                     "type": "total_rounds",
                     "name": "Total de asaltos",
                     "displayOrder": 3,
-                    "line": 2.5,
+                    "line": 4.5,
                     "selections": [
                         {
                             "code": "over",
-                            "name": "Más de 2.5 asaltos",
+                            "name": "Más de 4.5 asaltos",
                             "displayOrder": 1,
                             "decimalOdds": 1.8475,
                             "americanOdds": "-118"
                         },
                         {
                             "code": "under",
-                            "name": "Menos de 2.5 asaltos",
+                            "name": "Menos de 4.5 asaltos",
                             "displayOrder": 2,
                             "decimalOdds": 2.05,
                             "americanOdds": "+105"
@@ -1255,7 +1101,7 @@
             "id": "ufc-fight-night-2026-11-07-davey-grant-vs-elijah-smith",
             "name": "Grant vs. Smith",
             "billing": "main",
-            "order": 3,
+            "order": 2,
             "startTime": "2026-11-07T22:00Z",
             "division": "bantamweight",
             "rounds": 3,
@@ -1409,7 +1255,7 @@
             "id": "ufc-fight-night-2026-11-07-seokhyeon-ko-vs-wellington-turman",
             "name": "Ko vs. Turman",
             "billing": "main",
-            "order": 4,
+            "order": 3,
             "startTime": "2026-11-07T22:00Z",
             "division": "welterweight",
             "rounds": 3,
@@ -1563,7 +1409,7 @@
             "id": "ufc-fight-night-2026-11-07-billy-elekana-vs-lucas-fernando",
             "name": "Elekana vs. Fernando",
             "billing": "main",
-            "order": 5,
+            "order": 4,
             "startTime": "2026-11-07T22:00Z",
             "division": "light-heavyweight",
             "rounds": 3,
@@ -1717,7 +1563,7 @@
             "id": "ufc-fight-night-2026-11-07-mantas-kondratavicius-vs-wes-schultz",
             "name": "Kondratavičius vs. Schultz",
             "billing": "main",
-            "order": 6,
+            "order": 5,
             "startTime": "2026-11-07T22:00Z",
             "division": "middleweight",
             "rounds": 3,
@@ -1871,7 +1717,7 @@
             "id": "ufc-fight-night-2026-11-07-gabriel-lorenco-vs-alvin-hines",
             "name": "Lorenço vs. Hines",
             "billing": "main",
-            "order": 7,
+            "order": 6,
             "startTime": "2026-11-07T22:00Z",
             "division": "heavyweight",
             "rounds": 3,

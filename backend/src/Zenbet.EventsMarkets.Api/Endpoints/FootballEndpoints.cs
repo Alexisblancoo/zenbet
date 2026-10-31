@@ -20,12 +20,14 @@ public static class FootballEndpoints
             string? league,
             string? competition,
             string? search,
+            DateTimeOffset? from,
+            DateTimeOffset? to,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {
             var targetLeague = league ?? competition;
             var matches = await mediator.Send(
-                new GetFootballMatchesQuery(status, targetLeague, search),
+                new GetFootballMatchesQuery(status, targetLeague, search, from, to),
                 cancellationToken);
 
             return Results.Ok(new FootballMatchesResponseDto(matches, matches.Count));

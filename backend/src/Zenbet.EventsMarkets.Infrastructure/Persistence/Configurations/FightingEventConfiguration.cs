@@ -28,6 +28,6 @@ public sealed class FightingEventConfiguration : IEntityTypeConfiguration<Fighti
             new FightingEvent(Guid.Parse("20000000-0000-0000-0000-000000000005"), "PFL Q4 Simulated Championship Showcase", "pfl-q4-championship-showcase", new DateTimeOffset(2026, 11, 21, 22, 0, 0, TimeSpan.Zero), Guid.Parse("10000000-0000-0000-0000-000000000005")),
             new FightingEvent(Guid.Parse("20000000-0000-0000-0000-000000000006"), "ONE Friday Fights 177", "one-friday-fights-177", new DateTimeOffset(2026, 11, 6, 12, 30, 0, TimeSpan.Zero), Guid.Parse("10000000-0000-0000-0000-000000000006")),
             new FightingEvent(Guid.Parse("20000000-0000-0000-0000-000000000007"), "OKTAGON 100: Prague", "oktagon-100-prague", new DateTimeOffset(2026, 12, 29, 17, 0, 0, TimeSpan.Zero), Guid.Parse("10000000-0000-0000-0000-000000000007")),
-            new FightingEvent(Guid.Parse("20000000-0000-0000-0000-000000000008"), "UFC Fight Night: Bonfim vs. Brady", "ufc-fight-night-bonfim-vs-brady", new DateTimeOffset(2026, 11, 7, 22, 0, 0, TimeSpan.Zero), Guid.Parse("10000000-0000-0000-0000-000000000001")));
+            new FightingEvent(Guid.Parse("20000000-0000-0000-0000-000000000008"), "UFC Fight Night: Suarez vs. Jandiroba", "ufc-fight-night-suarez-vs-jandiroba", new DateTimeOffset(2026, 11, 7, 22, 0, 0, TimeSpan.Zero), Guid.Parse("10000000-0000-0000-0000-000000000001")));
     }
 }

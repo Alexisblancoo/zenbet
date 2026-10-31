@@ -8,6 +8,8 @@ public interface IFootballRepository
         string? status = null,
         string? leagueId = null,
         string? search = null,
+        DateTimeOffset? from = null,
+        DateTimeOffset? to = null,
         CancellationToken cancellationToken = default);
 
     Task<FootballMatch?> GetMatchByIdAsync(

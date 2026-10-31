@@ -38,6 +38,8 @@ export {
   MUTATING_METHODS,
 } from './idempotency';
 
+export { queryClient } from './queryClient';
+
 export type {
   ApiFieldError,
   PaginatedResponse,

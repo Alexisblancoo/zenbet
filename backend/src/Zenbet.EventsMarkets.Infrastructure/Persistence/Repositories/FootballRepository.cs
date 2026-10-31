@@ -17,6 +17,8 @@ public sealed class FootballRepository : IFootballRepository
         string? status = null,
         string? leagueId = null,
         string? search = null,
+        DateTimeOffset? from = null,
+        DateTimeOffset? to = null,
         CancellationToken cancellationToken = default)
     {
         IQueryable<FootballMatch> query = _dbContext.FootballMatches
@@ -36,6 +38,16 @@ public sealed class FootballRepository : IFootballRepository
         {
             var normalizedLeague = leagueId.Trim().ToLowerInvariant();
             query = query.Where(m => m.LeagueId.ToLower() == normalizedLeague);
+        }
+
+        if (from.HasValue)
+        {
+            query = query.Where(m => m.KickoffTimeUtc >= from.Value);
+        }
+
+        if (to.HasValue)
+        {
+            query = query.Where(m => m.KickoffTimeUtc <= to.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(search))

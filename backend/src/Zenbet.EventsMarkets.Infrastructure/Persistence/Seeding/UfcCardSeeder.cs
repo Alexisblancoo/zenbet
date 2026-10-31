@@ -117,14 +117,22 @@ public sealed class UfcCardSeeder : IHostedService
             return;
         }
 
+        var boutEventIds = document.Bouts
+            .Select(bout => DomainEventId.From(SeedIds.For($"event:{bout.Id}")))
+            .ToList();
+
         var existingEvents = await dbContext.Events
             .Include(@event => @event.Markets)
             .ThenInclude(market => market.Selections)
-            .Where(@event => @event.SportType == SportType.MixedMartialArts &&
-                             @event.Competition == document.Card.Competition)
+            .Where(@event => boutEventIds.Contains(@event.Id) ||
+                             (@event.SportType == SportType.MixedMartialArts &&
+                              @event.Competition == document.Card.Competition))
+            .Distinct()
             .ToListAsync(cancellationToken);
 
-        var eventsById = existingEvents.ToDictionary(@event => @event.Id.Value);
+        var eventsById = existingEvents
+            .GroupBy(@event => @event.Id.Value)
+            .ToDictionary(group => group.Key, group => group.First());
         var addedBouts = 0;
         var updatedBouts = 0;
         var addedMarkets = 0;
@@ -149,6 +157,7 @@ public sealed class UfcCardSeeder : IHostedService
             UpsertEvent(
                 @event,
                 boutSeed,
+                document,
                 sources,
                 ref addedMarkets,
                 ref updatedMarkets,
@@ -232,9 +241,11 @@ public sealed class UfcCardSeeder : IHostedService
             ?? throw new InvalidOperationException($"El seed UFC '{resourceName}' no pudo deserializarse.");
     }
 
+    private const int MaxSupportedSchemaVersion = 5;
+
     private static IReadOnlyDictionary<string, UfcSeedSource> Validate(UfcSeedDocument document)
     {
-        if (document.SchemaVersion != 4)
+        if (document.SchemaVersion is < 1 or > MaxSupportedSchemaVersion)
             throw new InvalidOperationException($"Versión de seed UFC no soportada: {document.SchemaVersion}.");
 
         if (string.IsNullOrWhiteSpace(document.Card.SeedKey) ||
@@ -493,12 +504,19 @@ public sealed class UfcCardSeeder : IHostedService
     private static void UpsertEvent(
         Event @event,
         UfcSeedBout boutSeed,
+        UfcSeedDocument document,
         IReadOnlyDictionary<string, UfcSeedSource> sources,
         ref int addedMarkets,
         ref int updatedMarkets,
         ref int addedSelections,
         ref int updatedSelections)
     {
+        if (@event.Status is not (EventStatus.Finished or EventStatus.Cancelled or EventStatus.Void) &&
+            !string.Equals(@event.Competition, document.Card.Competition, StringComparison.Ordinal))
+        {
+            @event.SynchronizeFromProvider(@event.Name, @event.StartTime, document.Card.Competition, @event.Bout);
+        }
+
         @event.Bout?.UpdateFighterImages(
             boutSeed.Fighter1ImageUrl ?? boutSeed.Red.ImageUrl,
             boutSeed.Fighter2ImageUrl ?? boutSeed.Blue.ImageUrl);
@@ -524,6 +542,9 @@ public sealed class UfcCardSeeder : IHostedService
 
             if (market is null)
             {
+                if (@event.Status is EventStatus.Finished or EventStatus.Cancelled or EventStatus.Void)
+                    continue;
+
                 var marketType = ParseMarketType(marketSeed.Type)
                     ?? throw new InvalidOperationException($"Mercado MMA no soportado: {marketSeed.Type}.");
                 var selections = BuildSelections(boutSeed, marketSeed, source);
@@ -539,6 +560,9 @@ public sealed class UfcCardSeeder : IHostedService
                 addedSelections += selections.Count;
                 continue;
             }
+
+            if (market.Status is MarketStatus.Settled or MarketStatus.Void)
+                continue;
 
             market.UpdatePresentation(marketSeed.Name, marketSeed.Line, marketSeed.DisplayOrder);
             market.SetProvenance(provenance);
@@ -644,9 +668,9 @@ public sealed class UfcCardSeeder : IHostedService
 
     private static FightBilling? ParseBilling(string value) => value.Trim().ToLowerInvariant() switch
     {
-        "main" => FightBilling.Main,
+        "main" or "main_event" => FightBilling.Main,
         "prelims" => FightBilling.Prelims,
-        "early" => FightBilling.EarlyPrelims,
+        "early" or "early_prelims" => FightBilling.EarlyPrelims,
         _ => null
     };
 

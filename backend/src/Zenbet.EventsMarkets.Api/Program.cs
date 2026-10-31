@@ -203,6 +203,7 @@ app.MapUpcomingEventsEndpoint();
 app.MapFootballEndpoints();
 app.MapFightersEndpoints();
 
-app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTimeOffset.UtcNow }));
+app.MapGet("/healthz", () => Results.Ok(new { status = "healthy", timestamp = DateTimeOffset.UtcNow }));
 
 app.Run();

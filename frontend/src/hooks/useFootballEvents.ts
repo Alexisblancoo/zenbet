@@ -7,6 +7,8 @@ import {
   type FootballMatchStatus,
 } from '@/domain/football';
 import {
+  clearFootballCache,
+  defaultFootballWindow,
   footballService,
   getCachedFootballMatches,
   FOOTBALL_CACHE_UPDATED_EVENT,
@@ -26,6 +28,8 @@ export interface UseFootballEventsOptions {
   readonly status?: FootballMatchStatus;
   readonly leagueId?: string;
   readonly autoRefreshIntervalMs?: number;
+  readonly from?: string;
+  readonly to?: string;
 }
 
 interface FootballEventsState {
@@ -38,18 +42,20 @@ interface FootballEventsState {
 
 function getInitialState(options?: UseFootballEventsOptions): FootballEventsState {
   const cached = getCachedFootballMatches();
-  if (cached) {
+  if (cached && cached.matches.length > 0) {
     let filtered = cached.matches;
     if (options?.status) filtered = filtered.filter((m) => m.status === options.status);
     if (options?.leagueId) filtered = filtered.filter((m) => m.league.id === options.leagueId);
 
-    return {
-      matches: filtered,
-      isLoading: false,
-      isRevalidating: true,
-      error: null,
-      loadedAt: cached.loadedAt,
-    };
+    if (filtered.length > 0) {
+      return {
+        matches: filtered,
+        isLoading: false,
+        isRevalidating: true,
+        error: null,
+        loadedAt: cached.loadedAt,
+      };
+    }
   }
 
   return {
@@ -70,6 +76,10 @@ function getInitialState(options?: UseFootballEventsOptions): FootballEventsStat
  */
 export function useFootballEvents(options: UseFootballEventsOptions = {}) {
   const { status, leagueId, autoRefreshIntervalMs } = options;
+
+  const defaultDates = useMemo(defaultFootballWindow, []);
+  const from = options.from ?? defaultDates.from;
+  const to = options.to ?? defaultDates.to;
 
   const [state, setState] = useState<FootballEventsState>(() => getInitialState(options));
   const [reloadToken, setReloadToken] = useState(0);
@@ -170,7 +180,7 @@ export function useFootballEvents(options: UseFootballEventsOptions = {}) {
       const detail = (event as CustomEvent<{ data: readonly FootballMatch[]; timestamp: number }>)
         .detail;
 
-      if (detail?.data) {
+      if (detail?.data && detail.data.length > 0) {
         let filtered = detail.data;
         if (status) filtered = filtered.filter((m) => m.status === status);
         if (leagueId) filtered = filtered.filter((m) => m.league.id === leagueId);
@@ -206,6 +216,8 @@ export function useFootballEvents(options: UseFootballEventsOptions = {}) {
         const listOptions: ListFootballOptions = {
           status,
           leagueId,
+          from,
+          to,
           signal: controller.signal,
           forceRefresh: isManualReload,
         };
@@ -240,7 +252,7 @@ export function useFootballEvents(options: UseFootballEventsOptions = {}) {
     void fetchMatches(reloadToken > 0);
 
     return () => controller.abort();
-  }, [status, leagueId, reloadToken]);
+  }, [status, leagueId, from, to, reloadToken]);
 
   // Polling automático opcional para partidos en vivo
   useEffect(() => {
@@ -254,6 +266,13 @@ export function useFootballEvents(options: UseFootballEventsOptions = {}) {
   }, [autoRefreshIntervalMs]);
 
   const reload = useCallback(() => {
+    clearFootballCache();
+    setState((previous) => ({
+      ...previous,
+      isLoading: previous.matches.length === 0,
+      isRevalidating: true,
+      error: null,
+    }));
     setReloadToken((token) => token + 1);
   }, []);
 
