@@ -199,6 +199,16 @@ public sealed class Selection : Entity<SelectionId>
         CurrentOdd = newOdd with { Timestamp = timestamp };
     }
 
+    public void UpdateOdds(Odd newOdd)
+    {
+        CurrentOdd = newOdd;
+    }
+
+    public void UpdateOdds(Odd newOdd, DateTimeOffset timestamp)
+    {
+        CurrentOdd = newOdd with { Timestamp = timestamp };
+    }
+
     public void Settle(SettlementResult result)
     {
         SettlementResult = result;

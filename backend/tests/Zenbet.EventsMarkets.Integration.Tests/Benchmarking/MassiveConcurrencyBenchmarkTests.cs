@@ -59,7 +59,6 @@ public sealed class MassiveConcurrencyBenchmarkTests : IAsyncLifetime
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IIdempotencyService, EfIdempotencyService>();
         services.AddScoped<ISettlementAuditService, EfSettlementAuditService>();
-        services.AddScoped<INotificationService, NoOpNotificationService>();
         services.AddScoped<IRiskManagementService, EfRiskManagementService>();
 
         services.Configure<RiskLimitsOptions>(o =>
@@ -108,13 +107,13 @@ public sealed class MassiveConcurrencyBenchmarkTests : IAsyncLifetime
         var selectionHomeId = SelectionId.New();
         var selectionAwayId = SelectionId.New();
 
-        var @event = new Event(eventId, "UFC 312: Makhachev vs Tsarukyan 2", SportType.MMA, DateTimeOffset.UtcNow.AddHours(4));
+        var @event = new Event(eventId, "UFC 312: Makhachev vs Tsarukyan 2", SportType.MixedMartialArts, DateTimeOffset.UtcNow.AddHours(4));
         var selections = new List<Selection>
         {
             new(selectionHomeId, "Islam Makhachev", new Odd(1.85m, DateTimeOffset.UtcNow)),
             new(selectionAwayId, "Arman Tsarukyan", new Odd(2.10m, DateTimeOffset.UtcNow))
         };
-        var market = @event.AddMarket("Moneyline", MarketType.Moneyline, selections);
+        var market = @event.AddMarket("Moneyline", MarketType.MmaMoneyline, selections);
 
         _dbContext.Events.Add(@event);
         await _dbContext.SaveChangesAsync();

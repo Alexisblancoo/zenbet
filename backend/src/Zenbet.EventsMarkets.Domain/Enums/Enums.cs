@@ -37,6 +37,8 @@ public enum SportType
     Cricket = 7,
     Esports = 8,
     MixedMartialArts = 9,
+    MMA = 9,
+    Mma = 9,
     Other = 99
 }
 
@@ -59,6 +61,7 @@ public enum MarketType
     HalfTimeFullTime = 6,
     AsianHandicap = 7,
     PlayerProps = 8,
+    Moneyline = 100,
     MmaMoneyline = 100,
     MmaMethodOfVictory = 101,
     MmaTotalRounds = 102,

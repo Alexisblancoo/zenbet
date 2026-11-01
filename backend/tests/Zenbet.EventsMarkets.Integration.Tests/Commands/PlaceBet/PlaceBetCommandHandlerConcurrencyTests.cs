@@ -343,11 +343,11 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
         var targetSelectionId = selectionIds[0];
 
         var eventId = DomainEventId.New();
-        var @event = new Event(eventId, "UFC 300 Championship", SportType.Mma, DateTimeOffset.UtcNow.AddHours(3));
+        var @event = new Event(eventId, "UFC 300 Championship", SportType.MixedMartialArts, DateTimeOffset.UtcNow.AddHours(3));
         var selections = selectionIds
             .Select((id, i) => new Selection(id, i == 0 ? "Fighter A" : i == 1 ? "Draw" : "Fighter B", new Odd(2.50m, DateTimeOffset.UtcNow)))
             .ToList();
-        @event.AddMarket("Moneyline", MarketType.Moneyline, selections);
+        @event.AddMarket("Moneyline", MarketType.MmaMoneyline, selections);
         _dbContext.Events.Add(@event);
 
         for (var i = 0; i < userCount; i++)
@@ -364,7 +364,7 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
 
         // Simular cambio dinámico de cuota en vivo (la cuota baja de 2.50 a 2.20)
         var selectionEntity = await _dbContext.Selections.SingleAsync(s => s.Id == targetSelectionId);
-        selectionEntity.UpdateOdds(new Odd(2.20m, DateTimeOffset.UtcNow));
+        selectionEntity.UpdateOdd(new Odd(2.20m, DateTimeOffset.UtcNow), DateTimeOffset.UtcNow);
         await _dbContext.SaveChangesAsync();
         _dbContext.ChangeTracker.Clear();
 
