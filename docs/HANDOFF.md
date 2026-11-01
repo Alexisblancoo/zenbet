@@ -34,7 +34,7 @@
   - [x] Prueba de estrés concurrente en Vitest (`contract-validation.test.ts` Suite 8) validando conservación de fondos de $10,000 ante 20 mutaciones paralelas con reversión por slippage.
 - [x] **Fase 5 (Certificación de Límites de Riesgo y Benchmarking Masivo):**
   - [x] Integración de las reglas de dominio `MaxMarketExposureExceededException` y `MaxUserBetLimitExceededException` en `PlaceBetCommandHandler`.
-  - [x] Doble capa de validación de exposición financiera (pasivo agregado $\sum \text{stake} \times \text{cuota}$): filtro inicial en `RiskValidationBehavior` y validación atómica serializada bajo `AdvisoryLock` (`userMarketLockKey`).
+  - [x] Doble capa de validación de exposición financiera (pasivo agregado $\sum \text{stake} \times \text{cuota}$): filtro inicial en `RiskValidationBehavior` y validación atómica serializada bajo `AdvisoryLock` (`userMarketLockKey` y `marketLockKey` sobre `MarketId`).
   - [x] Aborto transaccional limpio (`RollbackAsync`) con respuesta RFC 7807 (`ProblemDetails` con códigos `EXPOSURE_LIMIT_EXCEEDED` y `USER_LIMIT_EXCEEDED`).
   - [x] Normalización de códigos de riesgo en frontend (`bets.ts` y `betService.ts`) con tipado estricto y copy contextualizado en español.
   - [x] Suite 9 de pruebas de contrato automatizadas para riesgo financiero en Vitest (`contract-validation.test.ts`, 35/35 pasando).
@@ -64,4 +64,4 @@
 
 ## 5. Advertencias Técnicas
 - **Aislamiento de Lotes en Outbox:** Los lotes de cuotas normalizadas desde feeds externos se escriben en la tabla `OutboxMessages` dentro de la transacción del lote. El `OutboxProcessorBackgroundService` se encarga de transmitir los deltas a SignalR (`OddsHub`), garantizando que una ráfaga externa de miles de cuotas nunca bloquee las filas de `Wallets` o `Transactions`.
-- **Doble Capa de Riesgo:** No eludir la validación atómica dentro de `PlaceBetCommandHandler`. El pipeline `RiskValidationBehavior` actúa como filtro previo, pero la serialización bajo `userMarketLockKey` es el único punto que previene condiciones de carrera cuando múltiples apuestas simultáneas saturan el límite de exposición del mercado.
+- **Doble Capa de Riesgo:** No eludir la validación atómica dentro de `PlaceBetCommandHandler`. El pipeline `RiskValidationBehavior` actúa como filtro previo, pero la serialización bajo `marketLockKey` (`pg_advisory_xact_lock` sobre `MarketId`) es el único punto que previene condiciones de carrera cuando múltiples apuestas simultáneas de distintos usuarios saturan el límite de exposición del mercado.

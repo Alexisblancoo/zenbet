@@ -196,6 +196,11 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
             var userMarketLockKey = ComputeUserMarketAdvisoryLockKey(wallet.UserId, market.Id);
             await _unitOfWork.TryAcquireAdvisoryLockAsync(userMarketLockKey, cancellationToken);
 
+            // Serialize bets across all users on the same market to guarantee
+            // atomic aggregate risk exposure evaluation and transaction persistence.
+            var marketLockKey = ComputeMarketAdvisoryLockKey(market.Id);
+            await _unitOfWork.TryAcquireAdvisoryLockAsync(marketLockKey, cancellationToken);
+
             // The initial reads may have happened while another transaction
             // owned this user-market lock. Refresh the values used for the
             // balance/version check after entering the serialized section.
@@ -432,5 +437,10 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
             .ToArray();
         var hash = SHA256.HashData(identifiers);
         return BitConverter.ToInt64(hash, 0);
+    }
+
+    private static long ComputeMarketAdvisoryLockKey(MarketId marketId)
+    {
+        return BitConverter.ToInt64(marketId.Value.ToByteArray(), 0);
     }
 }

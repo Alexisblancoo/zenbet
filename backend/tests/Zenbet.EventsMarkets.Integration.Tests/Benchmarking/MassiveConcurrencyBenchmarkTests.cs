@@ -279,8 +279,8 @@ public sealed class MassiveConcurrencyBenchmarkTests : IAsyncLifetime
         var homeSelection = await verifyDb.Selections.SingleAsync(s => s.Id == selectionHomeId);
         var awaySelection = await verifyDb.Selections.SingleAsync(s => s.Id == selectionAwayId);
 
-        var homeBetsLiability = allTransactions.Where(t => t.SelectionId == selectionHomeId).Sum(t => t.Amount.Amount * homeSelection.CurrentOdd.Value);
-        var awayBetsLiability = allTransactions.Where(t => t.SelectionId == selectionAwayId).Sum(t => t.Amount.Amount * awaySelection.CurrentOdd.Value);
+        var homeBetsLiability = allTransactions.Where(t => t.SelectionId == selectionHomeId).Sum(t => t.Amount.Amount * (t.AcceptedOdds ?? homeSelection.CurrentOdd.Value));
+        var awayBetsLiability = allTransactions.Where(t => t.SelectionId == selectionAwayId).Sum(t => t.Amount.Amount * (t.AcceptedOdds ?? awaySelection.CurrentOdd.Value));
         var totalMarketExposure = homeBetsLiability + awayBetsLiability;
 
         Assert.True(totalMarketExposure <= 50000m,

@@ -148,7 +148,8 @@ public sealed class EfRiskManagementService : IRiskManagementService
             var selection = selections.FirstOrDefault(s => s.Id == bet.SelectionId!.Value);
             if (selection != null)
             {
-                totalExposure += bet.Amount.Amount * selection.CurrentOdd.Value;
+                var oddValue = bet.AcceptedOdds ?? selection.CurrentOdd.Value;
+                totalExposure += bet.Amount.Amount * oddValue;
             }
         }
 
