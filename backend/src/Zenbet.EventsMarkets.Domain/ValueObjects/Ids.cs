@@ -106,3 +106,18 @@ public readonly record struct BetId(Guid Value) : IComparable<BetId>, IEquatable
     public static implicit operator Guid(BetId id) => id.Value;
     public static explicit operator BetId(Guid guid) => new(guid);
 }
+
+public readonly record struct BonusId(Guid Value) : IComparable<BonusId>, IEquatable<BonusId>
+{
+    public static BonusId New() => new(Guid.NewGuid());
+    public static BonusId From(Guid guid) => new(guid);
+    public static BonusId Empty => new(Guid.Empty);
+
+    public int CompareTo(BonusId other) => Value.CompareTo(other.Value);
+    public bool Equals(BonusId other) => Value.Equals(other.Value);
+    public override int GetHashCode() => Value.GetHashCode();
+    public override string ToString() => Value.ToString();
+
+    public static implicit operator Guid(BonusId id) => id.Value;
+    public static explicit operator BonusId(Guid guid) => new(guid);
+}

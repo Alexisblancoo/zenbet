@@ -23,7 +23,12 @@ public sealed record PlaceBetResult(
     bool IdempotentReplay = false,
     string? ErrorCode = null,
     decimal? CurrentOdds = null,
-    decimal? ExpectedOdds = null);
+    decimal? ExpectedOdds = null,
+    Money? RealStake = null,
+    Money? BonusStake = null,
+    Money? RealAvailable = null,
+    Money? BonusAvailable = null,
+    bool RolloverCompleted = false);
 
 public readonly record struct BetId(Guid Value)
 {

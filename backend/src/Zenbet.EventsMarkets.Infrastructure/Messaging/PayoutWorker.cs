@@ -209,6 +209,7 @@ public sealed class PayoutWorker : BackgroundService
                 if (item.Outcome is BetStatus.Won or BetStatus.Void)
                 {
                     var settlementTransaction = wallet.SettleBet(
+                        item.Bet,
                         new Money(item.Payout),
                         item.SelectionResult,
                         BuildSettlementDescription(item),
@@ -216,6 +217,11 @@ public sealed class PayoutWorker : BackgroundService
 
                     settlementTransaction.Complete();
                     await transactionRepository.AddAsync(settlementTransaction, cancellationToken);
+                    walletChanged = true;
+                }
+                else if (item.Outcome == BetStatus.Lost)
+                {
+                    wallet.ReleaseLockedStake(item.Bet);
                     walletChanged = true;
                 }
 

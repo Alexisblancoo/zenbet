@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Zenbet.EventsMarkets.Application.Common;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Aggregates;
+using Zenbet.EventsMarkets.Domain.Enums;
 using Zenbet.EventsMarkets.Domain.Events;
 using Zenbet.EventsMarkets.Domain.Repositories;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
@@ -18,6 +19,8 @@ public sealed class SettleMarketCommandHandler : IRequestHandler<SettleMarketCom
     private readonly IIdempotencyService _idempotencyService;
     private readonly ISettlementAuditService _settlementAuditService;
     private readonly ILogger<SettleMarketCommandHandler> _logger;
+    private readonly IWalletRepository? _walletRepository;
+    private readonly ITransactionRepository? _transactionRepository;
 
     public SettleMarketCommandHandler(
         IMarketRepository marketRepository,
@@ -25,7 +28,9 @@ public sealed class SettleMarketCommandHandler : IRequestHandler<SettleMarketCom
         IOutboxWriter outboxWriter,
         IIdempotencyService idempotencyService,
         ISettlementAuditService settlementAuditService,
-        ILogger<SettleMarketCommandHandler> logger)
+        ILogger<SettleMarketCommandHandler> logger,
+        IWalletRepository? walletRepository = null,
+        ITransactionRepository? transactionRepository = null)
     {
         _marketRepository = marketRepository;
         _unitOfWork = unitOfWork;
@@ -33,6 +38,8 @@ public sealed class SettleMarketCommandHandler : IRequestHandler<SettleMarketCom
         _idempotencyService = idempotencyService;
         _settlementAuditService = settlementAuditService;
         _logger = logger;
+        _walletRepository = walletRepository;
+        _transactionRepository = transactionRepository;
     }
 
     public async Task<SettleMarketResult> Handle(SettleMarketCommand request, CancellationToken cancellationToken)
@@ -125,6 +132,15 @@ public sealed class SettleMarketCommandHandler : IRequestHandler<SettleMarketCom
                 await _outboxWriter.WriteAsync(domainEvent, cancellationToken);
             }
 
+            // 6b. Liquidación Proporcional de Apuestas (Bono Inteligente):
+            // Si los repositorios de billetera y transacciones están disponibles,
+            // liquida las apuestas pendientes del mercado aplicando pago proporcional
+            // (RealStake / BonusStake) y desbloqueando los saldos comprometidos.
+            if (_walletRepository is not null && _transactionRepository is not null)
+            {
+                await SettlePendingBetsProportionallyAsync(marketToSettle, cancellationToken);
+            }
+
             // 7. Record idempotency key
             await _idempotencyService.AddAsync(
                 idempotencyKey,
@@ -160,5 +176,143 @@ public sealed class SettleMarketCommandHandler : IRequestHandler<SettleMarketCom
             await _unitOfWork.RollbackAsync(cancellationToken);
             throw;
         }
+    }
+
+    private async Task SettlePendingBetsProportionallyAsync(Market market, CancellationToken cancellationToken)
+    {
+        var pendingBets = await _transactionRepository!.GetPendingBetsByMarketIdAsync(market.Id, cancellationToken);
+        if (pendingBets.Count == 0)
+            return;
+
+        var selectionsById = market.Selections.ToDictionary(s => s.Id);
+
+        foreach (var walletGroup in pendingBets.GroupBy(b => b.WalletId))
+        {
+            var walletLockKey = BitConverter.ToInt64(walletGroup.Key.Value.ToByteArray(), 0);
+            await _unitOfWork.TryAcquireAdvisoryLockAsync(walletLockKey, cancellationToken);
+
+            var wallet = await _walletRepository!.GetByIdAsync(walletGroup.Key, cancellationToken);
+            if (wallet is null)
+                continue;
+
+            var expectedVersion = wallet.Version;
+            var walletChanged = false;
+
+            foreach (var bet in walletGroup)
+            {
+                if (bet.BetStatus != BetStatus.Pending || bet.SelectionId is null)
+                    continue;
+
+                if (!selectionsById.TryGetValue(bet.SelectionId.Value, out var selection))
+                    continue;
+
+                var selectionResult = ResolveSelectionResult(market, selection);
+                if (selectionResult is null)
+                    continue;
+
+                var outcome = selectionResult.Value switch
+                {
+                    SettlementResult.Won => BetStatus.Won,
+                    SettlementResult.Lost => BetStatus.Lost,
+                    SettlementResult.Void or SettlementResult.Push => BetStatus.Void,
+                    _ => BetStatus.Pending,
+                };
+
+                if (outcome == BetStatus.Pending)
+                    continue;
+
+                var acceptedOdds = bet.AcceptedOdds ?? selection.CurrentOdd.Value;
+                var stake = bet.Amount.Amount;
+                var payout = outcome switch
+                {
+                    BetStatus.Won => Math.Round(stake * acceptedOdds, 2, MidpointRounding.AwayFromZero),
+                    BetStatus.Void => Math.Round(stake, 2, MidpointRounding.AwayFromZero),
+                    _ => 0m,
+                };
+
+                var reference = $"payout-market-{market.Id.Value}-bet-{bet.Id.Value}";
+
+                if (outcome is BetStatus.Won or BetStatus.Void)
+                {
+                    var description = outcome == BetStatus.Void
+                        ? $"Reembolso por apuesta anulada · {bet.Id.Value}"
+                        : $"Pago de apuesta ganadora · {bet.Id.Value}";
+
+                    var settlementTx = wallet.SettleBet(
+                        bet,
+                        new Money(payout),
+                        selectionResult.Value,
+                        description,
+                        reference);
+
+                    settlementTx.Complete();
+                    await _transactionRepository.AddAsync(settlementTx, cancellationToken);
+                    walletChanged = true;
+                }
+                else if (outcome == BetStatus.Lost)
+                {
+                    wallet.ReleaseLockedStake(bet);
+                    walletChanged = true;
+                }
+
+                var promoCode = PromoCodeCatalog.Resolve(bet.PromoCode);
+                var bonus = outcome == BetStatus.Won && promoCode is not null
+                    ? promoCode.CalculateBonus(payout - stake)
+                    : 0m;
+
+                if (bonus > 0m)
+                {
+                    var bonusTx = wallet.AddBonus(
+                        new Money(bonus),
+                        $"Bono promocional {bet.PromoCode} · apuesta {bet.Id.Value}",
+                        $"promo-{bet.Id.Value}");
+
+                    bonusTx.Complete();
+                    await _transactionRepository.AddAsync(bonusTx, cancellationToken);
+                    walletChanged = true;
+                }
+
+                bet.SettleBet(outcome);
+                await _transactionRepository.UpdateAsync(bet, cancellationToken);
+
+                await _outboxWriter.WriteAsync(new BetOutcomeSettledDomainEvent(
+                    wallet.Id,
+                    wallet.UserId,
+                    bet.Id,
+                    market.Id,
+                    outcome,
+                    new Money(payout),
+                    wallet.Balance,
+                    DateTimeOffset.UtcNow), cancellationToken);
+            }
+
+            if (walletChanged)
+            {
+                await _walletRepository.UpdateAsync(wallet, expectedVersion, cancellationToken);
+
+                foreach (var domainEvent in wallet.DomainEvents)
+                {
+                    await _outboxWriter.WriteAsync(domainEvent, cancellationToken);
+                }
+
+                wallet.ClearDomainEvents();
+            }
+        }
+    }
+
+    private static SettlementResult? ResolveSelectionResult(Market market, Selection selection)
+    {
+        if (market.MarketSettlementResult is SettlementResult.Void or SettlementResult.Push)
+            return market.MarketSettlementResult;
+
+        if (selection.SettlementResult is not null)
+            return selection.SettlementResult;
+
+        if (market.WinnerSelectionId is null)
+            return null;
+
+        return market.WinnerSelectionId == selection.Id
+            ? SettlementResult.Won
+            : SettlementResult.Lost;
     }
 }

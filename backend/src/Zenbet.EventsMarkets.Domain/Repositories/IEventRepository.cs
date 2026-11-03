@@ -99,6 +99,9 @@ public interface ITransactionRepository
         WalletId? walletId,
         int limit = 100,
         CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Transaction>> GetPendingBetsByMarketIdAsync(
+        MarketId marketId,
+        CancellationToken cancellationToken = default);
     Task AddAsync(Transaction transaction, CancellationToken cancellationToken = default);
     Task UpdateAsync(Transaction transaction, CancellationToken cancellationToken = default);
 }

@@ -83,6 +83,23 @@ public sealed class TransactionRepository : ITransactionRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Transaction>> GetPendingBetsByMarketIdAsync(
+        MarketId marketId,
+        CancellationToken cancellationToken = default)
+    {
+        return await (
+                from transaction in _dbContext.Transactions.AsNoTracking()
+                where transaction.Type == Zenbet.EventsMarkets.Domain.Enums.TransactionType.BetPlacement
+                    && transaction.BetStatus == Zenbet.EventsMarkets.Domain.Enums.BetStatus.Pending
+                    && transaction.SelectionId != null
+                join selection in _dbContext.Selections.AsNoTracking()
+                    on transaction.SelectionId!.Value equals selection.Id
+                where EF.Property<MarketId>(selection, "MarketId") == marketId
+                orderby transaction.CreatedAt
+                select transaction)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Transaction>> GetByWalletIdAsync(WalletId walletId, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Transactions

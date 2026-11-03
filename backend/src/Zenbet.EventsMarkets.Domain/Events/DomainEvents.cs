@@ -172,6 +172,30 @@ public sealed record BonusAddedDomainEvent(
     DateTimeOffset OccurredAt)
     : DomainEvent(OccurredAt, WalletId.Value);
 
+public sealed record BonusGrantedDomainEvent(
+    WalletId WalletId,
+    UserId UserId,
+    BonusId BonusId,
+    Money BonusAmount,
+    Money WageringRequirement,
+    decimal MinOdds,
+    Money MaxConversion,
+    Money NewBalance,
+    TransactionId TransactionId,
+    DateTimeOffset OccurredAt)
+    : DomainEvent(OccurredAt, WalletId.Value);
+
+public sealed record BonusRolloverCompletedDomainEvent(
+    WalletId WalletId,
+    UserId UserId,
+    BonusId BonusId,
+    Money ConvertedRealAmount,
+    Money ForfeitedBonusAmount,
+    Money NewRealAvailable,
+    Money NewBalance,
+    DateTimeOffset OccurredAt)
+    : DomainEvent(OccurredAt, WalletId.Value);
+
 public sealed record WalletAdjustedDomainEvent(
     WalletId WalletId,
     UserId UserId,

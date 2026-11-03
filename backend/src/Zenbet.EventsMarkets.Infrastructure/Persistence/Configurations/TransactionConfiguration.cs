@@ -48,6 +48,22 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
             .HasPrecision(18, 2)
             .IsRequired();
 
+        builder.Property(t => t.RealStake)
+            .HasConversion(
+                money => money.Amount,
+                amount => new Money(amount))
+            .HasColumnName("real_stake")
+            .HasPrecision(18, 2)
+            .IsRequired();
+
+        builder.Property(t => t.BonusStake)
+            .HasConversion(
+                money => money.Amount,
+                amount => new Money(amount))
+            .HasColumnName("bonus_stake")
+            .HasPrecision(18, 2)
+            .IsRequired();
+
         builder.Property(t => t.BalanceAfter)
             .HasConversion(
                 money => money.Amount,

@@ -290,9 +290,11 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
                 }
             }
 
-            // 4. Execute domain logic - PlaceBet validates balance and creates transaction.
+            // 4. Execute domain logic - PlaceBet validates balance, applies Real-First
+            // consumption (RealAvailable -> BonusAvailable) and updates ActiveBonus rollover.
             // La versión debe capturarse antes de mutar el agregado: PlaceBet la
             // incrementa y EF la usa como token de concurrencia.
+            var wasRolloverCompletedBefore = wallet.ActiveBonus?.IsCompleted ?? false;
             var expectedVersion = wallet.Version;
             var transaction = wallet.PlaceBet(
                 request.Amount,
@@ -301,6 +303,7 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
                 request.IdempotencyKey.ToString(),
                 selection.CurrentOdd.Value,
                 promoCode?.Code);
+            var rolloverJustCompleted = !wasRolloverCompletedBefore && (wallet.ActiveBonus?.IsCompleted ?? false);
 
             // 5. Persist wallet changes
             await _walletRepository.UpdateAsync(wallet, expectedVersion, cancellationToken);
@@ -325,8 +328,9 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
 
             wallet.ClearDomainEvents();
 
-            _logger.LogInformation("Bet placed successfully for wallet {WalletId}, selection {SelectionId}, amount {Amount}",
-                request.WalletId, request.SelectionId, request.Amount);
+            _logger.LogInformation(
+                "Bet placed successfully for wallet {WalletId}, selection {SelectionId}, amount {Amount} (RealStake={RealStake}, BonusStake={BonusStake})",
+                request.WalletId, request.SelectionId, request.Amount, transaction.RealStake, transaction.BonusStake);
 
             // La transacción ES la apuesta en este modelo. Devolver su id como
             // betId hace que el ticket del recibo coincida con el historial de
@@ -336,7 +340,12 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
                 new BetId(transaction.Id.Value),
                 transaction.Id,
                 wallet.Balance,
-                null);
+                null,
+                RealStake: transaction.RealStake,
+                BonusStake: transaction.BonusStake,
+                RealAvailable: wallet.RealAvailable,
+                BonusAvailable: wallet.BonusAvailable,
+                RolloverCompleted: rolloverJustCompleted);
         }
         catch (InsufficientFundsException ex)
         {
