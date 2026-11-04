@@ -11,6 +11,8 @@ using Zenbet.EventsMarkets.Application.Commands.RequestDeposit;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.Enums;
+using Zenbet.EventsMarkets.Domain.Events;
+using Zenbet.EventsMarkets.Domain.Exceptions;
 using Zenbet.EventsMarkets.Domain.Repositories;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 using Zenbet.EventsMarkets.Infrastructure.Persistence;
