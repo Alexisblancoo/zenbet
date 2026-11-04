@@ -9,7 +9,7 @@ import { authToken, emitUnauthorized } from './authToken';
 import { normalizeApiError } from './errors';
 import { createIdempotencyKey, IDEMPOTENCY_HEADER, MUTATING_METHODS } from './idempotency';
 
-const FALLBACK_API_URL = 'http://localhost:5000/api/v1';
+const FALLBACK_API_URL = 'http://localhost:5080/api/v1';
 
 function normalizeBaseUrl(value: string | undefined): string | undefined {
   const trimmed = value?.trim();

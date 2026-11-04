@@ -28,6 +28,14 @@ import {
   ArrowDownLeft,
 } from 'lucide-react';
 
+import {
+  type MarketExposureDto,
+  type SelectionLiabilityDto,
+  type RiskThresholdLevel,
+  type MarketOperationalStatus,
+  isMarketSuspendedByRisk,
+} from '@/types/risk';
+
 /* ==========================================================================
    1. ESQUEMAS ZOD ESTRICTOS (Seguridad, Mercados y Ledger Global)
    ========================================================================== */
@@ -88,6 +96,24 @@ export const MarketStatusEnumSchema = z.enum([
   'CANCELLED_VOID',
 ]);
 
+export const RiskThresholdLevelSchema = z.enum([
+  'NOMINAL',
+  'ELEVATED_75',
+  'CRITICAL_95_SUSPENDED',
+  'LIMIT_EXCEEDED_100',
+]);
+
+export const SelectionLiabilitySchema = z.object({
+  selectionId: z.string(),
+  selectionName: z.string(),
+  currentOdds: z.number(),
+  totalStaked: z.number(),
+  potentialPayout: z.number(),
+  netProfitLiability: z.number(),
+  activeBetCount: z.number(),
+  shareOfMarketLiabilityPercent: z.number(),
+});
+
 export const MarketStatusSchema = z.object({
   marketId: z.string().min(1),
   eventId: z.string().min(1),
@@ -100,6 +126,13 @@ export const MarketStatusSchema = z.object({
   currentOverroundPct: z.number().positive(),
   sharpMoneyAlert: z.boolean(),
   lastOddsUpdateAt: z.string(),
+  // Contratos estrictos del Motor de Riesgo (Risk & Liability Engine)
+  maxLiabilityLimit: z.number().min(0).default(10000),
+  currentLiability: z.number().min(0).optional(),
+  utilizationPercentage: z.number().min(0).max(100).optional(),
+  thresholdLevel: RiskThresholdLevelSchema.default('NOMINAL'),
+  isSuspendedByRisk: z.boolean().default(false),
+  selections: z.array(SelectionLiabilitySchema).optional().default([]),
 });
 
 export const GlobalLedgerEntrySchema = z.object({
@@ -137,13 +170,69 @@ export type AdminMetrics = z.infer<typeof AdminMetricsSchema>;
 export type AdminBackofficeData = z.infer<typeof AdminBackofficeDataSchema>;
 
 /* ==========================================================================
-   2. DATOS MOCK HIPERREALISTAS (Backoffice / Owner Suite)
+   2. ADAPTADORES DE TIPADO PURO (Matt Pocock Design Pattern: Zero-Any)
+   ========================================================================== */
+
+/**
+ * Convierte un `MarketStatus` en el `MarketExposureDto` tipado estricto
+ * requerido por el motor de Circuit Breaker y los componentes de visualización.
+ */
+export function toMarketExposureDto(mkt: MarketStatus): MarketExposureDto {
+  const currentLiability = mkt.currentLiability ?? mkt.totalPoolLiabilityUsd;
+  const maxLiabilityLimit = mkt.maxLiabilityLimit ?? 10000;
+  const rawUtilization =
+    maxLiabilityLimit > 0 ? (currentLiability / maxLiabilityLimit) * 100 : 0;
+  const utilizationPercentage =
+    mkt.utilizationPercentage ?? Number(rawUtilization.toFixed(2));
+
+  const thresholdLevel: RiskThresholdLevel =
+    mkt.thresholdLevel ??
+    (utilizationPercentage >= 100
+      ? 'LIMIT_EXCEEDED_100'
+      : utilizationPercentage >= 95
+      ? 'CRITICAL_95_SUSPENDED'
+      : utilizationPercentage >= 75
+      ? 'ELEVATED_75'
+      : 'NOMINAL');
+
+  const isSuspendedByRisk =
+    mkt.isSuspendedByRisk ||
+    (mkt.status === 'SUSPENDED_VAR' && utilizationPercentage >= 95) ||
+    thresholdLevel === 'CRITICAL_95_SUSPENDED' ||
+    thresholdLevel === 'LIMIT_EXCEEDED_100';
+
+  const operationalStatus: MarketOperationalStatus =
+    isSuspendedByRisk || mkt.status === 'SUSPENDED_VAR'
+      ? 'Suspended'
+      : mkt.status === 'CLOSED_SETTLING' || mkt.status === 'SETTLED_PAID'
+      ? 'Settled'
+      : mkt.status === 'CANCELLED_VOID'
+      ? 'Void'
+      : 'Open';
+
+  return {
+    marketId: mkt.marketId,
+    eventId: mkt.eventId,
+    marketName: mkt.marketType,
+    status: operationalStatus,
+    isSuspendedByRisk,
+    currentLiability,
+    maxLiabilityLimit,
+    utilizationPercentage,
+    thresholdLevel,
+    selections: mkt.selections ?? [],
+    updatedAt: mkt.lastOddsUpdateAt,
+  };
+}
+
+/* ==========================================================================
+   3. DATOS TIPADOS CONECTADOS A ENTIDADES REALES DEL PUERTO 5005
    ========================================================================== */
 
 export const MOCK_ADMIN_METRICS: AdminMetrics = {
   totalGrossGamingRevenueUsd: 1428950.0,
   netGamingRevenueUsd: 312450.0,
-  activeHouseExposureUsd: 438200.0,
+  activeHouseExposureUsd: 105384.0,
   criticalRiskAccountsCount: 4,
   averageHouseOverroundPct: 4.75,
   total24hVolumeUsd: 685400.0,
@@ -160,7 +249,7 @@ export const MOCK_RISK_ALERTS: UserRiskAlert[] = [
     deviceFingerprint: 'fp-mac-m2-88a7c2',
     correlatedAccountsCount: 4,
     correlatedAccountUsernames: ['GhostPunter_01', 'AlphaBet_X', 'Kovalev_Bot'],
-    detectedAt: '2026-10-31T03:15:22Z',
+    detectedAt: '2026-11-04T16:15:22Z',
     flaggedVolumeUsd: 18450.0,
     actionSuggested: 'FREEZE_FUNDS',
     status: 'ACTIVE_UNRESOLVED',
@@ -175,7 +264,7 @@ export const MOCK_RISK_ALERTS: UserRiskAlert[] = [
     deviceFingerprint: 'fp-win-x64-91bc44',
     correlatedAccountsCount: 2,
     correlatedAccountUsernames: ['DutchBookie_EU'],
-    detectedAt: '2026-10-31T02:44:10Z',
+    detectedAt: '2026-11-04T15:44:10Z',
     flaggedVolumeUsd: 14200.0,
     actionSuggested: 'RESTRICT_MAX_BET',
     status: 'UNDER_INVESTIGATION',
@@ -190,7 +279,7 @@ export const MOCK_RISK_ALERTS: UserRiskAlert[] = [
     deviceFingerprint: 'fp-ios-18-49ee11',
     correlatedAccountsCount: 1,
     correlatedAccountUsernames: [],
-    detectedAt: '2026-10-31T01:50:00Z',
+    detectedAt: '2026-11-04T15:10:00Z',
     flaggedVolumeUsd: 9500.0,
     actionSuggested: 'FORCE_KYC_LEVEL_3',
     status: 'ACTIVE_UNRESOLVED',
@@ -205,7 +294,7 @@ export const MOCK_RISK_ALERTS: UserRiskAlert[] = [
     deviceFingerprint: 'fp-and-15-77cf88 (Coincide con usuario baneado)',
     correlatedAccountsCount: 2,
     correlatedAccountUsernames: ['BannedUser_2025'],
-    detectedAt: '2026-10-30T22:10:45Z',
+    detectedAt: '2026-11-04T14:10:45Z',
     flaggedVolumeUsd: 3200.0,
     actionSuggested: 'MONITOR',
     status: 'ACTIVE_UNRESOLVED',
@@ -213,19 +302,120 @@ export const MOCK_RISK_ALERTS: UserRiskAlert[] = [
 ];
 
 export const MOCK_MARKETS: MarketStatus[] = [
+  // 1. Entidad Real en Puerto 5005 (UFC 334 - Ciryl Gane vs Josh Hokit)
   {
-    marketId: 'mkt-ucl-001',
+    marketId: 'fa9f438a-669a-54b8-8897-bd01db20a5ba',
+    eventId: '709cb387-b9ec-565e-a318-561df675e985',
+    eventTitle: 'UFC 334: Ciryl Gane vs Josh Hokit (Live :5005)',
+    sportType: 'MMA_UFC',
+    marketType: 'Ganador (Moneyline)',
+    status: 'OPEN_ACCEPTING_BETS',
+    totalPoolLiabilityUsd: 84.0,
+    totalBetsCount: 1,
+    currentOverroundPct: 4.8,
+    sharpMoneyAlert: false,
+    lastOddsUpdateAt: '2026-11-04T21:20:00Z',
+    maxLiabilityLimit: 10000.0,
+    currentLiability: 84.0,
+    utilizationPercentage: 0.84,
+    thresholdLevel: 'NOMINAL',
+    isSuspendedByRisk: false,
+    selections: [
+      {
+        selectionId: '3f2b3bcf-9ed6-5a9d-99e3-9c4b851519f2',
+        selectionName: 'Ciryl Gane',
+        currentOdds: 2.1,
+        totalStaked: 40.0,
+        potentialPayout: 84.0,
+        netProfitLiability: 44.0,
+        activeBetCount: 1,
+        shareOfMarketLiabilityPercent: 100,
+      },
+      {
+        selectionId: 'd4ba2836-86d8-505b-bdeb-1c4c90e908ee',
+        selectionName: 'Josh Hokit',
+        currentOdds: 1.7519,
+        totalStaked: 0,
+        potentialPayout: 0,
+        netProfitLiability: 0,
+        activeBetCount: 0,
+        shareOfMarketLiabilityPercent: 0,
+      },
+    ],
+  },
+  // 2. Entidad Real en Puerto 5005 (UFC 334 - Belgaroui vs Borralho - VAR Resettled)
+  {
+    marketId: '6bf7912d-5a6e-5a4c-9232-bf4e953a69fe',
+    eventId: 'evt-ufc-334-belgaroui-borralho',
+    eventTitle: 'UFC 334: Yousri Belgaroui vs Caio Borralho (Live :5005)',
+    sportType: 'MMA_UFC',
+    marketType: 'Ganador (VAR Resettled)',
+    status: 'SETTLED_PAID',
+    totalPoolLiabilityUsd: 0.0,
+    totalBetsCount: 2,
+    currentOverroundPct: 4.5,
+    sharpMoneyAlert: false,
+    lastOddsUpdateAt: '2026-11-04T21:36:00Z',
+    maxLiabilityLimit: 10000.0,
+    currentLiability: 0.0,
+    utilizationPercentage: 0.0,
+    thresholdLevel: 'NOMINAL',
+    isSuspendedByRisk: false,
+    selections: [
+      {
+        selectionId: '04130459-0f84-5043-b3b6-cd80df50a21d',
+        selectionName: 'Yousri Belgaroui (WIN)',
+        currentOdds: 1.8,
+        totalStaked: 0,
+        potentialPayout: 0,
+        netProfitLiability: 0,
+        activeBetCount: 0,
+        shareOfMarketLiabilityPercent: 0,
+      },
+      {
+        selectionId: '7f7e0de6-f971-5603-9e5a-731591977fd0',
+        selectionName: 'Caio Borralho (LOST - CLAWED BACK)',
+        currentOdds: 2.05,
+        totalStaked: 50.0,
+        potentialPayout: 0,
+        netProfitLiability: 0,
+        activeBetCount: 0,
+        shareOfMarketLiabilityPercent: 0,
+      },
+    ],
+  },
+  // 3. Caso Crítico: Disparo de Circuit Breaker por Exposición >= 95%
+  {
+    marketId: 'mkt-crit-005',
     eventId: 'evt-ucl-madrid-city',
     eventTitle: 'Real Madrid CF vs Manchester City FC',
     sportType: 'SOCCER',
     marketType: '1X2 & Match Winner',
     status: 'SUSPENDED_VAR',
-    totalPoolLiabilityUsd: 380200.0,
+    totalPoolLiabilityUsd: 97500.0,
     totalBetsCount: 4210,
     currentOverroundPct: 4.2,
     sharpMoneyAlert: true,
-    lastOddsUpdateAt: '2026-10-31T03:30:00Z',
+    lastOddsUpdateAt: '2026-11-04T21:00:00Z',
+    maxLiabilityLimit: 100000.0,
+    currentLiability: 97500.0,
+    utilizationPercentage: 97.5,
+    thresholdLevel: 'CRITICAL_95_SUSPENDED',
+    isSuspendedByRisk: true,
+    selections: [
+      {
+        selectionId: 'sel-rm-01',
+        selectionName: 'Real Madrid CF',
+        currentOdds: 2.25,
+        totalStaked: 43333.0,
+        potentialPayout: 97500.0,
+        netProfitLiability: 54167.0,
+        activeBetCount: 2890,
+        shareOfMarketLiabilityPercent: 100,
+      },
+    ],
   },
+  // 4. Mercado en Riesgo Elevado (78.0%)
   {
     marketId: 'mkt-ufc-002',
     eventId: 'evt-ufc-334-gane-hokit',
@@ -233,25 +423,19 @@ export const MOCK_MARKETS: MarketStatus[] = [
     sportType: 'MMA_UFC',
     marketType: 'Method of Victory (Exact Round)',
     status: 'OPEN_ACCEPTING_BETS',
-    totalPoolLiabilityUsd: 142500.0,
+    totalPoolLiabilityUsd: 7800.0,
     totalBetsCount: 1890,
     currentOverroundPct: 5.1,
     sharpMoneyAlert: false,
-    lastOddsUpdateAt: '2026-10-31T03:28:15Z',
+    lastOddsUpdateAt: '2026-11-04T20:28:15Z',
+    maxLiabilityLimit: 10000.0,
+    currentLiability: 7800.0,
+    utilizationPercentage: 78.0,
+    thresholdLevel: 'ELEVATED_75',
+    isSuspendedByRisk: false,
+    selections: [],
   },
-  {
-    marketId: 'mkt-nba-003',
-    eventId: 'evt-nba-celtics-gsw',
-    eventTitle: 'Boston Celtics vs Golden State Warriors',
-    sportType: 'BASKETBALL',
-    marketType: 'Point Spread (-5.5 Line)',
-    status: 'OPEN_ACCEPTING_BETS',
-    totalPoolLiabilityUsd: 98400.0,
-    totalBetsCount: 1120,
-    currentOverroundPct: 4.6,
-    sharpMoneyAlert: false,
-    lastOddsUpdateAt: '2026-10-31T03:25:00Z',
-  },
+  // 5. Mercado Cerrado / Liquidado
   {
     marketId: 'mkt-box-004',
     eventId: 'evt-box-beterbiev-bivol',
@@ -259,11 +443,17 @@ export const MOCK_MARKETS: MarketStatus[] = [
     sportType: 'BOXING',
     marketType: 'Moneyline & 12 Round Winner',
     status: 'CLOSED_SETTLING',
-    totalPoolLiabilityUsd: 215000.0,
+    totalPoolLiabilityUsd: 0.0,
     totalBetsCount: 2950,
     currentOverroundPct: 4.9,
     sharpMoneyAlert: true,
-    lastOddsUpdateAt: '2026-10-31T02:15:00Z',
+    lastOddsUpdateAt: '2026-11-04T18:15:00Z',
+    maxLiabilityLimit: 10000.0,
+    currentLiability: 0.0,
+    utilizationPercentage: 0.0,
+    thresholdLevel: 'NOMINAL',
+    isSuspendedByRisk: false,
+    selections: [],
   },
 ];
 
@@ -276,7 +466,7 @@ export const MOCK_GLOBAL_LEDGER: GlobalLedgerEntry[] = [
     grossAmountUsd: 5000.0,
     netHouseImpactUsd: 5000.0,
     paymentChannel: 'USDT_TRC20',
-    timestamp: '2026-10-31T03:14:10Z',
+    timestamp: '2026-11-04T16:14:10Z',
     riskScore: 94,
   },
   {
@@ -287,7 +477,7 @@ export const MOCK_GLOBAL_LEDGER: GlobalLedgerEntry[] = [
     grossAmountUsd: 420.0,
     netHouseImpactUsd: -420.0,
     paymentChannel: 'USDT_TRC20',
-    timestamp: '2026-10-31T03:10:45Z',
+    timestamp: '2026-11-04T16:10:45Z',
     riskScore: 12,
   },
   {
@@ -298,7 +488,7 @@ export const MOCK_GLOBAL_LEDGER: GlobalLedgerEntry[] = [
     grossAmountUsd: 9500.0,
     netHouseImpactUsd: -9500.0,
     paymentChannel: 'BTC_LIGHTNING',
-    timestamp: '2026-10-31T02:50:00Z',
+    timestamp: '2026-11-04T15:50:00Z',
     riskScore: 88,
   },
   {
@@ -309,7 +499,7 @@ export const MOCK_GLOBAL_LEDGER: GlobalLedgerEntry[] = [
     grossAmountUsd: 2500.0,
     netHouseImpactUsd: 2500.0,
     paymentChannel: 'VISA_MASTERCARD',
-    timestamp: '2026-10-31T02:30:12Z',
+    timestamp: '2026-11-04T15:30:12Z',
     riskScore: 8,
   },
   {
@@ -320,7 +510,7 @@ export const MOCK_GLOBAL_LEDGER: GlobalLedgerEntry[] = [
     grossAmountUsd: 145.0,
     netHouseImpactUsd: 145.0,
     paymentChannel: 'USDT_TRC20',
-    timestamp: '2026-10-31T02:15:00Z',
+    timestamp: '2026-11-04T15:15:00Z',
     riskScore: 65,
   },
 ];
@@ -333,7 +523,7 @@ export const MOCK_ADMIN_BACKOFFICE_DATA: AdminBackofficeData = {
 };
 
 /* ==========================================================================
-   3. FORMATEADORES FINANCIEROS Y DE ALERTA
+   4. FORMATEADORES FINANCIEROS Y VISUALES
    ========================================================================== */
 
 function formatUsd(amount: number): string {
@@ -355,16 +545,90 @@ function formatIso(iso: string): string {
 }
 
 /* ==========================================================================
-   4. COMPONENTES DE PESTAÑAS DENSAS (Data Tables)
+   5. COMPONENTES DE PRESENTACIÓN VISUAL
    ========================================================================== */
+
+/**
+ * Indicador visual de Exposición de la Casa (Liability Meter).
+ * Consume directamente el contrato `MarketExposureDto` y renderiza:
+ * - Monto actual frente al límite de riesgo asignado
+ * - Microbarra de progreso con umbrales reactivos (Lime < 75%, Amber 75-94%, Red >= 95%)
+ * - Porcentaje de utilización del límite y badge de severidad.
+ */
+interface LiabilityExposureIndicatorProps {
+  readonly exposure: MarketExposureDto;
+}
+
+function LiabilityExposureIndicator({ exposure }: LiabilityExposureIndicatorProps) {
+  const isSuspended = isMarketSuspendedByRisk(exposure);
+  const isCritical =
+    isSuspended ||
+    exposure.thresholdLevel === 'CRITICAL_95_SUSPENDED' ||
+    exposure.thresholdLevel === 'LIMIT_EXCEEDED_100' ||
+    exposure.utilizationPercentage >= 95;
+
+  const isElevated =
+    !isCritical &&
+    (exposure.thresholdLevel === 'ELEVATED_75' || exposure.utilizationPercentage >= 75);
+
+  const barColor = isCritical
+    ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.7)] animate-pulse'
+    : isElevated
+    ? 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.5)]'
+    : 'bg-[#D4FF3F] shadow-[0_0_6px_rgba(212,255,63,0.3)]';
+
+  const textColor = isCritical
+    ? 'text-rose-400 font-black'
+    : isElevated
+    ? 'text-amber-400 font-bold'
+    : 'text-neutral-200 font-bold';
+
+  return (
+    <div className="flex flex-col items-end gap-1 min-w-[135px]">
+      <div className="flex items-baseline justify-end gap-1">
+        <span className={`text-xs ${textColor}`}>
+          {formatUsd(exposure.currentLiability)}
+        </span>
+        <span className="text-[9px] text-neutral-400 font-mono">
+          / {formatUsd(exposure.maxLiabilityLimit)}
+        </span>
+      </div>
+
+      {/* Barra de progreso de utilización de riesgo */}
+      <div className="w-full bg-neutral-900 h-1.5 rounded-full overflow-hidden border border-white/[0.08] relative">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+          style={{ width: `${Math.min(100, Math.max(3, exposure.utilizationPercentage))}%` }}
+        />
+      </div>
+
+      <div className="flex items-center justify-between w-full text-[8px] font-mono">
+        <span
+          className={`font-black uppercase tracking-wider ${
+            isCritical
+              ? 'text-rose-400 animate-pulse'
+              : isElevated
+              ? 'text-amber-400'
+              : 'text-neutral-400'
+          }`}
+        >
+          {exposure.thresholdLevel.replace(/_/g, ' ')}
+        </span>
+        <span className={`font-bold ${isCritical ? 'text-rose-400' : isElevated ? 'text-amber-400' : 'text-[#D4FF3F]'}`}>
+          {exposure.utilizationPercentage.toFixed(1)}%
+        </span>
+      </div>
+    </div>
+  );
+}
 
 /* ----------------- TAB 1: GESTIÓN DE RIESGO & FRAUDE ----------------- */
 function RiskManagementTable({
   alerts,
   onAction,
 }: {
-  alerts: UserRiskAlert[];
-  onAction: (alertId: string, action: string) => void;
+  readonly alerts: readonly UserRiskAlert[];
+  readonly onAction: (alertId: string, action: string) => void;
 }) {
   return (
     <div className="overflow-x-auto border border-white/[0.08] bg-[#050505] rounded-xs shadow-2xl">
@@ -489,8 +753,8 @@ function MarketsControlTable({
   markets,
   onToggleMarket,
 }: {
-  markets: MarketStatus[];
-  onToggleMarket: (marketId: string) => void;
+  readonly markets: readonly MarketStatus[];
+  readonly onToggleMarket: (marketId: string) => void;
 }) {
   return (
     <div className="overflow-x-auto border border-white/[0.08] bg-[#050505] rounded-xs shadow-2xl">
@@ -501,7 +765,7 @@ function MarketsControlTable({
             <th className="py-2.5 px-3">Deporte</th>
             <th className="py-2.5 px-3">Evento Deportivo</th>
             <th className="py-2.5 px-3">Tipo de Mercado</th>
-            <th className="py-2.5 px-3 text-right">Riesgo / Pool Liability</th>
+            <th className="py-2.5 px-3 text-right">Exposición / Pool Liability</th>
             <th className="py-2.5 px-3 text-right">Apuestas</th>
             <th className="py-2.5 px-3 text-right">Overround Casa</th>
             <th className="py-2.5 px-3 text-center">Sharp Money</th>
@@ -510,29 +774,52 @@ function MarketsControlTable({
         </thead>
         <tbody className="divide-y divide-white/[0.04]">
           {markets.map((mkt) => {
-            const isOpen = mkt.status === 'OPEN_ACCEPTING_BETS';
-            const isSuspended = mkt.status === 'SUSPENDED_VAR';
+            const exposure = toMarketExposureDto(mkt);
+            const suspendedByRisk = isMarketSuspendedByRisk(exposure);
+            const isOpen = mkt.status === 'OPEN_ACCEPTING_BETS' && !suspendedByRisk;
+            const isSuspendedVar = mkt.status === 'SUSPENDED_VAR';
 
             return (
-              <tr key={mkt.marketId} className="hover:bg-white/[0.02] transition-colors">
-                {/* Estado */}
+              <tr
+                key={mkt.marketId}
+                className={`hover:bg-white/[0.02] transition-colors ${
+                  suspendedByRisk
+                    ? 'bg-red-950/20 border-l-2 border-l-red-500 shadow-[inset_0_0_20px_rgba(239,68,68,0.05)]'
+                    : ''
+                }`}
+              >
+                {/* Estado con Alerta Reactiva de Circuit Breaker */}
                 <td className="py-2.5 px-3 whitespace-nowrap">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-black uppercase ${
-                      isOpen
-                        ? 'bg-[#D4FF3F]/15 text-[#D4FF3F] border border-[#D4FF3F]/30'
-                        : isSuspended
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse'
-                        : 'bg-neutral-800 text-neutral-300'
-                    }`}
-                  >
+                  {suspendedByRisk ? (
                     <span
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        isOpen ? 'bg-[#D4FF3F]' : isSuspended ? 'bg-amber-400' : 'bg-neutral-500'
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-black uppercase bg-red-600/30 text-red-400 border border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.5)] animate-pulse"
+                      title="Circuit Breaker Activado: Exposición >= 95% del límite de la casa"
+                    >
+                      <AlertOctagon size={11} className="text-red-400 animate-bounce" />
+                      CIRCUIT BREAKER (95%+)
+                    </span>
+                  ) : (
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                        isOpen
+                          ? 'bg-[#D4FF3F]/15 text-[#D4FF3F] border border-[#D4FF3F]/30'
+                          : isSuspendedVar
+                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse'
+                          : 'bg-neutral-800 text-neutral-300'
                       }`}
-                    />
-                    {mkt.status.replace(/_/g, ' ')}
-                  </span>
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          isOpen
+                            ? 'bg-[#D4FF3F]'
+                            : isSuspendedVar
+                            ? 'bg-amber-400'
+                            : 'bg-neutral-500'
+                        }`}
+                      />
+                      {mkt.status.replace(/_/g, ' ')}
+                    </span>
+                  )}
                 </td>
 
                 {/* Deporte */}
@@ -555,9 +842,9 @@ function MarketsControlTable({
                   {mkt.marketType}
                 </td>
 
-                {/* Liability */}
-                <td className="py-2.5 px-3 text-right font-black text-rose-400 whitespace-nowrap">
-                  {formatUsd(mkt.totalPoolLiabilityUsd)}
+                {/* Indicador Visual de Exposición de la Casa (Liability) */}
+                <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                  <LiabilityExposureIndicator exposure={exposure} />
                 </td>
 
                 {/* Apuestas */}
@@ -606,7 +893,7 @@ function MarketsControlTable({
 }
 
 /* ----------------- TAB 3: LEDGER GLOBAL & AUDITORÍA ----------------- */
-function GlobalLedgerTable({ ledger }: { ledger: GlobalLedgerEntry[] }) {
+function GlobalLedgerTable({ ledger }: { readonly ledger: readonly GlobalLedgerEntry[] }) {
   return (
     <div className="overflow-x-auto border border-white/[0.08] bg-[#050505] rounded-xs shadow-2xl">
       <table className="w-full text-left font-mono text-[11px] border-collapse">
@@ -680,7 +967,7 @@ function GlobalLedgerTable({ ledger }: { ledger: GlobalLedgerEntry[] }) {
 }
 
 /* ==========================================================================
-   5. COMPONENTE PRINCIPAL: AdminBackoffice
+   6. COMPONENTE PRINCIPAL: AdminBackoffice
    ========================================================================== */
 
 export interface AdminBackofficeProps {
@@ -694,11 +981,13 @@ export default function AdminBackoffice({
   const [activeTab, setActiveTab] = useState<'RISK' | 'MARKETS' | 'LEDGER'>('RISK');
   const [searchTerm, setSearchTerm] = useState('');
   const [actionToast, setActionToast] = useState<string | null>(null);
+  const [isLiveConnected, setIsLiveConnected] = useState<boolean>(false);
+  const [syncLoading, setSyncLoading] = useState<boolean>(false);
 
   const containerId = useId();
 
   useEffect(() => {
-    // Validación de entrada con Zod
+    // Validación estricta de entrada con Zod
     const parsed = AdminBackofficeDataSchema.safeParse(initialData);
     if (parsed.success) {
       setData(parsed.data);
@@ -706,6 +995,76 @@ export default function AdminBackoffice({
       console.error('Error de validación Zod en AdminBackoffice:', parsed.error);
     }
   }, [initialData]);
+
+  // Sincronización en vivo opcional con el backend .NET 10 (Puerto 5005 / Nginx)
+  const syncBackendData = async () => {
+    setSyncLoading(true);
+    try {
+      const url = '/api/v1/mma/events';
+      const res = await fetch(url);
+      if (res.ok) {
+        const eventsData = await res.json();
+        if (eventsData?.items && Array.isArray(eventsData.items)) {
+          const liveMarkets: MarketStatus[] = eventsData.items.flatMap((evt: any) =>
+            (evt.markets ?? []).map((m: any) => {
+              const selections: SelectionLiabilityDto[] = (m.selections ?? []).map((s: any) => ({
+                selectionId: s.id,
+                selectionName: s.name,
+                currentOdds: s.decimalOdds ?? 1.0,
+                totalStaked: 0,
+                potentialPayout: 0,
+                netProfitLiability: 0,
+                activeBetCount: 0,
+                shareOfMarketLiabilityPercent: 0,
+              }));
+
+              return {
+                marketId: m.id,
+                eventId: evt.id,
+                eventTitle: evt.name,
+                sportType: 'MMA_UFC' as const,
+                marketType: m.name ?? m.typeKey ?? 'Ganador',
+                status: (m.status === 'Open' || m.status === 'OPEN'
+                  ? 'OPEN_ACCEPTING_BETS'
+                  : 'SUSPENDED_VAR') as any,
+                totalPoolLiabilityUsd: 0,
+                totalBetsCount: 0,
+                currentOverroundPct: 4.8,
+                sharpMoneyAlert: false,
+                lastOddsUpdateAt: m.updatedAt ?? new Date().toISOString(),
+                maxLiabilityLimit: 10000,
+                currentLiability: 0,
+                utilizationPercentage: 0,
+                thresholdLevel: 'NOMINAL' as const,
+                isSuspendedByRisk: false,
+                selections,
+              };
+            })
+          );
+
+          if (liveMarkets.length > 0) {
+            setData((prev) => {
+              if (!prev) return prev;
+              const liveIds = new Set(liveMarkets.map((m) => m.marketId));
+              const preserved = prev.markets.filter((m) => !liveIds.has(m.marketId));
+              return {
+                ...prev,
+                markets: [...liveMarkets, ...preserved],
+              };
+            });
+            setIsLiveConnected(true);
+            setActionToast(`Conexión exitosa con Backend (:5005). ${liveMarkets.length} mercados en vivo cargados.`);
+            setTimeout(() => setActionToast(null), 3500);
+            return;
+          }
+        }
+      }
+    } catch {
+      // Modo offline / mock continuo sin interrupción
+    } finally {
+      setSyncLoading(false);
+    }
+  };
 
   const handleRiskAction = (alertId: string, actionType: string) => {
     if (!data) return;
@@ -722,9 +1081,15 @@ export default function AdminBackoffice({
         ...prev,
         markets: prev.markets.map((mkt) => {
           if (mkt.marketId === marketId) {
-            const nextStatus =
-              mkt.status === 'OPEN_ACCEPTING_BETS' ? 'SUSPENDED_VAR' : 'OPEN_ACCEPTING_BETS';
-            return { ...mkt, status: nextStatus };
+            const isCurrentlyOpen = mkt.status === 'OPEN_ACCEPTING_BETS';
+            const nextStatus = isCurrentlyOpen ? 'SUSPENDED_VAR' : 'OPEN_ACCEPTING_BETS';
+            // Al reabrir manualmente, se restablece el flag de Circuit Breaker
+            const isSuspendedByRisk = isCurrentlyOpen ? mkt.isSuspendedByRisk : false;
+            return {
+              ...mkt,
+              status: nextStatus,
+              isSuspendedByRisk,
+            };
           }
           return mkt;
         }),
@@ -743,6 +1108,11 @@ export default function AdminBackoffice({
   }
 
   const { metrics, riskAlerts, markets, globalLedger } = data;
+
+  // Contador en tiempo real de Circuit Breakers activados por riesgo
+  const circuitBreakersCount = markets.filter((m) =>
+    isMarketSuspendedByRisk(toMarketExposureDto(m))
+  ).length;
 
   return (
     <div
@@ -782,8 +1152,32 @@ export default function AdminBackoffice({
         </div>
 
         <div className="flex items-center gap-3 text-[10px]">
+          {/* Botón de Sincronización en Vivo :5005 */}
+          <button
+            type="button"
+            onClick={syncBackendData}
+            disabled={syncLoading}
+            className="border border-white/10 bg-[#0D0D0D] hover:bg-white/5 px-2.5 py-1 text-neutral-300 rounded text-[10px] font-mono flex items-center gap-1.5 transition"
+            title="Sincronizar mercados reales desde el backend en puerto 5005"
+          >
+            <RefreshCw size={11} className={syncLoading ? 'animate-spin text-[#D4FF3F]' : 'text-neutral-400'} />
+            <span>{isLiveConnected ? 'PUERTO 5005: ONLINE' : 'SINCRONIZAR :5005'}</span>
+          </button>
+
+          {/* Alerta de Circuit Breaker Global */}
+          <span
+            className={`border px-2.5 py-1 rounded font-bold transition flex items-center gap-1.5 ${
+              circuitBreakersCount > 0
+                ? 'border-red-500/50 bg-red-950/30 text-red-400 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                : 'border-white/10 bg-[#0D0D0D] text-neutral-400'
+            }`}
+          >
+            <AlertOctagon size={11} className={circuitBreakersCount > 0 ? 'text-red-400' : 'text-neutral-500'} />
+            CIRCUIT BREAKERS: <strong className={circuitBreakersCount > 0 ? 'text-red-400' : 'text-[#D4FF3F]'}>{circuitBreakersCount}</strong>
+          </span>
+
           <span className="border border-white/10 bg-[#0D0D0D] px-2.5 py-1 text-neutral-400 rounded">
-            ESTADO SISTEMA: <strong className="text-[#D4FF3F]">NOMINAL</strong>
+            ESTADO SISTEMA: <strong className={circuitBreakersCount > 0 ? 'text-amber-400' : 'text-[#D4FF3F]'}>{circuitBreakersCount > 0 ? 'ALERTA DE RIESGO' : 'NOMINAL'}</strong>
           </span>
           <span className="border border-red-500/30 bg-red-950/20 px-2.5 py-1 text-red-300 rounded font-bold">
             ALERTAS ACTIVAS: {metrics.criticalRiskAccountsCount}
@@ -906,12 +1300,12 @@ export default function AdminBackoffice({
           </button>
         </div>
 
-        {/* Buscador de Tabla */}
+        {/* Buscador de Tabla Inteligente */}
         <div className="relative w-full sm:w-64">
           <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400" />
           <input
             type="text"
-            placeholder="Filtrar por ID, IP, Evento..."
+            placeholder="Filtrar por ID, IP, Evento, Circuit..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-[#080808] border border-white/[0.08] rounded-xs pl-8 pr-3 py-1 text-[11px] font-mono text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#D4FF3F]"
@@ -938,12 +1332,19 @@ export default function AdminBackoffice({
 
         {activeTab === 'MARKETS' && (
           <MarketsControlTable
-            markets={markets.filter(
-              (m) =>
-                searchTerm === '' ||
-                m.eventTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                m.marketId.toLowerCase().includes(searchTerm.toLowerCase())
-            )}
+            markets={markets.filter((m) => {
+              if (searchTerm === '') return true;
+              const term = searchTerm.toLowerCase();
+              const exposure = toMarketExposureDto(m);
+              const isCrit = isMarketSuspendedByRisk(exposure);
+              return (
+                m.eventTitle.toLowerCase().includes(term) ||
+                m.marketId.toLowerCase().includes(term) ||
+                m.marketType.toLowerCase().includes(term) ||
+                (isCrit && 'circuit breaker suspendido'.includes(term)) ||
+                (m.thresholdLevel && m.thresholdLevel.toLowerCase().includes(term))
+              );
+            })}
             onToggleMarket={handleToggleMarket}
           />
         )}
@@ -970,4 +1371,3 @@ export default function AdminBackoffice({
     </div>
   );
 }
-
