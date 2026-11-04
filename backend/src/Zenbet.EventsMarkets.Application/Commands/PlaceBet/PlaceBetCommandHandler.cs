@@ -208,7 +208,8 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
                 ?? throw new WalletNotFoundException(request.WalletId);
             selection = await _selectionRepository.GetByIdAsync(request.SelectionId, cancellationToken)
                 ?? throw new SelectionNotFoundException(request.SelectionId);
-            market = await _marketRepository.GetBySelectionIdAsync(request.SelectionId, cancellationToken);
+            market = await _marketRepository.GetByIdWithSelectionsAsync(market.Id, cancellationToken)
+                ?? await _marketRepository.GetBySelectionIdAsync(request.SelectionId, cancellationToken);
             @event = market is null
                 ? null
                 : await _eventRepository.GetByIdAsync(market.EventId, cancellationToken);
@@ -290,6 +291,16 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
                 }
             }
 
+            // 3b. Actualización atómica de acumuladores de exposición (SelectionLiability)
+            // y Circuit Breaker del 95% bajo el pg_advisory_xact_lock del MarketId.
+            if (market.Selections.Any(s => s.Id == request.SelectionId))
+            {
+                market.RegisterBetExposure(
+                    request.SelectionId,
+                    request.Amount,
+                    currentOdds);
+            }
+
             // 4. Execute domain logic - PlaceBet validates balance, applies Real-First
             // consumption (RealAvailable -> BonusAvailable) and updates ActiveBonus rollover.
             // La versión debe capturarse antes de mutar el agregado: PlaceBet la
@@ -305,16 +316,25 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
                 promoCode?.Code);
             var rolloverJustCompleted = !wasRolloverCompletedBefore && (wallet.ActiveBonus?.IsCompleted ?? false);
 
-            // 5. Persist wallet changes
+            // 5. Persist wallet and market liability changes
             await _walletRepository.UpdateAsync(wallet, expectedVersion, cancellationToken);
+            if (market.Selections.Count > 0)
+            {
+                await _marketRepository.UpdateAsync(market, cancellationToken);
+            }
 
             // 6. Save transaction
             await _transactionRepository.AddAsync(transaction, cancellationToken);
 
-            // 7. Write domain events to outbox
+            // 7. Write domain events to outbox (including MarketSuspendedByRiskDomainEvent if triggered)
             foreach (var domainEvent in wallet.DomainEvents)
             {
                 await _outboxWriter.WriteAsync(domainEvent, cancellationToken);
+            }
+
+            foreach (var marketDomainEvent in market.DomainEvents)
+            {
+                await _outboxWriter.WriteAsync(marketDomainEvent, cancellationToken);
             }
 
             // 8. Record idempotency key
@@ -327,6 +347,7 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
             await _unitOfWork.CommitAsync(cancellationToken);
 
             wallet.ClearDomainEvents();
+            market.ClearDomainEvents();
 
             _logger.LogInformation(
                 "Bet placed successfully for wallet {WalletId}, selection {SelectionId}, amount {Amount} (RealStake={RealStake}, BonusStake={BonusStake})",
@@ -418,6 +439,18 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
                 ex.Message,
                 ErrorCode: "USER_LIMIT_EXCEEDED");
         }
+        catch (RiskLimitExceededException ex)
+        {
+            await _unitOfWork.RollbackAsync(cancellationToken);
+            _logger.LogWarning(ex, "Risk liability limit exceeded for wallet {WalletId}", request.WalletId);
+            return new PlaceBetResult(
+                false,
+                null,
+                null,
+                null,
+                ex.Message,
+                ErrorCode: "EXPOSURE_LIMIT_EXCEEDED");
+        }
         catch (Exception ex)
         {
             await _unitOfWork.RollbackAsync(cancellationToken);
@@ -450,6 +483,7 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
 
     private static long ComputeMarketAdvisoryLockKey(MarketId marketId)
     {
-        return BitConverter.ToInt64(marketId.Value.ToByteArray(), 0);
+        var hash = SHA256.HashData(marketId.Value.ToByteArray());
+        return BitConverter.ToInt64(hash, 0);
     }
 }

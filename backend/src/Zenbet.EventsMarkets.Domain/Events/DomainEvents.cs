@@ -229,3 +229,13 @@ public sealed record MarketResettledDomainEvent(
     string? ResettledBy,
     DateTimeOffset ResettledAt)
     : DomainEvent(ResettledAt, MarketId.Value);
+
+public sealed record MarketSuspendedByRiskDomainEvent(
+    MarketId MarketId,
+    EventId EventId,
+    SelectionId TriggeringSelectionId,
+    Money CurrentLiability,
+    Money MaxLiabilityLimit,
+    decimal UtilizationPercentage,
+    DateTimeOffset OccurredAt)
+    : DomainEvent(OccurredAt, MarketId.Value);

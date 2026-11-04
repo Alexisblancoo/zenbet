@@ -53,6 +53,20 @@ public sealed class MarketConfiguration : IEntityTypeConfiguration<Market>
             .HasDefaultValue(0)
             .IsRequired();
 
+        builder.Property(m => m.MaxLiabilityLimit)
+            .HasConversion(
+                money => money.Amount,
+                amount => new Money(amount))
+            .HasColumnName("max_liability_limit")
+            .HasPrecision(18, 2)
+            .HasDefaultValue(new Money(10000m))
+            .IsRequired();
+
+        builder.Property(m => m.IsSuspendedByRisk)
+            .HasColumnName("is_suspended_by_risk")
+            .HasDefaultValue(false)
+            .IsRequired();
+
         builder.OwnsOne(m => m.Provenance, provenance =>
         {
             provenance.Property(p => p.Provider)
@@ -106,6 +120,8 @@ public sealed class MarketConfiguration : IEntityTypeConfiguration<Market>
         builder.HasIndex(m => m.Status).HasDatabaseName("ix_markets_status");
         builder.HasIndex(m => new { m.EventId, m.Status }).HasDatabaseName("ix_markets_event_id_status");
 
+        builder.Ignore(m => m.CurrentMarketLiability);
+        builder.Ignore(m => m.LiabilityUtilizationPercentage);
         builder.Ignore(m => m.DomainEvents);
     }
 }

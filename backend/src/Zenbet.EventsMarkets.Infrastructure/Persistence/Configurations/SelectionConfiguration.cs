@@ -63,6 +63,31 @@ public sealed class SelectionConfiguration : IEntityTypeConfiguration<Selection>
             .HasColumnName("settlement_result")
             .HasConversion<int>();
 
+        builder.Property(s => s.TotalStaked)
+            .HasConversion(
+                money => money.Amount,
+                amount => new Money(amount))
+            .HasColumnName("total_staked")
+            .HasPrecision(18, 2)
+            .HasDefaultValue(Money.Zero)
+            .IsRequired();
+
+        builder.Property(s => s.CurrentLiability)
+            .HasConversion(
+                money => money.Amount,
+                amount => new Money(amount))
+            .HasColumnName("current_liability")
+            .HasPrecision(18, 2)
+            .HasDefaultValue(Money.Zero)
+            .IsRequired();
+
+        builder.Property(s => s.ActiveBetCount)
+            .HasColumnName("active_bet_count")
+            .HasDefaultValue(0)
+            .IsRequired();
+
+        builder.Ignore(s => s.Liability);
+
         builder.HasIndex("MarketId").HasDatabaseName("ix_selections_market_id");
         builder.HasIndex(s => s.SettlementResult).HasDatabaseName("ix_selections_settlement_result");
     }

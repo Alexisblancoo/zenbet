@@ -4,6 +4,7 @@ using Xunit;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.Enums;
 using Zenbet.EventsMarkets.Domain.Events;
+using Zenbet.EventsMarkets.Domain.Exceptions;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 
 public sealed class SmartBonusRolloverTests
@@ -263,6 +264,34 @@ public sealed class SmartBonusRolloverTests
         Assert.Equal(new Money(100m), wallet.BonusAvailable);
         Assert.Equal(new Money(0m), wallet.RealAvailable);
         Assert.Equal(settlementTx.Id, clawbackTx.ReferenceTransactionId);
+    }
+
+    [Fact]
+    public void RiskEngine_Suspends_Market_At_95_Percent_And_Rejects_Bet_Exceeding_MaxLiabilityLimit()
+    {
+        var selectionA = new Selection(SelectionId.New(), "Fighter A", new Odd(2.00m, DateTimeOffset.UtcNow));
+        var selectionB = new Selection(SelectionId.New(), "Fighter B", new Odd(2.00m, DateTimeOffset.UtcNow));
+        var market = new Market(
+            MarketId.New(),
+            EventId.New(),
+            "Main Event Winner",
+            MarketType.Moneyline,
+            new[] { selectionA, selectionB },
+            maxLiabilityLimit: new Money(1000m));
+
+        // 1. Apuesta de $475 a cuota 2.00 -> Retorno potencial = $950 (95% de $1,000 MaxLiabilityLimit)
+        // Dispara el Circuit Breaker del 95% y emite MarketSuspendedByRiskDomainEvent
+        var liability = market.RegisterBetExposure(selectionA.Id, new Money(475m), 2.00m);
+
+        Assert.Equal(new Money(950m), liability.PotentialPayout);
+        Assert.True(market.IsSuspendedByRisk);
+        Assert.Equal(MarketStatus.Suspended, market.Status);
+        Assert.Contains(market.DomainEvents, e => e is MarketSuspendedByRiskDomainEvent);
+
+        // 2. Apuesta adicional de $50 a cuota 2.00 ($100 retorno -> proyectado $1,050 > $1,000)
+        // Lanza RiskLimitExceededException (MaxMarketExposureExceededException)
+        Assert.ThrowsAny<RiskLimitExceededException>(() =>
+            market.RegisterBetExposure(selectionA.Id, new Money(50m), 2.00m));
     }
 }
 

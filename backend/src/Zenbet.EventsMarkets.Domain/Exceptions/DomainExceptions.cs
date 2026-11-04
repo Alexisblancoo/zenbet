@@ -116,9 +116,30 @@ public sealed class TransactionNotFoundException : DomainException
     }
 }
 
-public abstract class RiskLimitExceededException : DomainException
+public class RiskLimitExceededException : DomainException
 {
-    protected RiskLimitExceededException(string message) : base(message) { }
+    public MarketId? MarketId { get; }
+    public SelectionId? SelectionId { get; }
+    public Money? ProjectedLiability { get; }
+    public Money? MaxLiabilityLimit { get; }
+
+    public RiskLimitExceededException(string message)
+        : base(message)
+    {
+    }
+
+    public RiskLimitExceededException(
+        MarketId marketId,
+        SelectionId selectionId,
+        Money projectedLiability,
+        Money maxLiabilityLimit)
+        : base($"Límite de exposición (Liability) excedido en el mercado {marketId} (selección {selectionId}). Exposición proyectada: {projectedLiability}, Límite máximo: {maxLiabilityLimit}.")
+    {
+        MarketId = marketId;
+        SelectionId = selectionId;
+        ProjectedLiability = projectedLiability;
+        MaxLiabilityLimit = maxLiabilityLimit;
+    }
 }
 
 public sealed class MaxUserBetLimitExceededException : RiskLimitExceededException

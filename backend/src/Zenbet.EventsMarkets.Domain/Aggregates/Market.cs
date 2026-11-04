@@ -9,6 +9,9 @@ using Zenbet.EventsMarkets.Domain.Common;
 
 public sealed class Market : AggregateRoot<MarketId>
 {
+    public const decimal RiskSuspensionThresholdRatio = 0.95m;
+    private static readonly Money DefaultMaxLiabilityLimit = new(10000m);
+
     private readonly List<Selection> _selections = new();
     private MarketStatus _status;
     private SettlementResult? _settlementResultValue;
@@ -25,7 +28,8 @@ public sealed class Market : AggregateRoot<MarketId>
         IReadOnlyList<Selection> selections,
         decimal? line = null,
         int displayOrder = 0,
-        MarketProvenance? provenance = null)
+        MarketProvenance? provenance = null,
+        Money? maxLiabilityLimit = null)
         : base(id)
     {
         EventId = eventId;
@@ -34,6 +38,8 @@ public sealed class Market : AggregateRoot<MarketId>
         Line = line;
         DisplayOrder = displayOrder;
         Provenance = provenance;
+        MaxLiabilityLimit = maxLiabilityLimit is { Amount: > 0m } ? maxLiabilityLimit.Value : DefaultMaxLiabilityLimit;
+        IsSuspendedByRisk = false;
         _status = MarketStatus.Open;
         _selections.AddRange(selections ?? throw new ArgumentNullException(nameof(selections)));
 
@@ -46,10 +52,107 @@ public sealed class Market : AggregateRoot<MarketId>
     public decimal? Line { get; private set; }
     public int DisplayOrder { get; private set; }
     public MarketProvenance? Provenance { get; private set; }
+    public Money MaxLiabilityLimit { get; private set; }
+    public bool IsSuspendedByRisk { get; private set; }
     public MarketStatus Status => _status;
     public SettlementResult? MarketSettlementResult => _settlementResultValue;
     public SelectionId? WinnerSelectionId => _winnerSelectionId;
     public IReadOnlyCollection<Selection> Selections => _selections.AsReadOnly();
+
+    /// <summary>
+    /// Exposición agregada actual del mercado (suma de <see cref="Selection.CurrentLiability"/>).
+    /// </summary>
+    public Money CurrentMarketLiability =>
+        _selections.Aggregate(Money.Zero, static (acc, selection) => acc + selection.CurrentLiability);
+
+    /// <summary>
+    /// Porcentaje de utilización del límite de riesgo (<c>0.00</c> a <c>100.00</c>).
+    /// </summary>
+    public decimal LiabilityUtilizationPercentage =>
+        MaxLiabilityLimit.Amount <= 0m
+            ? 0m
+            : decimal.Round((CurrentMarketLiability.Amount / MaxLiabilityLimit.Amount) * 100m, 2, MidpointRounding.ToEven);
+
+    public void ConfigureMaxLiabilityLimit(Money maxLiabilityLimit)
+    {
+        if (maxLiabilityLimit <= Money.Zero)
+            throw new InvalidTransactionAmountException("MaxLiabilityLimit debe ser mayor a cero.");
+
+        MaxLiabilityLimit = maxLiabilityLimit;
+    }
+
+    /// <summary>
+    /// Regla pura del Motor de Riesgo y Exposición (Circuit Breaker):
+    /// Evalúa si el retorno potencial de la nueva apuesta supera <see cref="MaxLiabilityLimit"/>.
+    /// <list type="bullet">
+    /// <item><description>Si supera el 100% del límite, lanza <see cref="MaxMarketExposureExceededException"/> (subclase de <see cref="RiskLimitExceededException"/>).</description></item>
+    /// <item><description>Si es válido, actualiza atómicamente el acumulador <see cref="SelectionLiability"/> de la selección.</description></item>
+    /// <item><description>Si la exposición acumulada alcanza o supera el 95% (<see cref="RiskSuspensionThresholdRatio"/>), suspende automáticamente el mercado y emite <see cref="MarketSuspendedByRiskDomainEvent"/>.</description></item>
+    /// </list>
+    /// </summary>
+    public SelectionLiability RegisterBetExposure(
+        SelectionId selectionId,
+        Money stake,
+        decimal acceptedOdds,
+        Money? maxLiabilityLimitOverride = null)
+    {
+        if (stake <= Money.Zero)
+            throw new InvalidTransactionAmountException("El monto de la apuesta debe ser positivo.");
+
+        if (acceptedOdds <= 1m)
+            throw new InvalidTransactionAmountException("La cuota aceptada debe ser mayor a 1.00.");
+
+        var selection = _selections.FirstOrDefault(s => s.Id == selectionId)
+            ?? throw new SelectionNotFoundException(selectionId);
+
+        var effectiveLimit = maxLiabilityLimitOverride is { Amount: > 0m }
+            ? maxLiabilityLimitOverride.Value
+            : (MaxLiabilityLimit > Money.Zero ? MaxLiabilityLimit : DefaultMaxLiabilityLimit);
+
+        if (MaxLiabilityLimit <= Money.Zero || (maxLiabilityLimitOverride is { Amount: > 0m } && MaxLiabilityLimit != effectiveLimit))
+        {
+            MaxLiabilityLimit = effectiveLimit;
+        }
+
+        var potentialPayout = new Money(decimal.Round(stake.Amount * acceptedOdds, 2, MidpointRounding.ToEven));
+        var currentExposure = CurrentMarketLiability;
+        var projectedExposure = currentExposure + potentialPayout;
+
+        if (projectedExposure > effectiveLimit)
+        {
+            throw new MaxMarketExposureExceededException(
+                Id,
+                currentExposure,
+                potentialPayout,
+                effectiveLimit);
+        }
+
+        var updatedLiability = selection.RegisterExposure(stake, acceptedOdds);
+
+        var thresholdAmount = decimal.Round(effectiveLimit.Amount * RiskSuspensionThresholdRatio, 2, MidpointRounding.ToEven);
+        if (projectedExposure.Amount >= thresholdAmount && _status == MarketStatus.Open)
+        {
+            IsSuspendedByRisk = true;
+            _status = MarketStatus.Suspended;
+
+            var utilizationPercent = decimal.Round((projectedExposure.Amount / effectiveLimit.Amount) * 100m, 2, MidpointRounding.ToEven);
+
+            AddDomainEvent(new MarketSuspendedByRiskDomainEvent(
+                Id,
+                EventId,
+                selectionId,
+                projectedExposure,
+                effectiveLimit,
+                utilizationPercent,
+                DateTimeOffset.UtcNow));
+
+            AddDomainEvent(new MarketSuspendedDomainEvent(
+                Id,
+                $"Circuit Breaker: Exposición de riesgo alcanzó el {utilizationPercent:F2}% ({projectedExposure}/{effectiveLimit})."));
+        }
+
+        return updatedLiability;
+    }
 
     public void UpdatePresentation(string name, decimal? line, int displayOrder)
     {
@@ -118,6 +221,7 @@ public sealed class Market : AggregateRoot<MarketId>
         if (_status != MarketStatus.Suspended)
             throw new InvalidOperationException($"Cannot resume market in status {_status}");
 
+        IsSuspendedByRisk = false;
         _status = MarketStatus.Open;
         AddDomainEvent(new MarketResumedDomainEvent(Id));
     }
@@ -219,6 +323,9 @@ public sealed class Selection : Entity<SelectionId>
         Code = code;
         DisplayOrder = displayOrder;
         CurrentOdd = initialOdd;
+        TotalStaked = Money.Zero;
+        CurrentLiability = Money.Zero;
+        ActiveBetCount = 0;
         SettlementResult = null;
     }
 
@@ -226,7 +333,22 @@ public sealed class Selection : Entity<SelectionId>
     public string? Code { get; private set; }
     public int DisplayOrder { get; private set; }
     public Odd CurrentOdd { get; private set; }
+    public Money TotalStaked { get; private set; }
+    public Money CurrentLiability { get; private set; }
+    public int ActiveBetCount { get; private set; }
     public SettlementResult? SettlementResult { get; private set; }
+
+    public SelectionLiability Liability =>
+        new(Id, TotalStaked, CurrentLiability, ActiveBetCount);
+
+    public SelectionLiability RegisterExposure(Money stake, decimal acceptedOdds)
+    {
+        var updated = Liability.AccumulateBet(stake, acceptedOdds);
+        TotalStaked = updated.TotalStaked;
+        CurrentLiability = updated.PotentialPayout;
+        ActiveBetCount = updated.ActiveBetCount;
+        return updated;
+    }
 
     public void UpdateMetadata(string name, string? code, int displayOrder)
     {
