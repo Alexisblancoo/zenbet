@@ -1,8 +1,8 @@
 import { memo, useId, useMemo, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, Clock, MapPin, Radio, Shield } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Clock, MapPin, Radio } from 'lucide-react';
 
 import type { SelectionInput } from '@/domain/bets';
-import { formatAmericanOdds, formatDecimalOdds, type OddsQuote } from '@/domain/odds';
+import { formatDecimalOdds, type OddsQuote } from '@/domain/odds';
 import {
   formatFootballClockDisplay,
   formatFootballMatchTime,

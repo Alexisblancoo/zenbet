@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
-using Zenbet.EventsMarkets.Domain.Enums;
 
 public sealed class SelectionConfiguration : IEntityTypeConfiguration<Selection>
 {

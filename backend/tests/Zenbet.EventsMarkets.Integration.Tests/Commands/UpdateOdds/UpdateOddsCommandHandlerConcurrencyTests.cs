@@ -4,8 +4,6 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
 using MediatR;

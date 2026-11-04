@@ -1,5 +1,5 @@
 import { memo, type ComponentType } from 'react';
-import { Database, ArrowLeft, RefreshCw, Radio } from 'lucide-react';
+import { Database, ArrowLeft, Radio } from 'lucide-react';
 
 export interface CyberEmptyStateProps {
   readonly title?: string;

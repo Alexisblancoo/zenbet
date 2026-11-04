@@ -1,10 +1,8 @@
 namespace Zenbet.EventsMarkets.Integration.Tests.Commands.PlaceBet;
 
-using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
 using MediatR;
@@ -12,9 +10,7 @@ using Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 using Zenbet.EventsMarkets.Application.Commands.RequestDeposit;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Aggregates;
-using Zenbet.EventsMarkets.Domain.Events;
 using Zenbet.EventsMarkets.Domain.Enums;
-using Zenbet.EventsMarkets.Domain.Exceptions;
 using Zenbet.EventsMarkets.Domain.Repositories;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 using Zenbet.EventsMarkets.Infrastructure.Persistence;

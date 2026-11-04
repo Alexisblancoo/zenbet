@@ -2,11 +2,9 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Repositories;
 
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.Repositories;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
-using Zenbet.EventsMarkets.Infrastructure.Persistence;
 
 public sealed class SelectionRepository : ISelectionRepository
 {

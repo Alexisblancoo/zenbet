@@ -6,7 +6,7 @@
  * se inyecta desde la capa de servicios (HTTP).
  */
 
-import { roundMoney, type BetReceipt } from './bets';
+import { roundMoney } from './bets';
 
 export type WalletBetStatus = 'pending' | 'won' | 'lost' | 'cancelled';
 export type WalletBetType = 'single' | 'combined';

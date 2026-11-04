@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using FluentValidation;
@@ -16,7 +15,6 @@ using Zenbet.EventsMarkets.Api.Services;
 using Zenbet.EventsMarkets.Application.Behaviors;
 using Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 using Zenbet.EventsMarkets.Application.Interfaces;
-using Zenbet.EventsMarkets.Domain.Exceptions;
 using Zenbet.EventsMarkets.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);

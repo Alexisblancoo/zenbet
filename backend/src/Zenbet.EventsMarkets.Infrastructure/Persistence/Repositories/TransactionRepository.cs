@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Zenbet.EventsMarkets.Domain.Aggregates;
 using Zenbet.EventsMarkets.Domain.Repositories;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
-using Zenbet.EventsMarkets.Infrastructure.Persistence;
 
 public sealed class TransactionRepository : ITransactionRepository
 {

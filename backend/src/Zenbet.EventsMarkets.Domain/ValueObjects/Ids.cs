@@ -1,7 +1,5 @@
 namespace Zenbet.EventsMarkets.Domain.ValueObjects;
 
-using System.Text.Json.Serialization;
-
 public readonly record struct EventId(Guid Value) : IComparable<EventId>, IEquatable<EventId>
 {
     public static EventId New() => new(Guid.NewGuid());

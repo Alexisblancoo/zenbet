@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 using Zenbet.EventsMarkets.Domain.Enums;
-using Zenbet.EventsMarkets.Infrastructure.Persistence;
 
 public sealed class EfRiskManagementService : IRiskManagementService
 {
@@ -51,6 +50,9 @@ public sealed class EfRiskManagementService : IRiskManagementService
         Money amount,
         CancellationToken cancellationToken)
     {
+        // TODO: Reserved for future implementation (per-wallet VIP tier risk limit lookup using walletId and cancellationToken)
+        _ = walletId;
+        _ = cancellationToken;
         var maxLimit = _options.MaxUserBetLimit;
         
         if (amount > maxLimit)

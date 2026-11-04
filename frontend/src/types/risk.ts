@@ -45,6 +45,7 @@ export interface MarketExposureDto {
 /**
  * Utility Type: Vista compacta de estado de suspensión por riesgo (Circuit Breaker)
  * para cabeceras y badges de monitoreo en tiempo real.
+ * // TODO: Reserved for future implementation
  */
 export type MarketRiskSuspensionStateDto = Pick<
   MarketExposureDto,
@@ -59,6 +60,7 @@ export type MarketRiskSuspensionStateDto = Pick<
 
 /**
  * Utility Type: Resumen ligero de tabla de mercados sin el arreglo anidado de selecciones.
+ * // TODO: Reserved for future implementation
  */
 export type MarketExposureSummaryDto = Omit<MarketExposureDto, 'selections'> & {
   readonly selectionCount: number;
@@ -96,6 +98,7 @@ export interface MarketSuspendedByRiskEventDto {
 
 /**
  * Type Guard estricto para identificar mercados suspendidos automáticamente por el Circuit Breaker.
+ * // TODO: Reserved for future implementation
  */
 export function isMarketSuspendedByRisk(
   market: MarketExposureDto

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { CalendarClock, ArrowLeft } from 'lucide-react';
+import { CalendarClock } from 'lucide-react';
 
 import type { SportsbookSportDefinition } from '@/domain/sportsbook';
 import { SPORT_ICONS } from './sportVisuals';

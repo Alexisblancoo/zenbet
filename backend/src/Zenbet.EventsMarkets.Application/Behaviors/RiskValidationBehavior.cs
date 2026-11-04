@@ -4,7 +4,6 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 using Zenbet.EventsMarkets.Application.Interfaces;
-using Zenbet.EventsMarkets.Domain.ValueObjects;
 
 public sealed class RiskValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
