@@ -12,7 +12,7 @@
 | CORS | El backend ya permite `http://localhost:5173` con `AllowCredentials` |
 
 `VITE_HUB_URL` permite apuntar el hub a otro origen; por defecto se deriva de
-`VITE_API_URL` + `/odds-hub` (ej. `http://localhost:5000/odds-hub`).
+`VITE_API_URL` + `/odds-hub` (ej. `http://localhost:5080/odds-hub`).
 
 ## Capas
 

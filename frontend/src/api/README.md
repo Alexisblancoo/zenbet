@@ -80,7 +80,7 @@ la UI recibe el mensaje de saldo insuficiente en `detail`.
 
 ```bash
 # frontend/.env.local
-VITE_API_URL=http://localhost:5000/api/v1
+VITE_API_URL=http://localhost:5080/api/v1
 ```
 
 `VITE_API_BASE_URL` se acepta como fallback de migración.

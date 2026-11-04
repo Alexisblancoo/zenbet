@@ -81,7 +81,7 @@ El backend de apuestas devuelve 422 como `{ success: false, error }`; por eso
 
 ```bash
 # frontend/.env.local
-VITE_API_URL=http://localhost:5000/api/v1
+VITE_API_URL=http://localhost:5080/api/v1
 
 # Solo desarrollo: GUID de una billetera existente para probar el flujo real.
 # VITE_DEV_WALLET_ID=<guid>

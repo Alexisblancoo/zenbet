@@ -18,12 +18,12 @@
 
 ## Endpoint de auth
 
-Por defecto: `VITE_API_URL` + `/auth/*` (p. ej. `http://localhost:5000/api/v1/auth/login`).
+Por defecto: `VITE_API_URL` + `/auth/*` (p. ej. `http://localhost:5080/api/v1/auth/login`).
 
 Mientras la Web API nueva no exponga `/api/v1/auth/*`, se puede apuntar solo auth a la API legacy:
 
 ```dotenv
-VITE_AUTH_URL=http://localhost:5000/api
+VITE_AUTH_URL=http://localhost:5080/api
 ```
 
 `authService` pasa ese `baseURL` por request; el resto de la app sigue usando `VITE_API_URL`.
