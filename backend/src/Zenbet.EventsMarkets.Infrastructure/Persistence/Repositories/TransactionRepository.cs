@@ -46,6 +46,36 @@ public sealed class TransactionRepository : ITransactionRepository
                 cancellationToken);
     }
 
+    public async Task<Transaction?> GetAnyByReferenceIdAsync(
+        WalletId walletId,
+        string referenceId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Transactions
+            .AsNoTracking()
+            .OrderByDescending(transaction => transaction.CreatedAt)
+            .FirstOrDefaultAsync(
+                transaction => transaction.WalletId == walletId
+                    && transaction.ReferenceId == referenceId,
+                cancellationToken);
+    }
+
+    public async Task<Transaction?> GetLatestRgsBetByRoundIdAsync(
+        WalletId walletId,
+        string roundId,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedRound = roundId.Trim().ToUpperInvariant();
+        return await _dbContext.Transactions
+            .AsNoTracking()
+            .Where(
+                transaction => transaction.WalletId == walletId
+                    && transaction.PromoCode == normalizedRound
+                    && transaction.Type == Zenbet.EventsMarkets.Domain.Enums.TransactionType.BetPlacement)
+            .OrderByDescending(transaction => transaction.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<Transaction?> GetDepositByReferenceAsync(
         WalletId walletId,
         string referenceId,
@@ -97,6 +127,37 @@ public sealed class TransactionRepository : ITransactionRepository
                 where EF.Property<MarketId>(selection, "MarketId") == marketId
                 orderby transaction.CreatedAt
                 select transaction)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Transaction>> GetBetsByMarketIdAsync(
+        MarketId marketId,
+        CancellationToken cancellationToken = default)
+    {
+        return await (
+                from transaction in _dbContext.Transactions.AsNoTracking()
+                where transaction.Type == Zenbet.EventsMarkets.Domain.Enums.TransactionType.BetPlacement
+                    && transaction.SelectionId != null
+                join selection in _dbContext.Selections.AsNoTracking()
+                    on transaction.SelectionId!.Value equals selection.Id
+                where EF.Property<MarketId>(selection, "MarketId") == marketId
+                orderby transaction.CreatedAt
+                select transaction)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Transaction>> GetSettlementsByMarketIdAsync(
+        MarketId marketId,
+        CancellationToken cancellationToken = default)
+    {
+        var marketPrefix = $"payout-market-{marketId.Value}-bet-";
+        return await _dbContext.Transactions
+            .AsNoTracking()
+            .Where(t => t.Type == Zenbet.EventsMarkets.Domain.Enums.TransactionType.BetSettlement
+                && t.Status != Zenbet.EventsMarkets.Domain.Enums.TransactionStatus.ClawedBack
+                && t.ReferenceId != null
+                && t.ReferenceId.StartsWith(marketPrefix))
+            .OrderBy(t => t.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 

@@ -67,7 +67,7 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
         builder.Property(t => t.BalanceAfter)
             .HasConversion(
                 money => money.Amount,
-                amount => new Money(amount))
+                amount => Money.Signed(amount))
             .HasColumnName("balance_after")
             .HasPrecision(18, 2)
             .IsRequired();
@@ -79,6 +79,12 @@ public sealed class TransactionConfiguration : IEntityTypeConfiguration<Transact
         builder.Property(t => t.ReferenceId)
             .HasColumnName("reference_id")
             .HasMaxLength(100);
+
+        builder.Property(t => t.ReferenceTransactionId)
+            .HasConversion(
+                id => id.HasValue ? id.Value.Value : (Guid?)null,
+                guid => guid.HasValue ? TransactionId.From(guid.Value) : (TransactionId?)null)
+            .HasColumnName("reference_transaction_id");
 
         builder.Property(t => t.Method)
             .HasColumnName("payment_method")

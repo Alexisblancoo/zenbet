@@ -114,7 +114,8 @@ public enum TransactionType
     BetSettlement = 4,
     BetCancellation = 5,
     Bonus = 6,
-    Adjustment = 7
+    Adjustment = 7,
+    Clawback = 8
 }
 
 public enum TransactionStatus
@@ -124,7 +125,8 @@ public enum TransactionStatus
     Failed = 3,
     Cancelled = 4,
     Approved = 5,
-    Rejected = 6
+    Rejected = 6,
+    ClawedBack = 7
 }
 
 public enum PaymentMethod

@@ -138,8 +138,20 @@ builder.Services.AddMediatR(cfg =>
 // Override notification service with SignalR implementation
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
+// RGS Seamless Wallet options & MVC Controllers
+builder.Services.Configure<RgsOptions>(builder.Configuration.GetSection(RgsOptions.SectionName));
+builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    }
+});
 
 var app = builder.Build();
 
@@ -173,6 +185,9 @@ app.UseCors("DevelopmentCors");
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Validación criptográfica HMAC-SHA256 para pasarela RGS (/api/rgs/*)
+app.UseMiddleware<RgsAuthenticationMiddleware>();
+
 // Apply Rate Limiting
 app.UseRateLimiter();
 
@@ -202,6 +217,7 @@ app.MapPromotionsEndpoints();
 app.MapUpcomingEventsEndpoint();
 app.MapFootballEndpoints();
 app.MapFightersEndpoints();
+app.MapControllers();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTimeOffset.UtcNow }));
 app.MapGet("/healthz", () => Results.Ok(new { status = "healthy", timestamp = DateTimeOffset.UtcNow }));

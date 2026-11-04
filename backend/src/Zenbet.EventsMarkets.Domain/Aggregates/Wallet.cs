@@ -53,7 +53,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
 
     private void SyncBalances()
     {
-        Balance = RealAvailable + BonusAvailable;
+        Balance = Money.Signed(RealAvailable.Amount + BonusAvailable.Amount);
         AtRiskBalance = RealLocked + BonusLocked;
     }
 
@@ -64,7 +64,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
 
         EnsureSplitBalancesInitialized();
 
-        RealAvailable += amount;
+        RealAvailable = Money.Signed(RealAvailable.Amount + amount.Amount);
         SyncBalances();
 
         var transaction = new Transaction(
@@ -102,7 +102,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
 
         EnsureSplitBalancesInitialized();
 
-        RealAvailable += transaction.Amount;
+        RealAvailable = Money.Signed(RealAvailable.Amount + transaction.Amount.Amount);
         SyncBalances();
 
         transaction.Approve(Balance);
@@ -233,15 +233,16 @@ public sealed class Wallet : AggregateRoot<WalletId>
 
         EnsureSplitBalancesInitialized();
 
-        var totalAvailable = RealAvailable + BonusAvailable;
+        var spendableReal = RealAvailable > Money.Zero ? RealAvailable : Money.Zero;
+        var totalAvailable = spendableReal + BonusAvailable;
         if (totalAvailable < amount)
             throw new InsufficientFundsException(Id, amount, totalAvailable);
 
-        // 1. Consumo Real-First: descuenta primero de RealAvailable y completa con BonusAvailable
-        var realStake = RealAvailable >= amount ? amount : RealAvailable;
+        // 1. Consumo Real-First: descuenta primero de RealAvailable positivo y completa con BonusAvailable
+        var realStake = spendableReal >= amount ? amount : spendableReal;
         var bonusStake = amount - realStake;
 
-        RealAvailable -= realStake;
+        RealAvailable = Money.Signed(RealAvailable.Amount - realStake.Amount);
         RealLocked += realStake;
 
         BonusAvailable -= bonusStake;
@@ -307,7 +308,8 @@ public sealed class Wallet : AggregateRoot<WalletId>
             realStake,
             bonusStake,
             description,
-            referenceId ?? betTransaction.Id.Value.ToString());
+            referenceId ?? betTransaction.Id.Value.ToString(),
+            referenceTransactionId: betTransaction.Id);
     }
 
     public Transaction SettleBet(
@@ -316,7 +318,8 @@ public sealed class Wallet : AggregateRoot<WalletId>
         Money realStake,
         Money bonusStake,
         string? description = null,
-        string? referenceId = null)
+        string? referenceId = null,
+        TransactionId? referenceTransactionId = null)
     {
         if (amount <= Money.Zero)
             throw new InvalidTransactionAmountException("Settlement amount must be positive");
@@ -351,7 +354,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
                 realPayout = netAmount;
             }
 
-            RealAvailable += realPayout;
+            RealAvailable = Money.Signed(RealAvailable.Amount + realPayout.Amount);
             BonusAvailable += bonusPayout;
         }
 
@@ -369,7 +372,8 @@ public sealed class Wallet : AggregateRoot<WalletId>
             description,
             referenceId,
             realStake: realPayout,
-            bonusStake: bonusPayout);
+            bonusStake: bonusPayout,
+            referenceTransactionId: referenceTransactionId);
 
         _transactions.Add(transaction);
         Version++;
@@ -432,8 +436,8 @@ public sealed class Wallet : AggregateRoot<WalletId>
             forfeited = BonusAvailable - convertible;
 
             BonusAvailable = Money.Zero;
-            RealAvailable += convertible;
-            ActiveBonus.RecordConversion(convertible);
+            RealAvailable = Money.Signed(RealAvailable.Amount + convertible.Amount);
+            ActiveBonus.RecordConversion(convertible, forfeited);
         }
 
         if (BonusLocked == Money.Zero)
@@ -453,6 +457,154 @@ public sealed class Wallet : AggregateRoot<WalletId>
         }
     }
 
+    /// <summary>
+    /// Ejecuta un Clawback contable sobre una liquidación previa (ej. corrección de VAR o descalificación).
+    /// Permite que <see cref="RealAvailable"/> caiga en negativo (Deuda) si el jugador ya retiró o consumió
+    /// las ganancias, y revierte tanto el progreso del <see cref="ActiveBonus"/> como cualquier conversión
+    /// a saldo Real que haya sido disparada por la apuesta anulada.
+    /// </summary>
+    public Transaction ClawbackSettlement(TransactionId settlementTransactionId, string? reason = null)
+    {
+        var settlementTx = _transactions.FirstOrDefault(t =>
+                t.Id == settlementTransactionId &&
+                t.Type == TransactionType.BetSettlement)
+            ?? throw new InvalidOperationException($"No se encontró la transacción de liquidación {settlementTransactionId}.");
+
+        var originalBetTx = _transactions.FirstOrDefault(t =>
+            t.Type == TransactionType.BetPlacement &&
+            (settlementTx.ReferenceTransactionId == t.Id ||
+             (settlementTx.ReferenceId is not null &&
+              settlementTx.ReferenceId.EndsWith(t.Id.Value.ToString(), StringComparison.OrdinalIgnoreCase))));
+
+        return ClawbackSettlement(settlementTx, originalBetTx, reason);
+    }
+
+    /// <summary>
+    /// Sobrecarga de <see cref="ClawbackSettlement(TransactionId, string?)"/> para operaciones de
+    /// re-liquidación masiva donde las transacciones se cargan desde el repositorio.
+    /// </summary>
+    public Transaction ClawbackSettlement(
+        Transaction settlementTransaction,
+        Transaction? originalBetTransaction = null,
+        string? reason = null,
+        bool revertBonusWager = true)
+    {
+        ArgumentNullException.ThrowIfNull(settlementTransaction);
+
+        if (settlementTransaction.WalletId != Id)
+            throw new InvalidOperationException("La liquidación no pertenece a esta billetera.");
+
+        if (settlementTransaction.Type != TransactionType.BetSettlement)
+            throw new InvalidOperationException("Solo una transacción de tipo BetSettlement puede ser objeto de Clawback.");
+
+        if (settlementTransaction.Status == TransactionStatus.ClawedBack)
+            throw new InvalidOperationException($"La liquidación {settlementTransaction.Id} ya fue revertida mediante Clawback.");
+
+        EnsureSplitBalancesInitialized();
+
+        var bonusConversionReversed = false;
+
+        // 1. Reversión de Bono (WageredAmount y Conversión de Rollover)
+        if (ActiveBonus is not null && revertBonusWager && originalBetTransaction is not null)
+        {
+            var betCountedTowardRollover = !originalBetTransaction.AcceptedOdds.HasValue ||
+                                           originalBetTransaction.AcceptedOdds.Value >= ActiveBonus.MinOdds;
+
+            if (betCountedTowardRollover)
+            {
+                ActiveBonus.RevertWager(originalBetTransaction.Amount);
+
+                if (!ActiveBonus.IsRolloverMet && ActiveBonus.ConvertedAmount > Money.Zero)
+                {
+                    var convertedToReverse = ActiveBonus.ConvertedAmount;
+                    var forfeitedToRestore = ActiveBonus.ForfeitedAmount;
+
+                    // El dinero convertido vuelve a BonusAvailable y se resta de RealAvailable (pudiendo generar deuda)
+                    RealAvailable = Money.Signed(RealAvailable.Amount - convertedToReverse.Amount);
+                    BonusAvailable += convertedToReverse + forfeitedToRestore;
+
+                    ActiveBonus.RevertConversion();
+                    bonusConversionReversed = true;
+                }
+                else if (!ActiveBonus.IsRolloverMet && ActiveBonus.IsCompleted)
+                {
+                    ActiveBonus.RevertConversion();
+                }
+            }
+        }
+
+        // 2. Descuento del pago anulado con soporte de Saldo Negativo (Deuda en RealAvailable)
+        var realPayout = settlementTransaction.RealStake;
+        var bonusPayout = settlementTransaction.BonusStake;
+
+        if (realPayout == Money.Zero && bonusPayout == Money.Zero && settlementTransaction.Amount > Money.Zero)
+        {
+            realPayout = settlementTransaction.Amount;
+        }
+
+        var bonusRecovered = BonusAvailable >= bonusPayout ? bonusPayout : BonusAvailable;
+        var unrecoveredBonusShortfall = bonusPayout - bonusRecovered;
+        BonusAvailable -= bonusRecovered;
+
+        // Si BonusAvailable tampoco alcanza (porque el jugador ya gastó ese bono), el déficit se cobra a RealAvailable
+        var totalRealClawback = realPayout + unrecoveredBonusShortfall;
+        RealAvailable = Money.Signed(RealAvailable.Amount - totalRealClawback.Amount);
+
+        // 3. Reabrir la apuesta original y restaurar su bloqueo hasta que se aplique el nuevo resultado
+        if (originalBetTransaction is not null)
+        {
+            var origReal = originalBetTransaction.RealStake;
+            var origBonus = originalBetTransaction.BonusStake;
+            if (origReal == Money.Zero && origBonus == Money.Zero && originalBetTransaction.Amount > Money.Zero)
+            {
+                origReal = originalBetTransaction.Amount;
+            }
+
+            RealLocked += origReal;
+            BonusLocked += origBonus;
+            originalBetTransaction.ReopenForResettlement();
+        }
+
+        settlementTransaction.MarkClawedBack(reason);
+        SyncBalances();
+
+        var clawbackDescription = string.IsNullOrWhiteSpace(reason)
+            ? $"VAR Clawback · Anulación de liquidación {settlementTransaction.Id.Value}"
+            : $"VAR Clawback ({reason.Trim()}) · Liquidación {settlementTransaction.Id.Value}";
+
+        var clawbackTransaction = new Transaction(
+            TransactionId.New(),
+            Id,
+            UserId,
+            TransactionType.Clawback,
+            settlementTransaction.Amount,
+            Balance,
+            clawbackDescription,
+            $"CLAWBACK:{settlementTransaction.Id.Value}",
+            realStake: totalRealClawback,
+            bonusStake: bonusRecovered,
+            referenceTransactionId: settlementTransaction.Id);
+        clawbackTransaction.Complete();
+
+        _transactions.Add(clawbackTransaction);
+        Version++;
+
+        AddDomainEvent(new SettlementClawedBackDomainEvent(
+            Id,
+            UserId,
+            clawbackTransaction.Id,
+            settlementTransaction.Id,
+            settlementTransaction.Amount,
+            RealAvailable,
+            BonusAvailable,
+            Balance,
+            bonusConversionReversed,
+            reason,
+            DateTimeOffset.UtcNow));
+
+        return clawbackTransaction;
+    }
+
     public Transaction CancelBet(Money amount, string? description = null, string? referenceId = null)
     {
         if (amount <= Money.Zero)
@@ -469,7 +621,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
         {
             RealLocked = RealLocked >= matchingBet.RealStake ? RealLocked - matchingBet.RealStake : Money.Zero;
             BonusLocked = BonusLocked >= matchingBet.BonusStake ? BonusLocked - matchingBet.BonusStake : Money.Zero;
-            RealAvailable += matchingBet.RealStake;
+            RealAvailable = Money.Signed(RealAvailable.Amount + matchingBet.RealStake.Amount);
             BonusAvailable += matchingBet.BonusStake;
         }
         else
@@ -478,7 +630,7 @@ public sealed class Wallet : AggregateRoot<WalletId>
             var unlockBonus = amount - unlockReal;
             RealLocked -= unlockReal;
             BonusLocked = BonusLocked >= unlockBonus ? BonusLocked - unlockBonus : Money.Zero;
-            RealAvailable += unlockReal;
+            RealAvailable = Money.Signed(RealAvailable.Amount + unlockReal.Amount);
             BonusAvailable += unlockBonus;
         }
 
@@ -567,6 +719,202 @@ public sealed class Wallet : AggregateRoot<WalletId>
         AddDomainEvent(new WalletAdjustedDomainEvent(Id, UserId, amount, Balance, transaction.Id, DateTimeOffset.UtcNow));
         return transaction;
     }
+
+    public Transaction PlaceRgsBet(
+        Money amount,
+        string providerTransactionId,
+        string gameId,
+        string roundId,
+        string? description = null)
+    {
+        if (amount <= Money.Zero)
+            throw new InvalidTransactionAmountException("RGS bet amount must be positive");
+
+        if (string.IsNullOrWhiteSpace(providerTransactionId))
+            throw new ArgumentException("ProviderTransactionId is required", nameof(providerTransactionId));
+
+        EnsureSplitBalancesInitialized();
+
+        var spendableReal = RealAvailable > Money.Zero ? RealAvailable : Money.Zero;
+        var totalAvailable = spendableReal + BonusAvailable;
+        if (totalAvailable < amount)
+            throw new InsufficientFundsException(Id, amount, totalAvailable);
+
+        // Consumo Real-First: deduce primero de RealAvailable positivo y completa con BonusAvailable
+        var realStake = spendableReal >= amount ? amount : spendableReal;
+        var bonusStake = amount - realStake;
+
+        RealAvailable = Money.Signed(RealAvailable.Amount - realStake.Amount);
+        BonusAvailable -= bonusStake;
+
+        if (ActiveBonus is { IsCompleted: false })
+        {
+            ActiveBonus.AddWager(amount);
+            TryConvertRolloverBonus();
+        }
+
+        SyncBalances();
+
+        var transaction = new Transaction(
+            TransactionId.New(),
+            Id,
+            UserId,
+            TransactionType.BetPlacement,
+            amount,
+            Balance,
+            description ?? $"RGS Bet · Game {gameId} · Round {roundId}",
+            providerTransactionId.Trim(),
+            promoCode: roundId,
+            betStatus: BetStatus.Pending,
+            realStake: realStake,
+            bonusStake: bonusStake);
+        transaction.Complete();
+
+        _transactions.Add(transaction);
+        Version++;
+
+        AddDomainEvent(new BetPlacedDomainEvent(Id, UserId, amount, Balance, transaction.Id, DateTimeOffset.UtcNow));
+        return transaction;
+    }
+
+    public Transaction CreditRgsWin(
+        Money winAmount,
+        string providerTransactionId,
+        Transaction? originalBetTransaction,
+        string gameId,
+        string roundId,
+        string? description = null)
+    {
+        if (winAmount < Money.Zero)
+            throw new InvalidTransactionAmountException("RGS win amount cannot be negative");
+
+        if (string.IsNullOrWhiteSpace(providerTransactionId))
+            throw new ArgumentException("ProviderTransactionId is required", nameof(providerTransactionId));
+
+        EnsureSplitBalancesInitialized();
+
+        Money realPayout = Money.Zero;
+        Money bonusPayout = Money.Zero;
+
+        if (winAmount > Money.Zero)
+        {
+            var realStake = originalBetTransaction?.RealStake ?? Money.Zero;
+            var bonusStake = originalBetTransaction?.BonusStake ?? Money.Zero;
+            var totalStakeAmount = realStake.Amount + bonusStake.Amount;
+
+            if (totalStakeAmount > 0m && bonusStake > Money.Zero)
+            {
+                var realRatio = realStake.Amount / totalStakeAmount;
+                var calculatedReal = decimal.Round(winAmount.Amount * realRatio, 2, MidpointRounding.ToEven);
+                realPayout = new Money(calculatedReal);
+                bonusPayout = winAmount - realPayout;
+            }
+            else
+            {
+                realPayout = winAmount;
+            }
+
+            RealAvailable = Money.Signed(RealAvailable.Amount + realPayout.Amount);
+            BonusAvailable += bonusPayout;
+        }
+
+        TryConvertRolloverBonus();
+        SyncBalances();
+
+        var transaction = new Transaction(
+            TransactionId.New(),
+            Id,
+            UserId,
+            TransactionType.BetSettlement,
+            winAmount,
+            Balance,
+            description ?? $"RGS Win · Game {gameId} · Round {roundId}",
+            providerTransactionId.Trim(),
+            promoCode: roundId,
+            realStake: realPayout,
+            bonusStake: bonusPayout,
+            referenceTransactionId: originalBetTransaction?.Id);
+        transaction.Complete();
+
+        _transactions.Add(transaction);
+        Version++;
+
+        AddDomainEvent(new BetSettledDomainEvent(Id, UserId, winAmount, Balance, transaction.Id, DateTimeOffset.UtcNow));
+        return transaction;
+    }
+
+    public Transaction RollbackRgsBet(
+        string providerTransactionId,
+        Transaction? existingBetTransaction,
+        string? roundId = null,
+        string? description = null)
+    {
+        if (string.IsNullOrWhiteSpace(providerTransactionId))
+            throw new ArgumentException("ProviderTransactionId is required", nameof(providerTransactionId));
+
+        EnsureSplitBalancesInitialized();
+
+        // Patrón Tombstone: si la apuesta original nunca llegó por timeout de red,
+        // registramos una lápida (Tombstone) con el mismo ReferenceId para bloquear
+        // cualquier reintento tardío del proveedor.
+        if (existingBetTransaction is null)
+        {
+            var tombstone = new Transaction(
+                TransactionId.New(),
+                Id,
+                UserId,
+                TransactionType.BetCancellation,
+                Money.Zero,
+                Balance,
+                description ?? $"RGS_TOMBSTONE · Rollback preventivo para {providerTransactionId.Trim()}",
+                providerTransactionId.Trim(),
+                promoCode: roundId,
+                betStatus: BetStatus.Void,
+                realStake: Money.Zero,
+                bonusStake: Money.Zero);
+            tombstone.Cancel();
+
+            _transactions.Add(tombstone);
+            Version++;
+            return tombstone;
+        }
+
+        var realRefund = existingBetTransaction.RealStake;
+        var bonusRefund = existingBetTransaction.BonusStake;
+
+        if (realRefund == Money.Zero && bonusRefund == Money.Zero && existingBetTransaction.Amount > Money.Zero)
+        {
+            realRefund = existingBetTransaction.Amount;
+        }
+
+        RealAvailable = Money.Signed(RealAvailable.Amount + realRefund.Amount);
+        BonusAvailable += bonusRefund;
+        SyncBalances();
+
+        existingBetTransaction.MarkRgsRolledBack();
+
+        var rollbackTx = new Transaction(
+            TransactionId.New(),
+            Id,
+            UserId,
+            TransactionType.BetCancellation,
+            existingBetTransaction.Amount,
+            Balance,
+            description ?? $"RGS Rollback · Tx {providerTransactionId.Trim()}",
+            $"ROLLBACK:{providerTransactionId.Trim()}",
+            promoCode: roundId ?? existingBetTransaction.PromoCode,
+            betStatus: BetStatus.Void,
+            realStake: realRefund,
+            bonusStake: bonusRefund,
+            referenceTransactionId: existingBetTransaction.Id);
+        rollbackTx.Complete();
+
+        _transactions.Add(rollbackTx);
+        Version++;
+
+        AddDomainEvent(new BetCancelledDomainEvent(Id, UserId, existingBetTransaction.Amount, Balance, rollbackTx.Id, DateTimeOffset.UtcNow));
+        return rollbackTx;
+    }
 }
 
 public sealed class ActiveBonus : Entity<BonusId>
@@ -600,6 +948,7 @@ public sealed class ActiveBonus : Entity<BonusId>
         MinOdds = minOdds;
         MaxConversion = maxConversion;
         ConvertedAmount = Money.Zero;
+        ForfeitedAmount = Money.Zero;
         IsCompleted = false;
         CreatedAt = DateTimeOffset.UtcNow;
     }
@@ -610,6 +959,7 @@ public sealed class ActiveBonus : Entity<BonusId>
     public required decimal MinOdds { get; init; }
     public required Money MaxConversion { get; init; }
     public Money ConvertedAmount { get; private set; }
+    public Money ForfeitedAmount { get; private set; }
     public bool IsCompleted { get; private set; }
     public required DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? CompletedAt { get; private set; }
@@ -629,12 +979,35 @@ public sealed class ActiveBonus : Entity<BonusId>
         WageredAmount += stake;
     }
 
-    public void RecordConversion(Money convertedRealAmount)
+    public void RevertWager(Money stake)
     {
-        if (convertedRealAmount <= Money.Zero)
+        if (stake <= Money.Zero)
             return;
 
-        ConvertedAmount += convertedRealAmount;
+        WageredAmount = WageredAmount >= stake
+            ? WageredAmount - stake
+            : Money.Zero;
+    }
+
+    public void RecordConversion(Money convertedRealAmount, Money? forfeitedBonusAmount = null)
+    {
+        if (convertedRealAmount > Money.Zero)
+        {
+            ConvertedAmount += convertedRealAmount;
+        }
+
+        if (forfeitedBonusAmount.HasValue && forfeitedBonusAmount.Value > Money.Zero)
+        {
+            ForfeitedAmount += forfeitedBonusAmount.Value;
+        }
+    }
+
+    public void RevertConversion()
+    {
+        ConvertedAmount = Money.Zero;
+        ForfeitedAmount = Money.Zero;
+        IsCompleted = false;
+        CompletedAt = null;
     }
 
     public void MarkCompleted()
@@ -667,7 +1040,8 @@ public sealed class Transaction : Entity<TransactionId>
         string? promoCode = null,
         BetStatus? betStatus = null,
         Money? realStake = null,
-        Money? bonusStake = null)
+        Money? bonusStake = null,
+        TransactionId? referenceTransactionId = null)
         : base(id)
     {
         WalletId = walletId;
@@ -677,6 +1051,7 @@ public sealed class Transaction : Entity<TransactionId>
         BalanceAfter = balanceAfter;
         Description = description;
         ReferenceId = referenceId;
+        ReferenceTransactionId = referenceTransactionId;
         Method = method;
         SelectionId = selectionId;
         AcceptedOdds = acceptedOdds;
@@ -697,6 +1072,12 @@ public sealed class Transaction : Entity<TransactionId>
     public Money BalanceAfter { get; private set; }
     public string? Description { get; init; }
     public string? ReferenceId { get; init; }
+
+    /// <summary>
+    /// Puntero contable hacia la transacción original (ej. de un <see cref="TransactionType.Clawback"/>
+    /// hacia el <see cref="TransactionType.BetSettlement"/> anulado, o de una liquidación hacia su apuesta).
+    /// </summary>
+    public TransactionId? ReferenceTransactionId { get; private set; }
     public PaymentMethod? Method { get; init; }
     public SelectionId? SelectionId { get; init; }
 
@@ -815,5 +1196,29 @@ public sealed class Transaction : Entity<TransactionId>
             throw new InvalidOperationException($"Cannot cancel transaction in status {Status}");
 
         Status = TransactionStatus.Cancelled;
+    }
+
+    public void MarkRgsRolledBack()
+    {
+        BetStatus = Zenbet.EventsMarkets.Domain.Enums.BetStatus.Void;
+        Status = TransactionStatus.Cancelled;
+        CompletedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void MarkClawedBack(string? reason = null)
+    {
+        if (Type != TransactionType.BetSettlement)
+            throw new InvalidOperationException("Solo una liquidación de apuesta puede marcarse como ClawedBack.");
+
+        Status = TransactionStatus.ClawedBack;
+        FailureReason = string.IsNullOrWhiteSpace(reason) ? "Revertida por Clawback (VAR)" : reason.Trim();
+    }
+
+    public void ReopenForResettlement()
+    {
+        if (Type != TransactionType.BetPlacement)
+            throw new InvalidOperationException("Solo un cargo de apuesta puede reabrirse para re-liquidación.");
+
+        BetStatus = Zenbet.EventsMarkets.Domain.Enums.BetStatus.Pending;
     }
 }

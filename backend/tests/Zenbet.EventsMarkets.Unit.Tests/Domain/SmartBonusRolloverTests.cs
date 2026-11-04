@@ -143,5 +143,126 @@ public sealed class SmartBonusRolloverTests
         Assert.Equal(new Money(0m), wallet.BonusAvailable);
         Assert.Contains(wallet.DomainEvents, e => e is BonusRolloverCompletedDomainEvent);
     }
+
+    [Fact]
+    public void RgsSeamlessWallet_Bet_Win_And_TombstoneRollback_Enforce_Proportional_And_AntiAbuse_Rules()
+    {
+        var wallet = new Wallet(WalletId.New(), UserId.New());
+        wallet.Deposit(new Money(80m), "Depósito real");
+        wallet.GrantBonus(
+            bonusAmount: new Money(50m),
+            wageringRequirement: new Money(500m),
+            minOdds: 1.50m,
+            maxConversion: new Money(200m));
+
+        // 1. RGS Bet de $100 (Real-First: $80 Real + $20 Bono)
+        var rgsBet = wallet.PlaceRgsBet(
+            amount: new Money(100m),
+            providerTransactionId: "PRAG-BET-001",
+            gameId: "gates-of-olympus",
+            roundId: "ROUND-100");
+
+        Assert.Equal(new Money(0m), wallet.RealAvailable);
+        Assert.Equal(new Money(30m), wallet.BonusAvailable);
+        Assert.Equal(new Money(80m), rgsBet.RealStake);
+        Assert.Equal(new Money(20m), rgsBet.BonusStake);
+
+        // 2. RGS Win de $250 sobre la apuesta mixta (80% Real = $200, 20% Bono = $50)
+        var rgsWin = wallet.CreditRgsWin(
+            winAmount: new Money(250m),
+            providerTransactionId: "PRAG-WIN-001",
+            originalBetTransaction: rgsBet,
+            gameId: "gates-of-olympus",
+            roundId: "ROUND-100");
+
+        Assert.Equal(new Money(200m), wallet.RealAvailable);
+        Assert.Equal(new Money(80m), wallet.BonusAvailable); // $30 + $50
+        Assert.Equal(new Money(200m), rgsWin.RealStake);
+        Assert.Equal(new Money(50m), rgsWin.BonusStake);
+
+        // 3. Tombstone Rollback cuando la apuesta nunca llegó por timeout
+        var tombstone = wallet.RollbackRgsBet(
+            providerTransactionId: "PRAG-TIMEOUT-999",
+            existingBetTransaction: null,
+            roundId: "ROUND-101");
+
+        Assert.Equal(TransactionType.BetCancellation, tombstone.Type);
+        Assert.Equal(TransactionStatus.Cancelled, tombstone.Status);
+        Assert.Equal(new Money(0m), tombstone.Amount);
+        Assert.Equal(new Money(280m), wallet.Balance);
+    }
+
+    [Fact]
+    public void ClawbackSettlement_When_Player_Withdrew_Winnings_Puts_RealAvailable_Into_Negative_Debt_And_Links_ReferenceTransactionId()
+    {
+        var wallet = new Wallet(WalletId.New(), UserId.New());
+        wallet.Deposit(new Money(100m), "Depósito inicial");
+
+        var betTx = wallet.PlaceBet(
+            amount: new Money(100m),
+            selectionId: SelectionId.New(),
+            description: "Apuesta antes de VAR",
+            acceptedOdds: 2.50m);
+
+        var settlementTx = wallet.SettleBet(
+            betTx,
+            payoutAmount: new Money(250m),
+            result: SettlementResult.Won,
+            description: "Pago inicial pre-VAR");
+
+        // El jugador retira $200 de los $250 ganados -> le quedan $50 en RealAvailable
+        wallet.Withdraw(new Money(200m), "Retiro rápido");
+        Assert.Equal(new Money(50m), wallet.RealAvailable);
+
+        // El VAR anula la victoria ($250): $50 - $250 = -$200.00 (Deuda en RealAvailable)
+        var clawbackTx = wallet.ClawbackSettlement(settlementTx.Id, "Decisión VAR: Gol anulado");
+
+        Assert.True(wallet.RealAvailable.IsNegative);
+        Assert.Equal(-200m, wallet.RealAvailable.Amount);
+        Assert.Equal(TransactionType.Clawback, clawbackTx.Type);
+        Assert.Equal(settlementTx.Id, clawbackTx.ReferenceTransactionId);
+        Assert.Equal(TransactionStatus.ClawedBack, settlementTx.Status);
+    }
+
+    [Fact]
+    public void ClawbackSettlement_Reverts_ActiveBonus_WageredAmount_And_Undoes_Rollover_Conversion()
+    {
+        var wallet = new Wallet(WalletId.New(), UserId.New());
+        wallet.Deposit(new Money(100m), "Depósito real");
+        wallet.GrantBonus(
+            bonusAmount: new Money(100m),
+            wageringRequirement: new Money(100m),
+            minOdds: 1.50m,
+            maxConversion: new Money(100m));
+
+        // Apuesta de $100 Real a cuota 2.00 cumple el 100% del rollover ($100/$100)
+        // y convierte los $100 de BonusAvailable a RealAvailable
+        var betTx = wallet.PlaceBet(
+            amount: new Money(100m),
+            selectionId: SelectionId.New(),
+            description: "Apuesta que completa rollover",
+            acceptedOdds: 2.00m);
+
+        Assert.True(wallet.ActiveBonus!.IsCompleted);
+        Assert.Equal(new Money(100m), wallet.RealAvailable);
+        Assert.Equal(new Money(0m), wallet.BonusAvailable);
+
+        var settlementTx = wallet.SettleBet(
+            betTx,
+            payoutAmount: new Money(200m),
+            result: SettlementResult.Won);
+
+        Assert.Equal(new Money(300m), wallet.RealAvailable);
+
+        // Clawback revierte el pago ($200) Y deshace la conversión del bono ($100 vuelve a BonusAvailable)
+        var clawbackTx = wallet.ClawbackSettlement(settlementTx.Id, "Descalificación oficial");
+
+        Assert.False(wallet.ActiveBonus.IsCompleted);
+        Assert.Equal(new Money(0m), wallet.ActiveBonus.WageredAmount);
+        Assert.Equal(new Money(0m), wallet.ActiveBonus.ConvertedAmount);
+        Assert.Equal(new Money(100m), wallet.BonusAvailable);
+        Assert.Equal(new Money(0m), wallet.RealAvailable);
+        Assert.Equal(settlementTx.Id, clawbackTx.ReferenceTransactionId);
+    }
 }
 

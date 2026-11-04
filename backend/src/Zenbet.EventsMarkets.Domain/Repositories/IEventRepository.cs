@@ -82,6 +82,14 @@ public interface ITransactionRepository
         WalletId walletId,
         string referenceId,
         CancellationToken cancellationToken = default);
+    Task<Transaction?> GetAnyByReferenceIdAsync(
+        WalletId walletId,
+        string referenceId,
+        CancellationToken cancellationToken = default);
+    Task<Transaction?> GetLatestRgsBetByRoundIdAsync(
+        WalletId walletId,
+        string roundId,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Depósito previo de la billetera con esa referencia (cualquier estado).</summary>
     Task<Transaction?> GetDepositByReferenceAsync(
@@ -100,6 +108,12 @@ public interface ITransactionRepository
         int limit = 100,
         CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Transaction>> GetPendingBetsByMarketIdAsync(
+        MarketId marketId,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Transaction>> GetBetsByMarketIdAsync(
+        MarketId marketId,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Transaction>> GetSettlementsByMarketIdAsync(
         MarketId marketId,
         CancellationToken cancellationToken = default);
     Task AddAsync(Transaction transaction, CancellationToken cancellationToken = default);

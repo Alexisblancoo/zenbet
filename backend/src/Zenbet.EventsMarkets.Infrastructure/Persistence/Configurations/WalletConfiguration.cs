@@ -31,7 +31,7 @@ public sealed class WalletConfiguration : IEntityTypeConfiguration<Wallet>
         builder.Property(w => w.RealAvailable)
             .HasConversion(
                 money => money.Amount,
-                amount => new Money(amount))
+                amount => Money.Signed(amount))
             .HasColumnName("real_available")
             .HasPrecision(18, 2)
             .IsRequired();
@@ -63,7 +63,7 @@ public sealed class WalletConfiguration : IEntityTypeConfiguration<Wallet>
         builder.Property(w => w.Balance)
             .HasConversion(
                 money => money.Amount,
-                amount => new Money(amount))
+                amount => Money.Signed(amount))
             .HasColumnName("balance")
             .HasPrecision(18, 2)
             .IsRequired();
@@ -121,6 +121,13 @@ public sealed class WalletConfiguration : IEntityTypeConfiguration<Wallet>
                     money => money.Amount,
                     amount => new Money(amount))
                 .HasColumnName("active_bonus_converted_amount")
+                .HasPrecision(18, 2);
+
+            bonus.Property(b => b.ForfeitedAmount)
+                .HasConversion(
+                    money => money.Amount,
+                    amount => new Money(amount))
+                .HasColumnName("active_bonus_forfeited_amount")
                 .HasPrecision(18, 2);
 
             bonus.Property(b => b.IsCompleted)

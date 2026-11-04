@@ -146,6 +146,50 @@ public sealed class Market : AggregateRoot<MarketId>
         AddDomainEvent(new MarketSettledDomainEvent(Id, EventId, winnerSelectionId, result, settledBy, DateTimeOffset.UtcNow));
     }
 
+    /// <summary>
+    /// Re-liquida un mercado previamente cerrado o anulado ante una corrección oficial
+    /// (ej. fallo de VAR, descalificación post-combate o rectificación del feed oficial).
+    /// </summary>
+    public void Resettle(
+        SelectionId newWinnerSelectionId,
+        SettlementResult newResult,
+        string reason,
+        string? resettledBy = null)
+    {
+        if (_status is not MarketStatus.Settled and not MarketStatus.Void)
+            throw new InvalidOperationException($"Solo un mercado liquidado o anulado puede re-liquidarse (estado actual: {_status}).");
+
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new ArgumentException("Se requiere un motivo oficial de auditoría para re-liquidar el mercado.", nameof(reason));
+
+        if (!_selections.Any(s => s.Id == newWinnerSelectionId))
+            throw new SelectionNotFoundException(newWinnerSelectionId);
+
+        var previousWinnerId = _winnerSelectionId;
+        _status = newResult is SettlementResult.Void ? MarketStatus.Void : MarketStatus.Settled;
+        _settlementResultValue = newResult;
+        _winnerSelectionId = newWinnerSelectionId;
+
+        foreach (var selection in _selections)
+        {
+            var selectionResult = newResult is SettlementResult.Void or SettlementResult.Push
+                ? newResult
+                : (selection.Id == newWinnerSelectionId ? SettlementResult.Won : SettlementResult.Lost);
+
+            selection.Settle(selectionResult);
+        }
+
+        AddDomainEvent(new MarketResettledDomainEvent(
+            Id,
+            EventId,
+            previousWinnerId,
+            newWinnerSelectionId,
+            newResult,
+            reason.Trim(),
+            resettledBy,
+            DateTimeOffset.UtcNow));
+    }
+
     public void Void(string reason, string? voidedBy = null)
     {
         if (_status == MarketStatus.Settled)

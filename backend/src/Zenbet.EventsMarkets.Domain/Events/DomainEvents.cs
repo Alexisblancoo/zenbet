@@ -204,3 +204,28 @@ public sealed record WalletAdjustedDomainEvent(
     TransactionId TransactionId,
     DateTimeOffset OccurredAt)
     : DomainEvent(OccurredAt, WalletId.Value);
+
+public sealed record SettlementClawedBackDomainEvent(
+    WalletId WalletId,
+    UserId UserId,
+    TransactionId ClawbackTransactionId,
+    TransactionId OriginalSettlementTransactionId,
+    Money ClawedBackAmount,
+    Money NewRealAvailable,
+    Money NewBonusAvailable,
+    Money NewBalance,
+    bool BonusConversionReversed,
+    string? Reason,
+    DateTimeOffset OccurredAt)
+    : DomainEvent(OccurredAt, WalletId.Value);
+
+public sealed record MarketResettledDomainEvent(
+    MarketId MarketId,
+    EventId EventId,
+    SelectionId? PreviousWinnerSelectionId,
+    SelectionId NewWinnerSelectionId,
+    SettlementResult NewResult,
+    string Reason,
+    string? ResettledBy,
+    DateTimeOffset ResettledAt)
+    : DomainEvent(ResettledAt, MarketId.Value);

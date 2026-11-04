@@ -12,6 +12,19 @@ public readonly record struct Money : IComparable<Money>
         Amount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
     }
 
+    private Money(decimal amount, bool _)
+    {
+        Amount = Math.Round(amount, 2, MidpointRounding.AwayFromZero);
+    }
+
+    /// <summary>
+    /// Crea una instancia de <see cref="Money"/> que permite saldos negativos
+    /// (ej. deuda contable en <c>RealAvailable</c> tras un Clawback de re-liquidación VAR).
+    /// </summary>
+    public static Money Signed(decimal amount) => new(amount, true);
+
+    public bool IsNegative => Amount < 0m;
+
     public static Money Zero => new(0m);
 
     public static implicit operator decimal(Money money) => money.Amount;
