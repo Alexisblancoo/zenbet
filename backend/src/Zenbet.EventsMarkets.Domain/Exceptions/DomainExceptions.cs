@@ -130,15 +130,30 @@ public class RiskLimitExceededException : DomainException
 
     public RiskLimitExceededException(
         MarketId marketId,
-        SelectionId selectionId,
-        Money projectedLiability,
-        Money maxLiabilityLimit)
-        : base($"Límite de exposición (Liability) excedido en el mercado {marketId} (selección {selectionId}). Exposición proyectada: {projectedLiability}, Límite máximo: {maxLiabilityLimit}.")
+        string message,
+        SelectionId? selectionId = null,
+        Money? projectedLiability = null,
+        Money? maxLiabilityLimit = null)
+        : base(message)
     {
         MarketId = marketId;
         SelectionId = selectionId;
         ProjectedLiability = projectedLiability;
         MaxLiabilityLimit = maxLiabilityLimit;
+    }
+
+    public RiskLimitExceededException(
+        MarketId marketId,
+        SelectionId selectionId,
+        Money projectedLiability,
+        Money maxLiabilityLimit)
+        : this(
+            marketId,
+            $"Límite de exposición (Liability) excedido en el mercado {marketId} (selección {selectionId}). Exposición proyectada: {projectedLiability}, Límite máximo: {maxLiabilityLimit}.",
+            selectionId,
+            projectedLiability,
+            maxLiabilityLimit)
+    {
     }
 }
 
@@ -159,15 +174,16 @@ public sealed class MaxUserBetLimitExceededException : RiskLimitExceededExceptio
 
 public sealed class MaxMarketExposureExceededException : RiskLimitExceededException
 {
-    public MarketId MarketId { get; }
     public Money CurrentExposure { get; }
     public Money NewExposure { get; }
     public Money MaxExposure { get; }
 
     public MaxMarketExposureExceededException(MarketId marketId, Money currentExposure, Money newExposure, Money maxExposure)
-        : base($"Market {marketId} exposure limit exceeded. Current: {currentExposure}, New bet would add: {newExposure}, Max allowed: {maxExposure}")
+        : base(
+            marketId,
+            $"Market {marketId} exposure limit exceeded. Current: {currentExposure}, New bet would add: {newExposure}, Max allowed: {maxExposure}",
+            maxLiabilityLimit: maxExposure)
     {
-        MarketId = marketId;
         CurrentExposure = currentExposure;
         NewExposure = newExposure;
         MaxExposure = maxExposure;
