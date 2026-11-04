@@ -33,6 +33,11 @@ public sealed class GetWalletDashboardQueryHandler
             balances.AtRiskBalance,
             bets,
             transactions,
-            DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow,
+            balances.RealAvailable,
+            balances.BonusAvailable,
+            balances.RealLocked,
+            balances.BonusLocked,
+            balances.ActiveBonus);
     }
 }

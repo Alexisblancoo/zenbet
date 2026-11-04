@@ -26,13 +26,35 @@ public sealed class WalletReadRepository : IWalletReadRepository
     {
         var id = WalletId.From(walletId);
 
-        return await _dbContext.Wallets
+        var wallet = await _dbContext.Wallets
             .AsNoTracking()
-            .Where(candidate => candidate.Id == id)
-            .Select(candidate => new WalletBalancesDto(
-                candidate.Balance.Amount,
-                candidate.AtRiskBalance.Amount))
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+
+        if (wallet is null) return null;
+
+        var activeBonus = wallet.ActiveBonus is null
+            ? null
+            : new ActiveBonusDto(
+                wallet.ActiveBonus.Id.Value,
+                wallet.ActiveBonus.InitialAmount.Amount,
+                wallet.ActiveBonus.WageringRequirement.Amount,
+                wallet.ActiveBonus.WageredAmount.Amount,
+                wallet.ActiveBonus.MinOdds,
+                wallet.ActiveBonus.MaxConversion.Amount,
+                wallet.ActiveBonus.ConvertedAmount.Amount,
+                wallet.ActiveBonus.ProgressPercentage,
+                wallet.ActiveBonus.IsCompleted,
+                wallet.ActiveBonus.CreatedAt,
+                wallet.ActiveBonus.CompletedAt);
+
+        return new WalletBalancesDto(
+            wallet.Balance.Amount,
+            wallet.AtRiskBalance.Amount,
+            wallet.RealAvailable.Amount,
+            wallet.BonusAvailable.Amount,
+            wallet.RealLocked.Amount,
+            wallet.BonusLocked.Amount,
+            activeBonus);
     }
 
     public async Task<IReadOnlyList<WalletBetDto>> ListBetsAsync(

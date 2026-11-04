@@ -38,6 +38,19 @@ public sealed record WalletBetDto(
     DateTimeOffset PlacedAt,
     DateTimeOffset? SettledAt);
 
+public sealed record ActiveBonusDto(
+    Guid Id,
+    decimal InitialAmount,
+    decimal WageringRequirement,
+    decimal WageredAmount,
+    decimal MinOdds,
+    decimal MaxConversion,
+    decimal ConvertedAmount,
+    decimal ProgressPercentage,
+    bool IsCompleted,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? CompletedAt);
+
 /// <summary>
 /// Read model completo de la billetera del jugador autenticado.
 /// </summary>
@@ -47,11 +60,21 @@ public sealed record WalletDashboardDto(
     decimal AtRiskBalance,
     IReadOnlyList<WalletBetDto> Bets,
     IReadOnlyList<WalletTransactionDto> Transactions,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    decimal RealAvailable = 0m,
+    decimal BonusAvailable = 0m,
+    decimal RealLocked = 0m,
+    decimal BonusLocked = 0m,
+    ActiveBonusDto? ActiveBonus = null);
 
 public sealed record WalletBalancesDto(
     decimal Balance,
-    decimal AtRiskBalance);
+    decimal AtRiskBalance,
+    decimal RealAvailable = 0m,
+    decimal BonusAvailable = 0m,
+    decimal RealLocked = 0m,
+    decimal BonusLocked = 0m,
+    ActiveBonusDto? ActiveBonus = null);
 
 public sealed record PendingDepositDto(
     Guid Id,

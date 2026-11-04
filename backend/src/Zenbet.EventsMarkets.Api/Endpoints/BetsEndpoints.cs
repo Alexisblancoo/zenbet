@@ -8,6 +8,7 @@ using MediatR;
 using FluentValidation;
 using Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 using Zenbet.EventsMarkets.Application.Commands.SettleMarket;
+using Zenbet.EventsMarkets.Application.Commands.ResettleMarket;
 using Zenbet.EventsMarkets.Application.Commands.UpdateOdds;
 using Zenbet.EventsMarkets.Application.Queries.GetWalletBets;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
@@ -112,6 +113,56 @@ public static class BetsEndpoints
             });
         })
         .WithName("SettleMarket")
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status422UnprocessableEntity);
+
+        // Resettle a market (admin/internal VAR clawback engine)
+        group.MapPost("/resettle", async (
+            [FromBody] ResettleMarketRequest request,
+            HttpRequest httpRequest,
+            IConfiguration configuration,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            var configuredKey = configuration["Settlement:ApiKey"];
+            if (string.IsNullOrWhiteSpace(configuredKey))
+            {
+                return Results.Problem(
+                    title: "Liquidación no configurada",
+                    detail: "Falta Settlement:ApiKey en la configuración del servidor.",
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (!EventsEndpoints.HasValidSettlementKey(httpRequest, configuredKey))
+            {
+                return Results.Problem(
+                    title: "No autorizado",
+                    detail: "El header X-Settlement-Key es obligatorio para re-liquidar un mercado.",
+                    statusCode: StatusCodes.Status401Unauthorized);
+            }
+
+            var command = new ResettleMarketCommand(
+                MarketId.From(request.MarketId),
+                SelectionId.From(request.NewWinnerSelectionId),
+                request.NewResult,
+                request.Reason,
+                request.ResettledBy,
+                request.IdempotencyKey);
+
+            var result = await mediator.Send(command, cancellationToken);
+
+            return Results.Ok(new
+            {
+                marketId = result.MarketId.Value,
+                newWinnerSelectionId = result.NewWinnerSelectionId.Value,
+                newResult = result.NewResult.ToString(),
+                clawbacksExecuted = result.ClawbacksExecuted,
+                betsResettled = result.BetsResettled,
+                walletsInNegativeDebt = result.WalletsInNegativeDebt,
+                resettledAt = result.ResettledAt
+            });
+        })
+        .WithName("ResettleMarket")
         .Produces(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status422UnprocessableEntity);
 
@@ -278,6 +329,14 @@ public sealed record SettleMarketRequest(
     Guid WinnerSelectionId,
     SettlementResult Result,
     string SettledBy,
+    Guid IdempotencyKey);
+
+public sealed record ResettleMarketRequest(
+    Guid MarketId,
+    Guid NewWinnerSelectionId,
+    SettlementResult NewResult,
+    string Reason,
+    string ResettledBy,
     Guid IdempotencyKey);
 
 public sealed record UpdateOddsRequest(

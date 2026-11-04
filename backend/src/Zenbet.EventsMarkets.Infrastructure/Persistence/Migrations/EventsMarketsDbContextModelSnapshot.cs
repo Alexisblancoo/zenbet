@@ -23,48 +23,6 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.FightingEvent", b =>
-                {
-                    b.Property<Guid>("Id").HasColumnType("uuid").HasColumnName("id");
-                    b.Property<string>("Name").IsRequired().HasMaxLength(160).HasColumnType("character varying(160)").HasColumnName("name");
-                    b.Property<Guid>("PromotionId").HasColumnType("uuid").HasColumnName("promotion_id");
-                    b.Property<string>("Slug").IsRequired().HasMaxLength(160).HasColumnType("character varying(160)").HasColumnName("slug");
-                    b.Property<DateTimeOffset>("StartTime").HasColumnType("timestamp with time zone").HasColumnName("start_time");
-                    b.HasKey("Id");
-                    b.HasIndex("PromotionId", "StartTime").HasDatabaseName("ix_fighting_events_promotion_start_time");
-                    b.HasIndex("PromotionId", "Slug").IsUnique().HasDatabaseName("ux_fighting_events_promotion_slug");
-                    b.ToTable("fighting_events", "events_markets");
-                    b.HasData(
-                        new { Id = new Guid("20000000-0000-0000-0000-000000000001"), Name = "UFC 334: Gane vs Hokit", PromotionId = new Guid("10000000-0000-0000-0000-000000000001"), Slug = "ufc-334-gane-vs-hokit", StartTime = new DateTimeOffset(2026, 11, 14, 22, 0, 0, TimeSpan.Zero) },
-                        new { Id = new Guid("20000000-0000-0000-0000-000000000002"), Name = "Cage Warriors Q4 Simulated Showcase", PromotionId = new Guid("10000000-0000-0000-0000-000000000002"), Slug = "cage-warriors-q4-showcase", StartTime = new DateTimeOffset(2026, 11, 21, 18, 0, 0, TimeSpan.Zero) },
-                        new { Id = new Guid("20000000-0000-0000-0000-000000000003"), Name = "Jungle Fight Q4 Simulated Showcase", PromotionId = new Guid("10000000-0000-0000-0000-000000000003"), Slug = "jungle-fight-q4-showcase", StartTime = new DateTimeOffset(2026, 12, 5, 20, 0, 0, TimeSpan.Zero) },
-                        new { Id = new Guid("20000000-0000-0000-0000-000000000004"), Name = "ZenBet Regional Amateur Showcase (simulated)", PromotionId = new Guid("10000000-0000-0000-0000-000000000004"), Slug = "zenbet-regional-amateur-showcase", StartTime = new DateTimeOffset(2026, 12, 12, 18, 0, 0, TimeSpan.Zero) },
-                        new { Id = new Guid("20000000-0000-0000-0000-000000000005"), Name = "PFL Q4 Simulated Championship Showcase", PromotionId = new Guid("10000000-0000-0000-0000-000000000005"), Slug = "pfl-q4-championship-showcase", StartTime = new DateTimeOffset(2026, 11, 21, 22, 0, 0, TimeSpan.Zero) },
-                        new { Id = new Guid("20000000-0000-0000-0000-000000000006"), Name = "ONE Friday Fights 177", PromotionId = new Guid("10000000-0000-0000-0000-000000000006"), Slug = "one-friday-fights-177", StartTime = new DateTimeOffset(2026, 11, 6, 12, 30, 0, TimeSpan.Zero) },
-                        new { Id = new Guid("20000000-0000-0000-0000-000000000007"), Name = "OKTAGON 100: Prague", PromotionId = new Guid("10000000-0000-0000-0000-000000000007"), Slug = "oktagon-100-prague", StartTime = new DateTimeOffset(2026, 12, 29, 17, 0, 0, TimeSpan.Zero) },
-                        new { Id = new Guid("20000000-0000-0000-0000-000000000008"), Name = "UFC Fight Night: Bonfim vs. Brady", PromotionId = new Guid("10000000-0000-0000-0000-000000000001"), Slug = "ufc-fight-night-bonfim-vs-brady", StartTime = new DateTimeOffset(2026, 11, 7, 22, 0, 0, TimeSpan.Zero) });
-                });
-
-            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Promotion", b =>
-                {
-                    b.Property<Guid>("Id").HasColumnType("uuid").HasColumnName("id");
-                    b.Property<string>("CountryCode").IsRequired().HasMaxLength(2).HasColumnType("character varying(2)").HasColumnName("country_code");
-                    b.Property<string>("Name").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)").HasColumnName("name");
-                    b.Property<string>("Slug").IsRequired().HasMaxLength(120).HasColumnType("character varying(120)").HasColumnName("slug");
-                    b.Property<int>("Tier").HasColumnType("integer").HasColumnName("tier");
-                    b.HasKey("Id");
-                    b.HasIndex("Slug").IsUnique().HasDatabaseName("ux_promotions_slug");
-                    b.ToTable("promotions", "events_markets");
-                    b.HasData(
-                        new { Id = new Guid("10000000-0000-0000-0000-000000000001"), CountryCode = "US", Name = "UFC", Slug = "ufc", Tier = 1 },
-                        new { Id = new Guid("10000000-0000-0000-0000-000000000002"), CountryCode = "GB", Name = "Cage Warriors", Slug = "cage-warriors", Tier = 2 },
-                        new { Id = new Guid("10000000-0000-0000-0000-000000000003"), CountryCode = "BR", Name = "Jungle Fight", Slug = "jungle-fight", Tier = 3 },
-                        new { Id = new Guid("10000000-0000-0000-0000-000000000004"), CountryCode = "BO", Name = "ZenBet Regional Development Circuit", Slug = "zenbet-regional-development", Tier = 4 },
-                        new { Id = new Guid("10000000-0000-0000-0000-000000000005"), CountryCode = "US", Name = "Professional Fighters League", Slug = "pfl", Tier = 1 },
-                        new { Id = new Guid("10000000-0000-0000-0000-000000000006"), CountryCode = "SG", Name = "ONE Championship", Slug = "one-championship", Tier = 1 },
-                        new { Id = new Guid("10000000-0000-0000-0000-000000000007"), CountryCode = "CZ", Name = "OKTAGON MMA", Slug = "oktagon-mma", Tier = 2 });
-                });
-
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Event", b =>
                 {
                     b.Property<Guid>("Id")
@@ -118,6 +76,111 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.ToTable("events", "events_markets");
                 });
 
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.FightingEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("PromotionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("promotion_id");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("slug");
+
+                    b.Property<DateTimeOffset>("StartTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PromotionId", "Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ux_fighting_events_promotion_slug");
+
+                    b.HasIndex("PromotionId", "StartTime")
+                        .HasDatabaseName("ix_fighting_events_promotion_start_time");
+
+                    b.ToTable("fighting_events", "events_markets");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("20000000-0000-0000-0000-000000000001"),
+                            Name = "UFC 334: Gane vs Hokit",
+                            PromotionId = new Guid("10000000-0000-0000-0000-000000000001"),
+                            Slug = "ufc-334-gane-vs-hokit",
+                            StartTime = new DateTimeOffset(new DateTime(2026, 11, 14, 22, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-0000-0000-000000000002"),
+                            Name = "Cage Warriors Q4 Simulated Showcase",
+                            PromotionId = new Guid("10000000-0000-0000-0000-000000000002"),
+                            Slug = "cage-warriors-q4-showcase",
+                            StartTime = new DateTimeOffset(new DateTime(2026, 11, 21, 18, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-0000-0000-000000000003"),
+                            Name = "Jungle Fight Q4 Simulated Showcase",
+                            PromotionId = new Guid("10000000-0000-0000-0000-000000000003"),
+                            Slug = "jungle-fight-q4-showcase",
+                            StartTime = new DateTimeOffset(new DateTime(2026, 12, 5, 20, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-0000-0000-000000000004"),
+                            Name = "ZenBet Regional Amateur Showcase (simulated)",
+                            PromotionId = new Guid("10000000-0000-0000-0000-000000000004"),
+                            Slug = "zenbet-regional-amateur-showcase",
+                            StartTime = new DateTimeOffset(new DateTime(2026, 12, 12, 18, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-0000-0000-000000000005"),
+                            Name = "PFL Q4 Simulated Championship Showcase",
+                            PromotionId = new Guid("10000000-0000-0000-0000-000000000005"),
+                            Slug = "pfl-q4-championship-showcase",
+                            StartTime = new DateTimeOffset(new DateTime(2026, 11, 21, 22, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-0000-0000-000000000006"),
+                            Name = "ONE Friday Fights 177",
+                            PromotionId = new Guid("10000000-0000-0000-0000-000000000006"),
+                            Slug = "one-friday-fights-177",
+                            StartTime = new DateTimeOffset(new DateTime(2026, 11, 6, 12, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-0000-0000-000000000007"),
+                            Name = "OKTAGON 100: Prague",
+                            PromotionId = new Guid("10000000-0000-0000-0000-000000000007"),
+                            Slug = "oktagon-100-prague",
+                            StartTime = new DateTimeOffset(new DateTime(2026, 12, 29, 17, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("20000000-0000-0000-0000-000000000008"),
+                            Name = "UFC Fight Night: Suarez vs. Jandiroba",
+                            PromotionId = new Guid("10000000-0000-0000-0000-000000000001"),
+                            Slug = "ufc-fight-night-suarez-vs-jandiroba",
+                            StartTime = new DateTimeOffset(new DateTime(2026, 11, 7, 22, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
+                });
+
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Market", b =>
                 {
                     b.Property<Guid>("Id")
@@ -134,6 +197,12 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("event_id");
 
+                    b.Property<bool>("IsSuspendedByRisk")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_suspended_by_risk");
+
                     b.Property<decimal?>("Line")
                         .HasPrecision(4, 1)
                         .HasColumnType("numeric(4,1)")
@@ -142,6 +211,13 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.Property<int?>("MarketSettlementResult")
                         .HasColumnType("integer")
                         .HasColumnName("settlement_result");
+
+                    b.Property<decimal>("MaxLiabilityLimit")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(10000m)
+                        .HasColumnName("max_liability_limit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -177,16 +253,125 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.ToTable("markets", "events_markets");
                 });
 
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Promotion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)")
+                        .HasColumnName("country_code");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("slug");
+
+                    b.Property<int>("Tier")
+                        .HasColumnType("integer")
+                        .HasColumnName("tier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ux_promotions_slug");
+
+                    b.ToTable("promotions", "events_markets");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000001"),
+                            CountryCode = "US",
+                            Name = "UFC",
+                            Slug = "ufc",
+                            Tier = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000002"),
+                            CountryCode = "GB",
+                            Name = "Cage Warriors",
+                            Slug = "cage-warriors",
+                            Tier = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000003"),
+                            CountryCode = "BR",
+                            Name = "Jungle Fight",
+                            Slug = "jungle-fight",
+                            Tier = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000004"),
+                            CountryCode = "BO",
+                            Name = "ZenBet Regional Development Circuit",
+                            Slug = "zenbet-regional-development",
+                            Tier = 4
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000005"),
+                            CountryCode = "US",
+                            Name = "Professional Fighters League",
+                            Slug = "pfl",
+                            Tier = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000006"),
+                            CountryCode = "SG",
+                            Name = "ONE Championship",
+                            Slug = "one-championship",
+                            Tier = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000007"),
+                            CountryCode = "CZ",
+                            Name = "OKTAGON MMA",
+                            Slug = "oktagon-mma",
+                            Tier = 2
+                        });
+                });
+
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Selection", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<int>("ActiveBetCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("active_bet_count");
+
                     b.Property<string>("Code")
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
                         .HasColumnName("code");
+
+                    b.Property<decimal>("CurrentLiability")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("current_liability");
 
                     b.Property<int>("DisplayOrder")
                         .ValueGeneratedOnAdd()
@@ -207,6 +392,13 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.Property<int?>("SettlementResult")
                         .HasColumnType("integer")
                         .HasColumnName("settlement_result");
+
+                    b.Property<decimal>("TotalStaked")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("total_staked");
 
                     b.ComplexProperty<Dictionary<string, object>>("CurrentOdd", "Zenbet.EventsMarkets.Domain.Aggregates.Selection.CurrentOdd#Odd", b1 =>
                         {
@@ -262,6 +454,11 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("bet_status");
 
+                    b.Property<decimal>("BonusStake")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("bonus_stake");
+
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("completed_at");
@@ -289,10 +486,19 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(40)")
                         .HasColumnName("promo_code");
 
+                    b.Property<decimal>("RealStake")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("real_stake");
+
                     b.Property<string>("ReferenceId")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("reference_id");
+
+                    b.Property<Guid?>("ReferenceTransactionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reference_transaction_id");
 
                     b.Property<Guid?>("SelectionId")
                         .HasColumnType("uuid")
@@ -427,6 +633,26 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
                         .HasColumnName("balance");
+
+                    b.Property<decimal>("BonusAvailable")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("bonus_available");
+
+                    b.Property<decimal>("BonusLocked")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("bonus_locked");
+
+                    b.Property<decimal>("RealAvailable")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("real_available");
+
+                    b.Property<decimal>("RealLocked")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("real_locked");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
@@ -826,6 +1052,11 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
+                    b.Property<string>("PayloadHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("payload_hash");
+
                     b.HasKey("Key");
 
                     b.HasIndex("ExpiresAt")
@@ -908,7 +1139,7 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("LastError")
+                    b.Property<string>("Error")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")
                         .HasColumnName("last_error");
@@ -1019,16 +1250,6 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.HasKey("Key");
 
                     b.ToTable("ufc_seed_states", "events_markets");
-                });
-
-            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.FightingEvent", b =>
-                {
-                    b.HasOne("Zenbet.EventsMarkets.Domain.Aggregates.Promotion", "Promotion")
-                        .WithMany("Events")
-                        .HasForeignKey("PromotionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                    b.Navigation("Promotion");
                 });
 
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Event", b =>
@@ -1278,6 +1499,17 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.Navigation("Result");
                 });
 
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.FightingEvent", b =>
+                {
+                    b.HasOne("Zenbet.EventsMarkets.Domain.Aggregates.Promotion", "Promotion")
+                        .WithMany("Events")
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Promotion");
+                });
+
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Market", b =>
                 {
                     b.HasOne("Zenbet.EventsMarkets.Domain.Aggregates.Event", null)
@@ -1344,6 +1576,75 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Wallet", b =>
+                {
+                    b.OwnsOne("Zenbet.EventsMarkets.Domain.Aggregates.ActiveBonus", "ActiveBonus", b1 =>
+                        {
+                            b1.Property<Guid>("WalletId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<DateTimeOffset?>("CompletedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("active_bonus_completed_at");
+
+                            b1.Property<decimal>("ConvertedAmount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("active_bonus_converted_amount");
+
+                            b1.Property<DateTimeOffset>("CreatedAt")
+                                .HasColumnType("timestamp with time zone")
+                                .HasColumnName("active_bonus_created_at");
+
+                            b1.Property<decimal>("ForfeitedAmount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("active_bonus_forfeited_amount");
+
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uuid")
+                                .HasColumnName("active_bonus_id");
+
+                            b1.Property<decimal>("InitialAmount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("active_bonus_initial_amount");
+
+                            b1.Property<bool>("IsCompleted")
+                                .HasColumnType("boolean")
+                                .HasColumnName("active_bonus_is_completed");
+
+                            b1.Property<decimal>("MaxConversion")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("active_bonus_max_conversion");
+
+                            b1.Property<decimal>("MinOdds")
+                                .HasPrecision(7, 4)
+                                .HasColumnType("numeric(7,4)")
+                                .HasColumnName("active_bonus_min_odds");
+
+                            b1.Property<decimal>("WageredAmount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("active_bonus_wagered_amount");
+
+                            b1.Property<decimal>("WageringRequirement")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("active_bonus_wagering_requirement");
+
+                            b1.HasKey("WalletId");
+
+                            b1.ToTable("wallets", "events_markets");
+
+                            b1.WithOwner()
+                                .HasForeignKey("WalletId");
+                        });
+
+                    b.Navigation("ActiveBonus");
+                });
+
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Football.FootballMarket", b =>
                 {
                     b.HasOne("Zenbet.EventsMarkets.Domain.Football.FootballMatch", null)
@@ -1389,11 +1690,6 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Promotion", b =>
-                {
-                    b.Navigation("Events");
-                });
-
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Event", b =>
                 {
                     b.Navigation("Markets");
@@ -1402,6 +1698,11 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Market", b =>
                 {
                     b.Navigation("Selections");
+                });
+
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Promotion", b =>
+                {
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.Wallet", b =>
