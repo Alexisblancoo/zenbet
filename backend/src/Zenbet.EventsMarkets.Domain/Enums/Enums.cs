@@ -115,7 +115,8 @@ public enum TransactionType
     BetCancellation = 5,
     Bonus = 6,
     Adjustment = 7,
-    Clawback = 8
+    Clawback = 8,
+    CashOut = 9
 }
 
 public enum TransactionStatus
@@ -146,7 +147,8 @@ public enum BetStatus
     Pending = 1,
     Won = 2,
     Lost = 3,
-    Void = 4
+    Void = 4,
+    CashedOut = 5
 }
 
 /// <summary>Esquina ganadora de un combate de MMA.</summary>

@@ -97,6 +97,11 @@ export interface MarketSuspendedByRiskEventDto {
 }
 
 /**
+ * Evento del DOM / SignalR emitido cuando un mercado es suspendido por riesgo.
+ */
+export const MARKET_SUSPENDED_BY_RISK_EVENT = 'zenbet_market_suspended_by_risk';
+
+/**
  * Type Guard estricto para identificar mercados suspendidos automáticamente por el Circuit Breaker.
  * // TODO: Reserved for future implementation
  */

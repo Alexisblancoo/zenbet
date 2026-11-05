@@ -265,6 +265,7 @@ public sealed class WalletReadRepository : IWalletReadRepository
         TransactionType.BetCancellation => "Reembolso",
         TransactionType.Bonus => "Bono",
         TransactionType.Adjustment => "Ajuste",
+        TransactionType.CashOut => "Cash Out",
         _ => "Movimiento",
     };
 

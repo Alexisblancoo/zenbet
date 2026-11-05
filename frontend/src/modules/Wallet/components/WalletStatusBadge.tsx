@@ -5,12 +5,16 @@ import {
   type WalletTransactionStatus,
 } from '@/domain/wallet';
 
-type BadgeTone = 'pending' | 'won' | 'lost' | 'cancelled' | 'completed' | 'failed';
+type BadgeTone = 'pending' | 'won' | 'lost' | 'cancelled' | 'cashed_out' | 'completed' | 'failed';
 
 const TONE_CLASSES: Record<BadgeTone, { container: string; dot: string }> = {
   pending: {
     container: 'border-odds-live/35 bg-odds-live/10 text-odds-live',
     dot: 'bg-odds-live',
+  },
+  cashed_out: {
+    container: 'border-lime-400/40 bg-lime-400/10 text-lime-400',
+    dot: 'bg-lime-400',
   },
   won: {
     container: 'border-odds-up/35 bg-odds-up/10 text-odds-up',

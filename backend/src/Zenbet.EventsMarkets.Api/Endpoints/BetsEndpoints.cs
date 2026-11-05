@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using MediatR;
 using FluentValidation;
+using Zenbet.EventsMarkets.Application.Commands.CashOut;
 using Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 using Zenbet.EventsMarkets.Application.Commands.SettleMarket;
 using Zenbet.EventsMarkets.Application.Commands.ResettleMarket;
@@ -69,6 +70,93 @@ public static class BetsEndpoints
             .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
             .Produces(StatusCodes.Status429TooManyRequests);
+
+        // Liquidación anticipada del boleto del jugador autenticado.
+        group.MapPost("/{betId:guid}/cashout", async (
+            Guid betId,
+            HttpRequest httpRequest,
+            ClaimsPrincipal user,
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
+        {
+            if (!WalletEndpoints.TryReadWalletId(user, out var walletId))
+            {
+                return Results.Unauthorized();
+            }
+
+            if (betId == Guid.Empty)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["betId"] = ["El identificador de la apuesta es obligatorio."]
+                });
+            }
+
+            if (!WalletEndpoints.TryReadIdempotencyKey(httpRequest, out var idempotencyKey))
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    ["Idempotency-Key"] = ["Envía una clave GUID válida en el header Idempotency-Key."]
+                });
+            }
+
+            var result = await mediator.Send(
+                new CashOutCommand(
+                    WalletId.From(walletId),
+                    TransactionId.From(betId),
+                    idempotencyKey),
+                cancellationToken);
+
+            if (!result.Success)
+            {
+                var statusCode = result.ErrorCode switch
+                {
+                    "MARKET_SUSPENDED_BY_RISK" => StatusCodes.Status409Conflict,
+                    "MARKET_NOT_OPEN" => StatusCodes.Status409Conflict,
+                    "MARKET_NOT_FOUND" => StatusCodes.Status409Conflict,
+                    "BET_NOT_PENDING" => StatusCodes.Status409Conflict,
+                    "BET_WALLET_MISMATCH" => StatusCodes.Status403Forbidden,
+                    _ => StatusCodes.Status400BadRequest,
+                };
+
+                return Results.Problem(
+                    statusCode: statusCode,
+                    title: statusCode == StatusCodes.Status409Conflict
+                        ? "Cash Out no disponible"
+                        : "Cash Out rechazado",
+                    detail: result.ErrorMessage,
+                    type: "https://zenbet.com/errors/cashout-rejected",
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["code"] = result.ErrorCode,
+                        ["betId"] = betId,
+                        ["initialOdds"] = result.InitialOdds,
+                        ["currentOdds"] = result.CurrentOdds,
+                        ["retentionMargin"] = result.RetentionMargin
+                    });
+            }
+
+            return Results.Ok(new CashOutResponse(
+                true,
+                betId,
+                result.TransactionId?.Value,
+                result.CashOutAmount?.Amount,
+                result.NewBalance?.Amount,
+                result.NewRealAvailable?.Amount,
+                result.InitialOdds,
+                result.CurrentOdds,
+                result.RetentionMargin,
+                result.IdempotentReplay));
+        })
+        .RequireAuthorization()
+        .WithName("CashOutBet")
+        .Produces<CashOutResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
+        .Produces(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status409Conflict)
+        .Produces(StatusCodes.Status429TooManyRequests);
 
         // Settle a market (admin/internal)
         group.MapPost("/settle", async (
@@ -322,6 +410,18 @@ public sealed record PlaceBetResponse(
     Guid? BetId,
     Guid? TransactionId,
     decimal? NewBalance,
+    bool IdempotentReplay);
+
+public sealed record CashOutResponse(
+    bool Success,
+    Guid BetId,
+    Guid? TransactionId,
+    decimal? CashOutAmount,
+    decimal? NewBalance,
+    decimal? NewRealAvailable,
+    decimal? InitialOdds,
+    decimal? CurrentOdds,
+    decimal? RetentionMargin,
     bool IdempotentReplay);
 
 public sealed record SettleMarketRequest(

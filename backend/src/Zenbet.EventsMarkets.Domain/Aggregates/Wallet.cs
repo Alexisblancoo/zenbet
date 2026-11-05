@@ -397,6 +397,105 @@ public sealed class Wallet : AggregateRoot<WalletId>
         return SettleBet(amount, result, RealLocked, BonusLocked, description, referenceId);
     }
 
+    /// <summary>
+    /// Liquida anticipadamente una apuesta pendiente (Cash Out). Libera el stake
+    /// que permanecía bloqueado, acredita el importe calculado en
+    /// <see cref="RealAvailable"/> y registra el movimiento en el ledger con
+    /// estado <see cref="BetStatus.CashedOut"/>.
+    /// </summary>
+    public Transaction CashOut(
+        Transaction betTransaction,
+        Money cashOutAmount,
+        MarketId marketId,
+        decimal initialOdds,
+        decimal currentOdds,
+        decimal retentionMargin,
+        string? description = null,
+        string? referenceId = null)
+    {
+        ArgumentNullException.ThrowIfNull(betTransaction);
+
+        if (betTransaction.WalletId != Id)
+            throw new InvalidOperationException("La apuesta no pertenece a esta billetera.");
+
+        if (betTransaction.Type != TransactionType.BetPlacement)
+            throw new InvalidOperationException("Solo un cargo de apuesta puede liquidarse con Cash Out.");
+
+        if (betTransaction.BetStatus is not null and not Zenbet.EventsMarkets.Domain.Enums.BetStatus.Pending)
+            throw new InvalidOperationException($"La apuesta ya no está pendiente (estado: {betTransaction.BetStatus}).");
+
+        if (cashOutAmount <= Money.Zero)
+            throw new InvalidTransactionAmountException("Cash out amount must be positive");
+
+        if (initialOdds <= 1m)
+            throw new InvalidTransactionAmountException("Initial odds must be greater than 1");
+
+        if (currentOdds < 1m)
+            throw new InvalidTransactionAmountException("Current odds must be at least 1");
+
+        if (retentionMargin is <= 0m or > 1m)
+            throw new InvalidTransactionAmountException("Retention margin must be between 0 and 1");
+
+        EnsureSplitBalancesInitialized();
+
+        var realStake = betTransaction.RealStake;
+        var bonusStake = betTransaction.BonusStake;
+
+        if (realStake == Money.Zero && bonusStake == Money.Zero && betTransaction.Amount > Money.Zero)
+        {
+            realStake = betTransaction.Amount;
+        }
+
+        // 1. Liberar el stake bloqueado: el Cash Out sustituye la liquidación
+        // deportiva, por lo que la casa deja de tener ese riesgo abierto.
+        RealLocked = RealLocked >= realStake ? RealLocked - realStake : Money.Zero;
+        BonusLocked = BonusLocked >= bonusStake ? BonusLocked - bonusStake : Money.Zero;
+
+        // 2. Acreditar el valor de Cash Out (ya con margen de retención) en saldo real.
+        RealAvailable = Money.Signed(RealAvailable.Amount + cashOutAmount.Amount);
+
+        // 3. Cerrar el boleto original para que ningún worker de pagos lo liquide después.
+        betTransaction.MarkCashedOut();
+
+        TryConvertRolloverBonus();
+        SyncBalances();
+
+        var transaction = new Transaction(
+            TransactionId.New(),
+            Id,
+            UserId,
+            TransactionType.CashOut,
+            cashOutAmount,
+            Balance,
+            description ?? $"Cash Out — Apuesta {betTransaction.Id.Value}",
+            referenceId,
+            selectionId: betTransaction.SelectionId,
+            acceptedOdds: initialOdds,
+            betStatus: Zenbet.EventsMarkets.Domain.Enums.BetStatus.CashedOut,
+            referenceTransactionId: betTransaction.Id);
+        transaction.Complete();
+
+        _transactions.Add(transaction);
+        Version++;
+
+        AddDomainEvent(new BetCashedOutDomainEvent(
+            Id,
+            UserId,
+            betTransaction.Id,
+            transaction.Id,
+            marketId,
+            betTransaction.Amount,
+            cashOutAmount,
+            initialOdds,
+            currentOdds,
+            retentionMargin,
+            RealAvailable,
+            Balance,
+            DateTimeOffset.UtcNow));
+
+        return transaction;
+    }
+
     public void ReleaseLockedStake(Transaction betTransaction)
     {
         ArgumentNullException.ThrowIfNull(betTransaction);
@@ -1167,6 +1266,26 @@ public sealed class Transaction : Entity<TransactionId>
             throw new InvalidOperationException($"La apuesta ya fue liquidada como {BetStatus}.");
 
         BetStatus = outcome;
+
+        if (Status == TransactionStatus.Pending)
+            Complete();
+    }
+
+    /// <summary>
+    /// Cierra el cargo de apuesta como liquidado anticipadamente por el jugador.
+    /// A diferencia de <see cref="SettleBet(BetStatus)"/>, el resultado no es
+    /// deportivo sino comercial: el boleto deja de ser pendiente y no puede
+    /// volver a liquidarse ni pagarse por el worker.
+    /// </summary>
+    public void MarkCashedOut()
+    {
+        if (Type != TransactionType.BetPlacement)
+            throw new InvalidOperationException("Solo un cargo de apuesta puede cerrarse con Cash Out.");
+
+        if (BetStatus.HasValue && BetStatus.Value != Zenbet.EventsMarkets.Domain.Enums.BetStatus.Pending)
+            throw new InvalidOperationException($"La apuesta ya fue liquidada como {BetStatus}.");
+
+        BetStatus = Zenbet.EventsMarkets.Domain.Enums.BetStatus.CashedOut;
 
         if (Status == TransactionStatus.Pending)
             Complete();

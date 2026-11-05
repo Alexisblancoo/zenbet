@@ -163,6 +163,27 @@ public sealed record BetCancelledDomainEvent(
     DateTimeOffset OccurredAt)
     : DomainEvent(OccurredAt, WalletId.Value);
 
+/// <summary>
+/// Apuesta liquidada anticipadamente por el jugador (Cash Out). El importe
+/// pagado ya descuenta el margen de retención de la casa; el stake original
+/// deja de estar bloqueado y el boleto pasa a <see cref="BetStatus.CashedOut"/>.
+/// </summary>
+public sealed record BetCashedOutDomainEvent(
+    WalletId WalletId,
+    UserId UserId,
+    TransactionId BetTransactionId,
+    TransactionId CashOutTransactionId,
+    MarketId MarketId,
+    Money OriginalStake,
+    Money CashOutAmount,
+    decimal InitialOdds,
+    decimal CurrentOdds,
+    decimal RetentionMargin,
+    Money NewRealAvailable,
+    Money NewBalance,
+    DateTimeOffset OccurredAt)
+    : DomainEvent(OccurredAt, WalletId.Value);
+
 public sealed record BonusAddedDomainEvent(
     WalletId WalletId,
     UserId UserId,

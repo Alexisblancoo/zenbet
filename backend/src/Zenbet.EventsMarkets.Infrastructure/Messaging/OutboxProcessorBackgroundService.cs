@@ -260,6 +260,19 @@ public sealed class OutboxProcessorBackgroundService : BackgroundService
                     cancellationToken);
                 break;
             }
+            case nameof(BetCashedOutDomainEvent):
+            {
+                var domainEvent = DeserializeRequired<BetCashedOutDomainEvent>(message);
+                await NotifyWalletBalanceAsync(
+                    domainEvent.WalletId.Value,
+                    domainEvent.UserId.Value,
+                    domainEvent.CashOutAmount.Amount,
+                    domainEvent.NewBalance.Amount,
+                    domainEvent.CashOutTransactionId.Value,
+                    notificationService,
+                    cancellationToken);
+                break;
+            }
             case nameof(BetOutcomeSettledDomainEvent):
             {
                 var domainEvent = DeserializeRequired<BetOutcomeSettledDomainEvent>(message);

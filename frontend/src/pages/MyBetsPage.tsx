@@ -3,9 +3,13 @@ import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   CalendarDays,
+  ChevronDown,
+  ChevronUp,
   Clock3,
   ReceiptText,
   RefreshCw,
+  ShieldAlert,
+  ShieldCheck,
   Sparkles,
   Ticket,
   TrendingUp,
@@ -13,6 +17,7 @@ import {
   Wallet,
 } from 'lucide-react';
 
+import { CashOutButton } from '@/components/CashOutButton';
 import { useAuth } from '@/context/authState';
 import {
   formatRelativeTime,
@@ -80,9 +85,11 @@ function StatTile({ label, value, detail, icon: Icon, accent = 'neutral' }: Stat
 
 interface TicketCardProps {
   readonly bet: WalletBet;
+  readonly onCashOutSuccess?: () => void;
 }
 
-function TicketCard({ bet }: TicketCardProps) {
+function TicketCard({ bet, onCashOutSuccess }: TicketCardProps) {
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const pending = bet.status === 'pending';
   const accent = pending
     ? 'bg-lime-400'
@@ -90,10 +97,20 @@ function TicketCard({ bet }: TicketCardProps) {
       ? 'bg-odds-up'
       : bet.status === 'lost'
         ? 'bg-odds-down'
-        : 'bg-metallic-slate';
+        : bet.status === 'cashed_out'
+          ? 'bg-lime-400'
+          : 'bg-metallic-slate';
 
   const returnValue = bet.payout ?? bet.potentialPayout;
-  const returnLabel = pending ? 'Retorno potencial' : bet.payout !== null ? 'Pagado' : 'Retorno';
+  const returnLabel = pending
+    ? 'Retorno potencial'
+    : bet.status === 'cashed_out'
+      ? 'Cash Out'
+      : bet.payout !== null
+        ? 'Pagado'
+        : 'Retorno';
+
+  const canCashOut = pending && (bet.cashOutAvailable || bet.currentCashOutValue > 0);
 
   return (
     <article className='group relative overflow-hidden rounded-sm border border-white/[0.09] bg-[#0A0A0A] shadow-[0_18px_45px_-32px_rgba(0,0,0,0.9)] transition-colors duration-150 hover:border-white/[0.16]'>
@@ -146,7 +163,11 @@ function TicketCard({ bet }: TicketCardProps) {
             </span>
             <span
               className={`mt-1 block font-mono text-[12px] font-bold tabular-nums ${
-                bet.status === 'won' ? 'text-odds-up' : pending ? 'text-lime-400' : 'text-metallic-platinum'
+                bet.status === 'won' || bet.status === 'cashed_out'
+                  ? 'text-odds-up'
+                  : pending
+                    ? 'text-lime-400'
+                    : 'text-metallic-platinum'
               }`}
             >
               {formatWalletMoney(returnValue)}
@@ -154,13 +175,112 @@ function TicketCard({ bet }: TicketCardProps) {
           </div>
         </div>
 
-        <div className='mt-3 flex flex-wrap items-center justify-between gap-2 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
+        {/* Sección de Cash Out interactivo en el ticket */}
+        {canCashOut && (
+          <div className='mt-4 pt-1'>
+            <CashOutButton
+              betId={bet.id}
+              cashOutValue={bet.currentCashOutValue}
+              cashOutAvailable={bet.cashOutAvailable}
+              isSuspendedByRisk={bet.isSuspendedByRisk}
+              marketId={bet.marketId}
+              onSuccess={onCashOutSuccess}
+            />
+          </div>
+        )}
+
+        {/* Metadata de fecha y botón para alternar detalle del boleto */}
+        <div className='mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.05] pt-2.5 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
           <span className='inline-flex items-center gap-1.5'>
             <CalendarDays size={10} aria-hidden='true' />
             {formatWalletDateTime(bet.placedAt)}
           </span>
-          <span>{formatRelativeTime(bet.placedAt)}</span>
+
+          <button
+            type='button'
+            onClick={() => setIsDetailOpen((prev) => !prev)}
+            aria-expanded={isDetailOpen}
+            className='inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wider text-metallic-titanium hover:text-white transition-colors'
+          >
+            <span>{isDetailOpen ? 'Ocultar detalle' : 'Detalle del boleto'}</span>
+            {isDetailOpen ? (
+              <ChevronUp size={11} aria-hidden='true' />
+            ) : (
+              <ChevronDown size={11} aria-hidden='true' />
+            )}
+          </button>
         </div>
+
+        {/* Drawer desplegable: Detalle completo del boleto */}
+        {isDetailOpen && (
+          <div className='mt-3.5 space-y-3 rounded-sm border border-white/[0.08] bg-[#050505] p-3.5 animate-in fade-in slide-in-from-top-1 duration-150'>
+            <div className='flex items-center justify-between border-b border-white/[0.06] pb-2 font-mono text-[9px] uppercase tracking-wide text-metallic-slate'>
+              <span>Detalle de auditoría</span>
+              <span className='text-metallic-platinum'>ID: {bet.id.slice(0, 8)}...</span>
+            </div>
+
+            <div className='space-y-1.5 text-[10px] leading-relaxed'>
+              <div className='flex justify-between'>
+                <span className='text-metallic-slate'>Evento:</span>
+                <span className='font-semibold text-white truncate max-w-[200px]'>
+                  {bet.eventName}
+                </span>
+              </div>
+              <div className='flex justify-between'>
+                <span className='text-metallic-slate'>Mercado:</span>
+                <span className='text-metallic-platinum'>{bet.marketLabel}</span>
+              </div>
+              <div className='flex justify-between'>
+                <span className='text-metallic-slate'>Selección:</span>
+                <span className='font-mono font-bold text-lime-400'>{bet.selectionName}</span>
+              </div>
+              <div className='flex justify-between'>
+                <span className='text-metallic-slate'>Cuota confirmada:</span>
+                <span className='font-mono font-bold text-white'>{bet.odds.toFixed(2)}</span>
+              </div>
+              <div className='flex justify-between items-center'>
+                <span className='text-metallic-slate'>Circuit Breaker:</span>
+                {bet.isSuspendedByRisk ? (
+                  <span className='inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase text-odds-down'>
+                    <ShieldAlert size={10} aria-hidden='true' />
+                    Suspendido por riesgo
+                  </span>
+                ) : (
+                  <span className='inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase text-odds-up'>
+                    <ShieldCheck size={10} aria-hidden='true' />
+                    Mercado Operativo
+                  </span>
+                )}
+              </div>
+              {bet.settledAt && (
+                <div className='flex justify-between'>
+                  <span className='text-metallic-slate'>Liquidada el:</span>
+                  <span className='font-mono text-metallic-titanium'>
+                    {formatWalletDateTime(bet.settledAt)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Acción de Cash Out redundante y destacada en el detalle del boleto si está activo */}
+            {canCashOut && (
+              <div className='border-t border-white/[0.06] pt-2.5'>
+                <p className='mb-1.5 font-mono text-[8px] uppercase tracking-wider text-metallic-slate'>
+                  Liquidación anticipada disponible:
+                </p>
+                <CashOutButton
+                  betId={bet.id}
+                  cashOutValue={bet.currentCashOutValue}
+                  cashOutAvailable={bet.cashOutAvailable}
+                  isSuspendedByRisk={bet.isSuspendedByRisk}
+                  marketId={bet.marketId}
+                  onSuccess={onCashOutSuccess}
+                  compact
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );
@@ -178,7 +298,7 @@ function EmptyTickets({ filtered }: { readonly filtered: boolean }) {
       <p className='mt-2 max-w-sm text-xs leading-relaxed text-metallic-titanium'>
         {filtered
           ? 'Cambia el filtro para consultar el resto de tus apuestas.'
-          : 'Cuando confirmes una apuesta, aparecerá aquí con su cuota, stake y retorno potencial.'}
+          : 'Cuando confirmes una apuesta, aparecerÃ¡ aquÃ­ con su cuota, stake y retorno potencial.'}
       </p>
       <div className='mt-5 flex flex-wrap justify-center gap-2'>
         <Link
@@ -219,13 +339,13 @@ export default function MyBetsPage() {
       <div className='mx-auto flex min-h-[60vh] w-full max-w-7xl items-center justify-center px-4'>
         <div className='surface-panel px-6 py-8 text-center'>
           <p className='font-display text-sm font-bold uppercase tracking-wide text-white'>
-            Inicia sesión para ver tus apuestas
+            Inicia sesiÃ³n para ver tus apuestas
           </p>
           <Link
             to='/login'
             className='mt-4 inline-flex items-center gap-2 rounded-sm border border-crimson/60 bg-crimson/10 px-4 py-2 font-display text-[10px] font-bold uppercase tracking-wide text-crimson'
           >
-            Ir a iniciar sesión
+            Ir a iniciar sesiÃ³n
             <ArrowRight size={12} aria-hidden='true' />
           </Link>
         </div>
@@ -314,7 +434,7 @@ export default function MyBetsPage() {
 
         {isInitialLoading ? (
           <div className='mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3' aria-live='polite'>
-            <span className='sr-only'>Cargando apuestas…</span>
+            <span className='sr-only'>Cargando apuestasâ€¦</span>
             {[0, 1, 2].map((item) => (
               <div key={item} className='surface-panel animate-pulse p-5'>
                 <div className='h-3 w-24 rounded-sm bg-obsidian-elevated/70' />
@@ -333,7 +453,7 @@ export default function MyBetsPage() {
               No pudimos cargar tus apuestas
             </h2>
             <p className='mt-1.5 max-w-sm text-xs leading-relaxed text-metallic-titanium'>
-              {error ?? 'Ocurrió un error inesperado al consultar tus tickets.'}
+              {error ?? 'OcurriÃ³ un error inesperado al consultar tus tickets.'}
             </p>
             <button
               type='button'
@@ -431,7 +551,7 @@ export default function MyBetsPage() {
                     </div>
                     <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
                       {visibleActive.map((bet) => (
-                        <TicketCard key={bet.id} bet={bet} />
+                        <TicketCard key={bet.id} bet={bet} onCashOutSuccess={refresh} />
                       ))}
                     </div>
                   </section>
@@ -452,7 +572,7 @@ export default function MyBetsPage() {
                     </div>
                     <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
                       {visiblePast.map((bet) => (
-                        <TicketCard key={bet.id} bet={bet} />
+                        <TicketCard key={bet.id} bet={bet} onCashOutSuccess={refresh} />
                       ))}
                     </div>
                   </section>
@@ -462,7 +582,7 @@ export default function MyBetsPage() {
 
             <div className='mt-6 flex flex-col gap-3 border-t border-obsidian-border/60 pt-4 text-[10px] leading-relaxed text-metallic-slate sm:flex-row sm:items-center sm:justify-between'>
               <p className='max-w-xl'>
-                Las cuotas se muestran con el valor de referencia de la selección. El retorno
+                Las cuotas se muestran con el valor de referencia de la selecciÃ³n. El retorno
                 potencial se calcula sobre el stake confirmado.
               </p>
               <Link

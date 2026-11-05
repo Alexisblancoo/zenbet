@@ -39,6 +39,12 @@ function describeReturn(bet: WalletBet): ReturnPresentation {
         detail: 'Pagado',
         tone: 'text-odds-up',
       };
+    case 'cashed_out':
+      return {
+        value: formatWalletMoney(bet.payout ?? bet.currentCashOutValue),
+        detail: 'Cash Out',
+        tone: 'text-lime-400',
+      };
     case 'cancelled':
       return {
         value: formatWalletMoney(bet.payout ?? bet.stake),
@@ -47,7 +53,7 @@ function describeReturn(bet: WalletBet): ReturnPresentation {
       };
     case 'lost':
       return {
-        value: '—',
+        value: 'â€”',
         detail: 'Sin retorno',
         tone: 'text-metallic-slate',
       };
@@ -74,6 +80,7 @@ export function BetHistoryPanel({ bets, className = '' }: BetHistoryPanelProps) 
       won: 0,
       lost: 0,
       cancelled: 0,
+      cashed_out: 0,
     };
 
     for (const bet of periodBets) next[bet.status] += 1;
@@ -174,11 +181,11 @@ export function BetHistoryPanel({ bets, className = '' }: BetHistoryPanelProps) 
         {visibleBets.length === 0 ? (
           <WalletEmptyState
             icon={Ticket}
-            title={bets.length === 0 ? 'Tu historial empieza aquí' : 'Sin apuestas en este estado'}
+            title={bets.length === 0 ? 'Tu historial empieza aquÃ­' : 'Sin apuestas en este estado'}
             description={
               bets.length === 0
-                ? 'Cuando confirmes tu primera apuesta aparecerá en esta sección con su cuota, stake y estado.'
-                : 'Prueba con otro estado o amplía el periodo para ver más registros.'
+                ? 'Cuando confirmes tu primera apuesta aparecerÃ¡ en esta secciÃ³n con su cuota, stake y estado.'
+                : 'Prueba con otro estado o amplÃ­a el periodo para ver mÃ¡s registros.'
             }
             action={emptyAction}
           />
@@ -242,13 +249,13 @@ export function BetHistoryPanel({ bets, className = '' }: BetHistoryPanelProps) 
                           </p>
                           <p className='mt-1 text-[11px] text-metallic-titanium'>
                             {bet.selectionName}
-                            <span className='text-metallic-slate'> · {bet.marketLabel}</span>
+                            <span className='text-metallic-slate'> Â· {bet.marketLabel}</span>
                           </p>
                           <div className='mt-1.5 flex flex-wrap items-center gap-1.5 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
                             <span>
-                              {bet.type === 'combined' ? `Combinada · ${bet.legs}` : 'Simple'}
+                              {bet.type === 'combined' ? `Combinada Â· ${bet.legs}` : 'Simple'}
                             </span>
-                            <span aria-hidden='true'>·</span>
+                            <span aria-hidden='true'>Â·</span>
                             <span>{bet.ticket}</span>
                           </div>
                         </td>
@@ -306,7 +313,7 @@ export function BetHistoryPanel({ bets, className = '' }: BetHistoryPanelProps) 
                         </p>
                         <p className='mt-1 text-[11px] text-metallic-titanium'>
                           {bet.selectionName}
-                          <span className='text-metallic-slate'> · {bet.marketLabel}</span>
+                          <span className='text-metallic-slate'> Â· {bet.marketLabel}</span>
                         </p>
                       </div>
                       <BetStatusBadge status={bet.status} />
@@ -342,9 +349,9 @@ export function BetHistoryPanel({ bets, className = '' }: BetHistoryPanelProps) 
                     <div className='mt-2 flex flex-wrap items-center justify-between gap-2 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
                       <span className='flex flex-wrap items-center gap-1.5'>
                         <span>
-                          {bet.type === 'combined' ? `Combinada · ${bet.legs}` : 'Simple'}
+                          {bet.type === 'combined' ? `Combinada Â· ${bet.legs}` : 'Simple'}
                         </span>
-                        <span aria-hidden='true'>·</span>
+                        <span aria-hidden='true'>Â·</span>
                         <span>{bet.ticket}</span>
                       </span>
                       <span>{formatWalletDateTime(bet.placedAt)}</span>

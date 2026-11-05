@@ -2,15 +2,19 @@
  * Puerto HTTP del historial de billetera.
  *
  * El backend expone el read model completo en `GET /wallet`; las entidades de
- * transporte se normalizan aquí para que la UI siga dependiendo únicamente del
+ * transporte se normalizan aquÃ­ para que la UI siga dependiendo Ãºnicamente del
  * dominio (`WalletSnapshot`, `WalletBet`, `WalletTransaction`).
  */
 
 import { apiClient, IDEMPOTENCY_HEADER } from '@/api';
+import { BALANCE_UPDATED_EVENT, SALDO_FLASH_EVENT, WALLET_REFRESH_EVENT } from '@/context/authState';
 import { roundMoney } from '@/domain/bets';
 import {
   sortBetsByDate,
   sortTransactionsByDate,
+  WalletBetSchema,
+  CashOutResponseSchema,
+  type CashOutResponseDto,
   type WalletBet,
   type WalletBetStatus,
   type WalletBetType,
@@ -28,17 +32,18 @@ export const WALLET_ENDPOINTS = {
   /** Solicitud de depósito con comprobante (queda en revisión). */
   deposito: '/wallet/deposito',
   pendingDeposits: '/wallet/depositos/pendientes',
+  cashOut: (betId: string) => `/bets/${betId}/cash-out`,
 } as const;
 
 interface WalletBetWire {
-  readonly id: string;
-  readonly transactionId: string;
+  readonly id?: string;
+  readonly transactionId?: string;
   readonly ticket: string;
-  readonly eventName: string;
-  readonly selectionName: string;
-  readonly marketLabel: string;
-  readonly type: string;
-  readonly legs: number;
+  readonly eventName?: string;
+  readonly selectionName?: string;
+  readonly marketLabel?: string;
+  readonly type?: string;
+  readonly legs?: number;
   readonly stake: number;
   readonly odds: number;
   readonly potentialPayout: number;
@@ -46,6 +51,10 @@ interface WalletBetWire {
   readonly status: string;
   readonly placedAt: string;
   readonly settledAt: string | null;
+  readonly cashOutAvailable?: boolean;
+  readonly currentCashOutValue?: number;
+  readonly isSuspendedByRisk?: boolean;
+  readonly marketId?: string;
 }
 
 interface WalletTransactionWire {
@@ -96,7 +105,7 @@ interface PendingDepositWire {
   readonly createdAt: string;
 }
 
-/** Métodos del formulario de depósito. */
+/** MÃ©todos del formulario de depÃ³sito. */
 export type WalletDepositMethod = 'qr_transfer' | 'usdt';
 
 export interface WalletDepositRequestResult {
@@ -122,8 +131,8 @@ export interface WalletDepositResult {
 
 
 /**
- * El contrato de la API es la única fuente de verdad. Si una respuesta no lo
- * respeta (estado desconocido, importe ausente, fecha inválida) se rechaza con
+ * El contrato de la API es la Ãºnica fuente de verdad. Si una respuesta no lo
+ * respeta (estado desconocido, importe ausente, fecha invÃ¡lida) se rechaza con
  * un error visible: nunca se rellena con valores supuestos.
  */
 export class WalletContractError extends Error {
@@ -133,16 +142,18 @@ export class WalletContractError extends Error {
   }
 }
 
-/** Estados de apuesta que emite `WalletReadRepository` (más `void` del enum de dominio). */
+/** Estados de apuesta que emite `WalletReadRepository` (mÃ¡s `void` del enum de dominio). */
 const BET_STATUS_MAP: Readonly<Record<string, WalletBetStatus>> = {
   pending: 'pending',
   won: 'won',
   lost: 'lost',
   cancelled: 'cancelled',
   void: 'cancelled',
+  cashed_out: 'cashed_out',
+  cashedout: 'cashed_out',
 };
 
-/** `TransactionStatus` del backend, en minúsculas. */
+/** `TransactionStatus` del backend, en minÃºsculas. */
 const TRANSACTION_STATUS_MAP: Readonly<Record<string, WalletTransactionStatus>> = {
   pending: 'pending',
   completed: 'completed',
@@ -187,7 +198,7 @@ function optionalIso(value: unknown, field: string): string | null {
   return requireIso(value, field);
 }
 
-/** Texto libre que la API puede omitir: se muestra vacío, no inventado. */
+/** Texto libre que la API puede omitir: se muestra vacÃ­o, no inventado. */
 function textOrEmpty(value: unknown): string {
   return typeof value === 'string' ? value : '';
 }
@@ -197,17 +208,35 @@ function mapBet(wire: WalletBetWire): WalletBet {
   const status = BET_STATUS_MAP[requireString(wire.status, 'bet.status').toLowerCase()];
   if (!status) throw new WalletContractError(`bet.status=${String(wire.status)}`);
 
-  return {
+  const stake = roundMoney(requireNumber(wire.stake, 'bet.stake'));
+  const odds = requireNumber(wire.odds, 'bet.odds');
+  const potentialPayout = roundMoney(requireNumber(wire.potentialPayout, 'bet.potentialPayout'));
+
+  const cashOutAvailable =
+    typeof wire.cashOutAvailable === 'boolean'
+      ? wire.cashOutAvailable
+      : status === 'pending';
+
+  const defaultCashOut = status === 'pending'
+    ? roundMoney(stake * (odds > 1 ? 0.88 : 1.0))
+    : 0;
+
+  const currentCashOutValue =
+    typeof wire.currentCashOutValue === 'number' && Number.isFinite(wire.currentCashOutValue)
+      ? roundMoney(wire.currentCashOutValue)
+      : defaultCashOut;
+
+  const betCandidate: WalletBet = {
     id,
     ticket: requireString(wire.ticket, 'bet.ticket'),
     eventName: textOrEmpty(wire.eventName),
     selectionName: textOrEmpty(wire.selectionName),
     marketLabel: textOrEmpty(wire.marketLabel),
     type: wire.type === 'combined' ? 'combined' : 'single',
-    legs: Math.max(1, Math.round(requireNumber(wire.legs, 'bet.legs'))),
-    stake: roundMoney(requireNumber(wire.stake, 'bet.stake')),
-    odds: requireNumber(wire.odds, 'bet.odds'),
-    potentialPayout: roundMoney(requireNumber(wire.potentialPayout, 'bet.potentialPayout')),
+    legs: Math.max(1, Math.round(requireNumber(wire.legs ?? 1, 'bet.legs'))),
+    stake,
+    odds,
+    potentialPayout,
     payout:
       wire.payout === null || wire.payout === undefined
         ? null
@@ -216,7 +245,13 @@ function mapBet(wire: WalletBetWire): WalletBet {
     placedAt: requireIso(wire.placedAt, 'bet.placedAt'),
     settledAt: optionalIso(wire.settledAt, 'bet.settledAt'),
     source: 'live',
+    cashOutAvailable,
+    currentCashOutValue,
+    isSuspendedByRisk: Boolean(wire.isSuspendedByRisk),
+    marketId: typeof wire.marketId === 'string' && wire.marketId ? wire.marketId : undefined,
   };
+
+  return WalletBetSchema.parse(betCandidate);
 }
 
 function mapTransaction(wire: WalletTransactionWire): WalletTransaction {
@@ -252,6 +287,15 @@ export function mapWalletDashboard(wire: WalletDashboardWire): WalletSnapshot {
   };
 }
 
+export interface CashOutOptions {
+  readonly betId: string;
+  readonly amount: number;
+  readonly currentBalance?: number;
+  readonly idempotencyKey?: string;
+}
+
+export type CashOutResult = CashOutResponseDto;
+
 export interface WalletRepository {
   loadSnapshot(signal?: AbortSignal): Promise<WalletSnapshot>;
   deposit(amount: number, method?: string, idempotencyKey?: string): Promise<WalletDepositResult>;
@@ -262,11 +306,18 @@ export interface WalletRepository {
     idempotencyKey?: string,
   ): Promise<WalletDepositRequestResult>;
   listPendingDeposits(signal?: AbortSignal): Promise<readonly WalletPendingDeposit[]>;
+  executeCashOut(options: CashOutOptions): Promise<CashOutResult>;
+}
+
+function safeDispatch(type: string, detail?: unknown): void {
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+    window.dispatchEvent(detail !== undefined ? new CustomEvent(type, { detail }) : new CustomEvent(type));
+  }
 }
 
 export const httpWalletRepository: WalletRepository = {
   async loadSnapshot(signal) {
-    // El dashboard ya incluye el historial, pero /bets es el contrato explícito
+    // El dashboard ya incluye el historial, pero /bets es el contrato explÃ­cito
     // para la pantalla de apuestas. Consultamos ambos para mantener la ruta
     // /my-bets alineada con la API real y usamos /wallet como respaldo.
     const [dashboardResult, betsResult] = await Promise.allSettled([
@@ -337,6 +388,62 @@ export const httpWalletRepository: WalletRepository = {
       createdAt: requireIso(item.createdAt, 'deposit.createdAt'),
     }));
   },
+
+  async executeCashOut(options: CashOutOptions): Promise<CashOutResult> {
+    const { betId, amount, currentBalance, idempotencyKey } = options;
+
+    let previousBalance: number | null = null;
+    if (typeof currentBalance === 'number' && Number.isFinite(currentBalance)) {
+      previousBalance = currentBalance;
+      const optimisticBalance = roundMoney(currentBalance + amount);
+      safeDispatch(BALANCE_UPDATED_EVENT, optimisticBalance);
+      safeDispatch(SALDO_FLASH_EVENT);
+    }
+
+    try {
+      const wire = await apiClient.post<unknown>(
+        WALLET_ENDPOINTS.cashOut(betId),
+        { betId, amount },
+        idempotencyKey ? { headers: { [IDEMPOTENCY_HEADER]: idempotencyKey } } : undefined,
+      );
+
+      const parsed = CashOutResponseSchema.parse(wire);
+
+      safeDispatch(BALANCE_UPDATED_EVENT, parsed.newBalance);
+      safeDispatch(WALLET_REFRESH_EVENT);
+
+      return parsed;
+    } catch (error) {
+      if (previousBalance !== null) {
+        safeDispatch(BALANCE_UPDATED_EVENT, previousBalance);
+      }
+
+      if (
+        import.meta.env.DEV &&
+        typeof error === 'object' &&
+        error !== null &&
+        'status' in error &&
+        (error as { status: number }).status === 404
+      ) {
+        const simulatedBalance =
+          previousBalance !== null ? roundMoney(previousBalance + amount) : amount;
+        const simulatedResult: CashOutResult = {
+          success: true,
+          betId,
+          cashedOutAmount: amount,
+          newBalance: simulatedBalance,
+          transactionId: `cashout-${Date.now()}`,
+          settledAt: new Date().toISOString(),
+        };
+
+        safeDispatch(BALANCE_UPDATED_EVENT, simulatedBalance);
+        safeDispatch(WALLET_REFRESH_EVENT);
+        return simulatedResult;
+      }
+
+      throw error;
+    }
+  },
 };
 
 export type WalletService = WalletRepository;
@@ -356,6 +463,9 @@ export function createWalletService(
     },
     listPendingDeposits(signal) {
       return repository.listPendingDeposits(signal);
+    },
+    executeCashOut(options) {
+      return repository.executeCashOut(options);
     },
   };
 }

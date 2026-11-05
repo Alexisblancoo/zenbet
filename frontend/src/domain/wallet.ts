@@ -1,14 +1,16 @@
 /**
  * Dominio de billetera de Zenbet.
  *
- * Sin React, Axios ni localStorage. Aquí viven los contratos, los estados, los
- * formateadores y los cálculos que alimentan el dashboard. La fuente de datos
+ * Sin React, Axios ni localStorage. AquÃ­ viven los contratos, los estados, los
+ * formateadores y los cÃ¡lculos que alimentan el dashboard. La fuente de datos
  * se inyecta desde la capa de servicios (HTTP).
  */
 
+import { z } from 'zod';
+
 import { roundMoney } from './bets';
 
-export type WalletBetStatus = 'pending' | 'won' | 'lost' | 'cancelled';
+export type WalletBetStatus = 'pending' | 'won' | 'lost' | 'cancelled' | 'cashed_out';
 export type WalletBetType = 'single' | 'combined';
 export type WalletBetFilter = 'all' | WalletBetStatus;
 export type WalletActivitySource = 'live';
@@ -28,6 +30,72 @@ export type WalletTransactionFilter = 'all' | 'deposit' | 'withdrawal' | 'settle
 export type WalletCurrency = 'USD';
 export type WalletHistoryPeriod = '7d' | '30d' | '90d' | 'all';
 
+/* ==========================================================================
+   Contratos DTO y esquemas Zod (Strict Zero-Any)
+   ========================================================================== */
+
+export const WalletBetStatusSchema = z.enum([
+  'pending',
+  'won',
+  'lost',
+  'cancelled',
+  'cashed_out',
+]);
+
+export const WalletBetTypeSchema = z.enum(['single', 'combined']);
+
+/**
+ * Esquema Zod para validar el contrato DTO de una apuesta en billetera,
+ * incluyendo cuotas dinámicas y disponibilidad de Cash Out.
+ */
+export const WalletBetSchema = z.object({
+  id: z.string().min(1),
+  ticket: z.string().min(1),
+  eventName: z.string(),
+  selectionName: z.string(),
+  marketLabel: z.string(),
+  type: WalletBetTypeSchema,
+  legs: z.number().int().min(1),
+  stake: z.number().nonnegative(),
+  odds: z.number().positive(),
+  potentialPayout: z.number().nonnegative(),
+  payout: z.number().nullable(),
+  status: WalletBetStatusSchema,
+  placedAt: z.string(),
+  settledAt: z.string().nullable(),
+  source: z.literal('live'),
+  cashOutAvailable: z.boolean(),
+  currentCashOutValue: z.number().nonnegative(),
+  isSuspendedByRisk: z.boolean().optional(),
+  marketId: z.string().optional(),
+});
+
+export type WalletBetDto = z.infer<typeof WalletBetSchema>;
+
+/**
+ * Contrato de solicitud para ejecutar Cash Out.
+ */
+export const CashOutRequestSchema = z.object({
+  betId: z.string().min(1),
+  amount: z.number().positive(),
+});
+
+export type CashOutRequestDto = z.infer<typeof CashOutRequestSchema>;
+
+/**
+ * Contrato de respuesta al liquidar anticipadamente mediante Cash Out.
+ */
+export const CashOutResponseSchema = z.object({
+  success: z.boolean(),
+  betId: z.string().min(1),
+  cashedOutAmount: z.number().nonnegative(),
+  newBalance: z.number().nonnegative(),
+  transactionId: z.string().nullable().optional().default(null),
+  settledAt: z.string(),
+});
+
+export type CashOutResponseDto = z.infer<typeof CashOutResponseSchema>;
+
 export interface WalletBet {
   readonly id: string;
   readonly ticket: string;
@@ -39,12 +107,20 @@ export interface WalletBet {
   readonly stake: number;
   readonly odds: number;
   readonly potentialPayout: number;
-  /** Pago final; `null` mientras la apuesta no está liquidada. */
+  /** Pago final; `null` mientras la apuesta no estÃ¡ liquidada. */
   readonly payout: number | null;
   readonly status: WalletBetStatus;
   readonly placedAt: string;
   readonly settledAt: string | null;
   readonly source: WalletActivitySource;
+  /** Bandera de disponibilidad inmediata de Cash Out */
+  readonly cashOutAvailable: boolean;
+  /** Valor monetario actual ofertado para el cobro anticipado */
+  readonly currentCashOutValue: number;
+  /** Suspensión por Circuit Breaker (Risk & Liability Engine) */
+  readonly isSuspendedByRisk?: boolean;
+  /** Identificador opcional del mercado */
+  readonly marketId?: string;
 }
 
 export interface WalletTransaction {
@@ -97,13 +173,14 @@ export const WALLET_BET_STATUS_LABELS: Record<WalletBetStatus, string> = {
   won: 'Ganada',
   lost: 'Perdida',
   cancelled: 'Cancelada',
+  cashed_out: 'Cash Out',
 };
 
 export const WALLET_TRANSACTION_TYPE_LABELS: Record<WalletTransactionType, string> = {
-  deposit: 'Depósito',
+  deposit: 'DepÃ³sito',
   withdrawal: 'Retiro',
   bet: 'Apuesta',
-  settlement: 'Liquidación',
+  settlement: 'LiquidaciÃ³n',
   cancellation: 'Reembolso',
   bonus: 'Bono',
   adjustment: 'Ajuste',
@@ -122,6 +199,7 @@ export const WALLET_BET_FILTERS: readonly { value: WalletBetFilter; label: strin
   { value: 'won', label: 'Ganadas' },
   { value: 'lost', label: 'Perdidas' },
   { value: 'cancelled', label: 'Canceladas' },
+  { value: 'cashed_out', label: 'Cash Out' },
 ];
 
 export const WALLET_TRANSACTION_FILTERS: readonly {
@@ -129,7 +207,7 @@ export const WALLET_TRANSACTION_FILTERS: readonly {
   label: string;
 }[] = [
   { value: 'all', label: 'Todos' },
-  { value: 'deposit', label: 'Depósitos' },
+  { value: 'deposit', label: 'DepÃ³sitos' },
   { value: 'withdrawal', label: 'Retiros' },
   { value: 'settlement', label: 'Liquidaciones' },
   { value: 'bet', label: 'Apuestas' },
@@ -140,9 +218,9 @@ export const WALLET_PERIODS: readonly {
   label: string;
   days: number | null;
 }[] = [
-  { value: '7d', label: '7 días', days: 7 },
-  { value: '30d', label: '30 días', days: 30 },
-  { value: '90d', label: '90 días', days: 90 },
+  { value: '7d', label: '7 dÃ­as', days: 7 },
+  { value: '30d', label: '30 dÃ­as', days: 30 },
+  { value: '90d', label: '90 dÃ­as', days: 90 },
   { value: 'all', label: 'Todo', days: null },
 ];
 
@@ -188,7 +266,7 @@ const relativeTimeFormatter = new Intl.RelativeTimeFormat('es-MX', {
 });
 
 const DAY_MS = 86_400_000;
-const WEEKDAYS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'] as const;
+const WEEKDAYS = ['dom', 'lun', 'mar', 'miÃ©', 'jue', 'vie', 'sÃ¡b'] as const;
 
 function safeNumber(value: number): number {
   return Number.isFinite(value) ? value : 0;
@@ -201,13 +279,13 @@ function safeDate(value: string): Date | null {
 
 export function formatWalletMoney(value: number): string {
   const safe = safeNumber(value);
-  const sign = safe < 0 ? '−' : '';
+  const sign = safe < 0 ? 'âˆ’' : '';
   return `${sign}$${amountFormatter.format(Math.abs(safe))}`;
 }
 
 export function formatWalletMoneyCompact(value: number): string {
   const safe = safeNumber(value);
-  const sign = safe < 0 ? '−' : '';
+  const sign = safe < 0 ? 'âˆ’' : '';
   return `${sign}$${compactAmountFormatter.format(Math.abs(safe))}`;
 }
 
@@ -219,7 +297,7 @@ export function formatWalletMoneyParts(value: number): { whole: string; fraction
 
 export function formatSignedMoney(value: number): string {
   const safe = safeNumber(value);
-  const sign = safe > 0 ? '+' : safe < 0 ? '−' : '';
+  const sign = safe > 0 ? '+' : safe < 0 ? 'âˆ’' : '';
   return `${sign}$${amountFormatter.format(Math.abs(safe))}`;
 }
 
@@ -233,28 +311,28 @@ export function formatWinRate(value: number): string {
 
 export function formatWalletDate(value: string): string {
   const date = safeDate(value);
-  return date ? shortDateFormatter.format(date) : '—';
+  return date ? shortDateFormatter.format(date) : 'â€”';
 }
 
 export function formatWalletDateTime(value: string): string {
   const date = safeDate(value);
-  return date ? dateTimeFormatter.format(date) : '—';
+  return date ? dateTimeFormatter.format(date) : 'â€”';
 }
 
 export function formatWalletDateLong(value: string): string {
   const date = safeDate(value);
-  return date ? longDateFormatter.format(date) : '—';
+  return date ? longDateFormatter.format(date) : 'â€”';
 }
 
 export function formatWeekday(value: string | Date): string {
   const date = typeof value === 'string' ? safeDate(value) : value;
-  if (!date) return '—';
+  if (!date) return 'â€”';
   return weekdayFormatter.format(date).replace('.', '');
 }
 
 export function formatRelativeTime(value: string, now = Date.now()): string {
   const date = safeDate(value);
-  if (!date) return '—';
+  if (!date) return 'â€”';
 
   const diffMs = date.getTime() - now;
   const minutes = Math.round(diffMs / 60_000);
@@ -272,7 +350,7 @@ export function formatRelativeTime(value: string, now = Date.now()): string {
 /** GUIDs largos se abrevian; los tickets legibles se conservan. */
 export function formatTicket(value: string | null | undefined): string {
   const clean = value?.trim();
-  if (!clean) return '—';
+  if (!clean) return 'â€”';
 
   const token = clean.length > 14 ? clean.replace(/-/g, '').slice(0, 8) : clean;
   return token.startsWith('#') ? token.toUpperCase() : `#${token.toUpperCase()}`;
@@ -281,11 +359,11 @@ export function formatTicket(value: string | null | undefined): string {
 export function formatWalletId(walletId: string | null | undefined): string {
   const clean = walletId?.trim();
   if (!clean) return 'No vinculada';
-  return clean.length > 14 ? `${clean.slice(0, 6)}…${clean.slice(-4)}` : clean;
+  return clean.length > 14 ? `${clean.slice(0, 6)}â€¦${clean.slice(-4)}` : clean;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Cálculos                                                                   */
+/* CÃ¡lculos                                                                   */
 /* -------------------------------------------------------------------------- */
 
 function sum(values: readonly number[]): number {
@@ -385,8 +463,8 @@ interface MutableActivityPoint {
 }
 
 /**
- * Flujo neto diario de los últimos `days` días. Solo cuenta movimientos
- * completados; los movimientos pendientes no alteran el gráfico.
+ * Flujo neto diario de los Ãºltimos `days` dÃ­as. Solo cuenta movimientos
+ * completados; los movimientos pendientes no alteran el grÃ¡fico.
  */
 export function buildDailyActivity(
   transactions: readonly WalletTransaction[],
