@@ -85,13 +85,18 @@ export type CashOutRequestDto = z.infer<typeof CashOutRequestSchema>;
 /**
  * Contrato de respuesta al liquidar anticipadamente mediante Cash Out.
  */
+/**
+ * Espejo exacto de `CashOutResponse` del backend (POST /bets/{betId}/cashout).
+ * `newBalance` puede ser negativo: un clawback VAR deja deuda en la billetera.
+ */
 export const CashOutResponseSchema = z.object({
   success: z.boolean(),
   betId: z.string().min(1),
-  cashedOutAmount: z.number().nonnegative(),
-  newBalance: z.number().nonnegative(),
   transactionId: z.string().nullable().optional().default(null),
-  settledAt: z.string(),
+  cashOutAmount: z.number().nonnegative(),
+  newBalance: z.number(),
+  newRealAvailable: z.number().nullable().optional().default(null),
+  idempotentReplay: z.boolean().optional().default(false),
 });
 
 export type CashOutResponseDto = z.infer<typeof CashOutResponseSchema>;

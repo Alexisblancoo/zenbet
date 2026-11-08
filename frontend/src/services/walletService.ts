@@ -32,7 +32,7 @@ export const WALLET_ENDPOINTS = {
   /** Solicitud de depósito con comprobante (queda en revisión). */
   deposito: '/wallet/deposito',
   pendingDeposits: '/wallet/depositos/pendientes',
-  cashOut: (betId: string) => `/bets/${betId}/cash-out`,
+  cashOut: (betId: string) => `/bets/${encodeURIComponent(betId)}/cashout`,
 } as const;
 
 interface WalletBetWire {
@@ -401,9 +401,10 @@ export const httpWalletRepository: WalletRepository = {
     }
 
     try {
+      // El monto lo calcula el servidor con la cuota vigente; el cliente no lo envía.
       const wire = await apiClient.post<unknown>(
         WALLET_ENDPOINTS.cashOut(betId),
-        { betId, amount },
+        undefined,
         idempotencyKey ? { headers: { [IDEMPOTENCY_HEADER]: idempotencyKey } } : undefined,
       );
 
@@ -414,31 +415,9 @@ export const httpWalletRepository: WalletRepository = {
 
       return parsed;
     } catch (error) {
+      // Nunca se fabrica un éxito: un fallo de dinero debe verse como fallo.
       if (previousBalance !== null) {
         safeDispatch(BALANCE_UPDATED_EVENT, previousBalance);
-      }
-
-      if (
-        import.meta.env.DEV &&
-        typeof error === 'object' &&
-        error !== null &&
-        'status' in error &&
-        (error as { status: number }).status === 404
-      ) {
-        const simulatedBalance =
-          previousBalance !== null ? roundMoney(previousBalance + amount) : amount;
-        const simulatedResult: CashOutResult = {
-          success: true,
-          betId,
-          cashedOutAmount: amount,
-          newBalance: simulatedBalance,
-          transactionId: `cashout-${Date.now()}`,
-          settledAt: new Date().toISOString(),
-        };
-
-        safeDispatch(BALANCE_UPDATED_EVENT, simulatedBalance);
-        safeDispatch(WALLET_REFRESH_EVENT);
-        return simulatedResult;
       }
 
       throw error;

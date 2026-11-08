@@ -75,19 +75,39 @@ describe('Cash Out Contracts & Zod Validation (Zero-Any)', () => {
     expect(() => CashOutRequestSchema.parse({ betId: 'bet-1', amount: -10 })).toThrow();
   });
 
-  it('debe validar CashOutResponseSchema con confirmación contable', () => {
+  it('debe validar CashOutResponseSchema con el contrato real del backend', () => {
     const response = {
       success: true,
       betId: 'bet-12345',
-      cashedOutAmount: 18.5,
-      newBalance: 118.5,
       transactionId: 'tx-cashout-999',
-      settledAt: '2026-11-05T01:15:00.000Z',
+      cashOutAmount: 18.5,
+      newBalance: 118.5,
+      newRealAvailable: 118.5,
+      initialOdds: 2,
+      currentOdds: 2.2,
+      retentionMargin: 0.9,
+      idempotentReplay: false,
     };
     const parsed = CashOutResponseSchema.parse(response);
     expect(parsed.success).toBe(true);
-    expect(parsed.cashedOutAmount).toBe(18.5);
+    expect(parsed.cashOutAmount).toBe(18.5);
     expect(parsed.newBalance).toBe(118.5);
+  });
+
+  it('debe rechazar la forma antigua (cashedOutAmount) que el backend nunca envía', () => {
+    expect(() =>
+      CashOutResponseSchema.parse({ success: true, betId: 'b', cashedOutAmount: 1, newBalance: 1 }),
+    ).toThrow();
+  });
+
+  it('debe aceptar saldo negativo tras un clawback VAR', () => {
+    const parsed = CashOutResponseSchema.parse({
+      success: true,
+      betId: 'b',
+      cashOutAmount: 5,
+      newBalance: -20,
+    });
+    expect(parsed.newBalance).toBe(-20);
   });
 });
 
@@ -122,13 +142,18 @@ describe('Cash Out Optimistic Execution (walletService)', () => {
     window.addEventListener(SALDO_FLASH_EVENT, handleEvent);
     window.addEventListener(WALLET_REFRESH_EVENT, handleEvent);
 
-    vi.spyOn(apiClient, 'post').mockResolvedValueOnce({
+    // Respuesta real de POST /api/v1/bets/{betId}/cashout (CashOutResponse del backend).
+    const postSpy = vi.spyOn(apiClient, 'post').mockResolvedValueOnce({
       success: true,
       betId: 'bet-99',
-      cashedOutAmount: 25,
-      newBalance: 125,
       transactionId: 'tx-opt-1',
-      settledAt: '2026-11-05T01:30:00.000Z',
+      cashOutAmount: 25,
+      newBalance: 125,
+      newRealAvailable: 125,
+      initialOdds: 2,
+      currentOdds: 2.5,
+      retentionMargin: 0.9,
+      idempotentReplay: false,
     });
 
     const result = await httpWalletRepository.executeCashOut({
@@ -137,7 +162,9 @@ describe('Cash Out Optimistic Execution (walletService)', () => {
       currentBalance: 100,
     });
 
+    expect(postSpy).toHaveBeenCalledWith('/bets/bet-99/cashout', undefined, undefined);
     expect(result.success).toBe(true);
+    expect(result.cashOutAmount).toBe(25);
     expect(result.newBalance).toBe(125);
 
     // Debe contener el balance optimista inicial (125) y el flash
@@ -177,6 +204,25 @@ describe('Cash Out Optimistic Execution (walletService)', () => {
 
     // balancesDispatched debe contener: 130 (optimista) y luego 100 (rollback)
     expect(balancesDispatched).toEqual([130, 100]);
+
+    window.removeEventListener(BALANCE_UPDATED_EVENT, handleBalance);
+  });
+
+  it('no debe fabricar un Cash Out exitoso cuando la API responde 404', async () => {
+    const balancesDispatched: number[] = [];
+    const handleBalance = (event: Event) => {
+      balancesDispatched.push((event as CustomEvent<number>).detail);
+    };
+    window.addEventListener(BALANCE_UPDATED_EVENT, handleBalance);
+
+    vi.spyOn(apiClient, 'post').mockRejectedValueOnce({ status: 404, message: 'Not Found' });
+
+    await expect(
+      httpWalletRepository.executeCashOut({ betId: 'bet-404', amount: 10, currentBalance: 50 }),
+    ).rejects.toMatchObject({ status: 404 });
+
+    // Optimista (60) y rollback (50); ningún saldo inventado.
+    expect(balancesDispatched).toEqual([60, 50]);
 
     window.removeEventListener(BALANCE_UPDATED_EVENT, handleBalance);
   });

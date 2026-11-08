@@ -464,10 +464,20 @@ public static class WalletEndpoints
     internal static bool TryReadUserId(ClaimsPrincipal user, out Guid userId) =>
         Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out userId) && userId != Guid.Empty;
 
-    /// <summary>Lee exclusivamente el header estándar Idempotency-Key como GUID.</summary>
+    /// <summary>
+    /// Lee la clave de idempotencia como GUID. Acepta el header estándar
+    /// <c>Idempotency-Key</c> y <c>X-Idempotency-Key</c>, que es el que envía el
+    /// cliente web en todas las mutaciones (y el que ya usa /bets/place).
+    /// Aceptar solo uno dejaba depósitos, retiros y cash out en 400 desde la UI.
+    /// </summary>
     internal static bool TryReadIdempotencyKey(HttpRequest httpRequest, out Guid idempotencyKey)
     {
         var header = httpRequest.Headers["Idempotency-Key"].ToString();
+        if (string.IsNullOrWhiteSpace(header))
+        {
+            header = httpRequest.Headers["X-Idempotency-Key"].ToString();
+        }
+
         return Guid.TryParse(header, out idempotencyKey) && idempotencyKey != Guid.Empty;
     }
 
