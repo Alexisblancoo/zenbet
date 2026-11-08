@@ -39,11 +39,16 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:5000
       ConnectionStrings__EventsMarkets: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-zenbet_events_markets};Username=${POSTGRES_USER:-zenbet};Password=${POSTGRES_PASSWORD:?Debes definir POSTGRES_PASSWORD en tu archivo .env}"
-      # Sin valores por defecto: ver SecretsStartupValidation en Program.cs,
-      # que además rechaza estos dos ejemplos conocidos si llegaran a usarse
-      # fuera de Development.
+      # Sin valores por defecto: Program.cs rechaza arrancar fuera de Development
+      # si estos secretos faltan, son cortos o siguen siendo los de ejemplo.
       Auth__SigningKey: ${JWT_SIGNING_KEY:?Debes definir JWT_SIGNING_KEY en tu archivo .env (ver .env.example)}
-      Settlement__ApiKey: ${SETTLEMENT_API_KEY:?Debes definir SETTLEMENT_API_KEY en tu archivo .env (ver .env.example)}
+      # Secreto HMAC de la pasarela RGS. Vacío = los callbacks RGS se rechazan.
+      Rgs__SharedSecret: ${RGS_SHARED_SECRET:-}
+      # Primer administrador (opcional, se crea solo si no existe ningún admin).
+      # Retira la contraseña del entorno tras el primer arranque.
+      Admin__Bootstrap__Username: ${ADMIN_BOOTSTRAP_USERNAME:-}
+      Admin__Bootstrap__Email: ${ADMIN_BOOTSTRAP_EMAIL:-}
+      Admin__Bootstrap__Password: ${ADMIN_BOOTSTRAP_PASSWORD:-}
       Seeding__Ufc__Enabled: "true"
       Seeding__Ufc__ApplyMigrations: "true"
       Seeding__Ufc__ForceRefresh: "false"

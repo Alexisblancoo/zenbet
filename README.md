@@ -51,4 +51,4 @@ npm run dev
 ```
 
 La API lee los secretos desde variables de entorno:
-`ConnectionStrings__EventsMarkets`, `Auth__SigningKey` y `Settlement__ApiKey`.
+`ConnectionStrings__EventsMarkets`, `Auth__SigningKey` y `Rgs__SharedSecret` (más `Admin__Bootstrap__*` para crear el primer administrador).

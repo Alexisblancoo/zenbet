@@ -1,9 +1,9 @@
-using System.Security.Cryptography;
-using System.Text;
+using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Zenbet.EventsMarkets.Api.Authentication;
 using Zenbet.EventsMarkets.Application.Commands.SettleUfcEvent;
 using Zenbet.EventsMarkets.Application.Commands.SettleFight;
 using Zenbet.EventsMarkets.Application.DTOs;
@@ -94,34 +94,20 @@ public static class EventsEndpoints
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status429TooManyRequests);
 
-        // Ingesta interna del resultado oficial de un combate UFC. El header
-        // X-Settlement-Key evita que un jugador pueda liquidar su propia
-        // apuesta; el resultado queda persistido y los mercados se liquidan de
-        // forma determinista. El PayoutWorker paga después en segundo plano.
+        // Ingesta del resultado oficial de un combate UFC. Solo un administrador
+        // autenticado puede liquidar (la identidad sale del token, no del body);
+        // el resultado queda persistido y los mercados se liquidan de forma
+        // determinista. El PayoutWorker paga después en segundo plano.
         group.MapPost("/{eventId:guid}/result", async (
             Guid eventId,
             UfcSettlementRequest request,
-            HttpRequest httpRequest,
-            IConfiguration configuration,
+            ClaimsPrincipal user,
+            HttpContext httpContext,
+            ILogger<AdminAudit> auditLogger,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {
-            var configuredKey = configuration["Settlement:ApiKey"];
-            if (string.IsNullOrWhiteSpace(configuredKey))
-            {
-                return Results.Problem(
-                    title: "Liquidación no configurada",
-                    detail: "Falta Settlement:ApiKey en la configuración del servidor.",
-                    statusCode: StatusCodes.Status503ServiceUnavailable);
-            }
-
-            if (!HasValidSettlementKey(httpRequest, configuredKey))
-            {
-                return Results.Problem(
-                    title: "No autorizado",
-                    detail: "El header X-Settlement-Key es obligatorio para liquidar un evento.",
-                    statusCode: StatusCodes.Status401Unauthorized);
-            }
+            AdminAccess.LogPrivilegedAction(auditLogger, user, httpContext, "settle_ufc_event", eventId);
 
             if (!TryParseCorner(request.WinnerCorner, out var winnerCorner))
             {
@@ -147,9 +133,7 @@ public static class EventsEndpoints
                         winnerCorner,
                         method,
                         request.Round,
-                        string.IsNullOrWhiteSpace(request.SettledBy)
-                            ? "ufc-result-feed"
-                            : request.SettledBy.Trim(),
+                        AdminAccess.ActorLabel(user),
                         request.IdempotencyKey),
                     cancellationToken);
 
@@ -182,24 +166,13 @@ public static class EventsEndpoints
             }
         })
         .WithName("SettleUfcEvent")
+        .RequireAuthorization(AdminAccess.PolicyName)
         .RequireRateLimiting("BettingPolicy")
         .Produces<SettleUfcEventResult>(StatusCodes.Status200OK)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status422UnprocessableEntity)
         .Produces(StatusCodes.Status429TooManyRequests);
-    }
-
-    internal static bool HasValidSettlementKey(HttpRequest request, string configuredKey)
-    {
-        var provided = request.Headers["X-Settlement-Key"].ToString();
-        if (string.IsNullOrWhiteSpace(provided)) return false;
-
-        var expectedBytes = Encoding.UTF8.GetBytes(configuredKey);
-        var providedBytes = Encoding.UTF8.GetBytes(provided);
-
-        return expectedBytes.Length == providedBytes.Length &&
-            CryptographicOperations.FixedTimeEquals(expectedBytes, providedBytes);
     }
 
     private static bool TryParseCorner(string? value, out FightCorner corner)

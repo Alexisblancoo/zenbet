@@ -79,9 +79,21 @@ public static class WalletEndpoints
             [FromBody] DepositFundsRequest request,
             HttpRequest httpRequest,
             ClaimsPrincipal user,
+            IConfiguration configuration,
+            IHostEnvironment environment,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {
+            // Recarga instantánea sin pasarela: solo para desarrollo. Fuera de
+            // Development queda apagada salvo Features:DemoDeposit=true explícito;
+            // el flujo real es /deposito (pendiente + aprobación de un admin).
+            var demoDepositEnabled =
+                configuration.GetValue<bool?>("Features:DemoDeposit") ?? environment.IsDevelopment();
+            if (!demoDepositEnabled)
+            {
+                return Results.NotFound();
+            }
+
             if (!TryReadWalletId(user, out var walletId))
             {
                 return Results.Unauthorized();
@@ -334,8 +346,13 @@ public static class WalletEndpoints
             IMediator mediator,
             CancellationToken cancellationToken)
         {
+            if (!TryReadUserId(user, out var approverUserId))
+            {
+                return Results.Unauthorized();
+            }
+
             var result = await mediator.Send(
-                new ApproveDepositCommand(TransactionId.From(id)),
+                new ApproveDepositCommand(TransactionId.From(id), approverUserId),
                 cancellationToken);
 
             if (!result.Success)
@@ -344,6 +361,7 @@ public static class WalletEndpoints
                 {
                     ApproveDepositError.TransactionNotFound => StatusCodes.Status404NotFound,
                     ApproveDepositError.InvalidState => StatusCodes.Status409Conflict,
+                    ApproveDepositError.SelfApprovalForbidden => StatusCodes.Status403Forbidden,
                     _ => StatusCodes.Status422UnprocessableEntity,
                 };
 
@@ -441,6 +459,10 @@ public static class WalletEndpoints
 
     internal static bool TryReadWalletId(ClaimsPrincipal user, out Guid walletId) =>
         Guid.TryParse(user.FindFirstValue("wallet_id"), out walletId) && walletId != Guid.Empty;
+
+    /// <summary>Identidad del usuario autenticado (claim NameIdentifier del token firmado).</summary>
+    internal static bool TryReadUserId(ClaimsPrincipal user, out Guid userId) =>
+        Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out userId) && userId != Guid.Empty;
 
     /// <summary>Lee exclusivamente el header estándar Idempotency-Key como GUID.</summary>
     internal static bool TryReadIdempotencyKey(HttpRequest httpRequest, out Guid idempotencyKey)

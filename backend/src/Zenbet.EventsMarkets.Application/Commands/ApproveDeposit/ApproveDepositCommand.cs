@@ -3,7 +3,11 @@ namespace Zenbet.EventsMarkets.Application.Commands.ApproveDeposit;
 using MediatR;
 using Zenbet.EventsMarkets.Domain.ValueObjects;
 
-public sealed record ApproveDepositCommand(TransactionId TransactionId)
+/// <param name="ApproverUserId">
+/// Identidad autenticada de quien aprueba (claim del token). Se usa para impedir
+/// que un administrador acredite sus propios depósitos.
+/// </param>
+public sealed record ApproveDepositCommand(TransactionId TransactionId, Guid ApproverUserId)
     : IRequest<ApproveDepositResult>;
 
 public enum ApproveDepositError
@@ -12,7 +16,8 @@ public enum ApproveDepositError
     TransactionNotFound = 1,
     NotADeposit = 2,
     LegacyDeposit = 3,
-    InvalidState = 4
+    InvalidState = 4,
+    SelfApprovalForbidden = 5
 }
 
 public sealed record ApproveDepositResult(

@@ -78,7 +78,7 @@ async function selectUpdates() {
 async function publishUpdates(updates) {
   const response = await fetch(oddsApiUrl, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${process.env.ZENBET_ADMIN_TOKEN ?? ''}` },
     signal: AbortSignal.timeout(8_000),
     body: JSON.stringify({ updates, idempotencyKey: crypto.randomUUID() }),
   });

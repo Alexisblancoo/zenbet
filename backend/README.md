@@ -98,7 +98,7 @@ docker compose up --build
 
 Copy `.env.example` to `.env` before starting the stack and replace the
 placeholder secrets. The API reads `ConnectionStrings__EventsMarkets`,
-`Auth__SigningKey` and `Settlement__ApiKey` from the environment.
+`Auth__SigningKey` and `Rgs__SharedSecret` (plus `Admin__Bootstrap__*` to create the first admin) from the environment.
 
 ## Concurrency Test Scenarios
 

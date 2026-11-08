@@ -1,7 +1,9 @@
 import crypto from 'node:crypto';
 
 const BASE_URL = 'http://localhost:5005';
-const SETTLEMENT_API_KEY = '5d37d3fd58bd182dda72486f4ec207e5';
+// Requiere una sesion admin: export ZENBET_ADMIN_TOKEN=<token de POST /api/auth/login con el admin>
+const ADMIN_TOKEN = process.env.ZENBET_ADMIN_TOKEN;
+if (!ADMIN_TOKEN) { console.error('Falta ZENBET_ADMIN_TOKEN (login de un usuario con rol admin).'); process.exit(1); }
 
 // Market: UFC 334 - Yousri Belgaroui vs Caio Borralho (Winner)
 const MARKET_ID = '6bf7912d-5a6e-5a4c-9232-bf4e953a69fe';
@@ -104,7 +106,7 @@ async function runAudit() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Settlement-Key': SETTLEMENT_API_KEY
+      'Authorization': `Bearer ${ADMIN_TOKEN}`
     },
     body: JSON.stringify({
       marketId: MARKET_ID,
@@ -161,7 +163,7 @@ async function runAudit() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Settlement-Key': SETTLEMENT_API_KEY
+      'Authorization': `Bearer ${ADMIN_TOKEN}`
     },
     body: JSON.stringify({
       marketId: MARKET_ID,

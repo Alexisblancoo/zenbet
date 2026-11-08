@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using MediatR;
 using FluentValidation;
+using Zenbet.EventsMarkets.Api.Authentication;
 using Zenbet.EventsMarkets.Application.Commands.CashOut;
 using Zenbet.EventsMarkets.Application.Commands.PlaceBet;
 using Zenbet.EventsMarkets.Application.Commands.SettleMarket;
@@ -161,33 +162,20 @@ public static class BetsEndpoints
         // Settle a market (admin/internal)
         group.MapPost("/settle", async (
             [FromBody] SettleMarketRequest request,
-            HttpRequest httpRequest,
-            IConfiguration configuration,
+            ClaimsPrincipal user,
+            HttpContext httpContext,
+            ILogger<AdminAudit> auditLogger,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {
-            var configuredKey = configuration["Settlement:ApiKey"];
-            if (string.IsNullOrWhiteSpace(configuredKey))
-            {
-                return Results.Problem(
-                    title: "Liquidación no configurada",
-                    detail: "Falta Settlement:ApiKey en la configuración del servidor.",
-                    statusCode: StatusCodes.Status503ServiceUnavailable);
-            }
+            AdminAccess.LogPrivilegedAction(auditLogger, user, httpContext, "settle_market", request.MarketId);
 
-            if (!EventsEndpoints.HasValidSettlementKey(httpRequest, configuredKey))
-            {
-                return Results.Problem(
-                    title: "No autorizado",
-                    detail: "El header X-Settlement-Key es obligatorio para liquidar un mercado.",
-                    statusCode: StatusCodes.Status401Unauthorized);
-            }
-
+            // SettledBy del body se ignora: el actor es la identidad del token.
             var command = new SettleMarketCommand(
                 MarketId.From(request.MarketId),
                 SelectionId.From(request.WinnerSelectionId),
                 request.Result,
-                request.SettledBy,
+                AdminAccess.ActorLabel(user),
                 request.IdempotencyKey);
 
             var result = await mediator.Send(command, cancellationToken);
@@ -201,40 +189,30 @@ public static class BetsEndpoints
             });
         })
         .WithName("SettleMarket")
+        .RequireAuthorization(AdminAccess.PolicyName)
         .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
         .Produces(StatusCodes.Status422UnprocessableEntity);
 
         // Resettle a market (admin/internal VAR clawback engine)
         group.MapPost("/resettle", async (
             [FromBody] ResettleMarketRequest request,
-            HttpRequest httpRequest,
-            IConfiguration configuration,
+            ClaimsPrincipal user,
+            HttpContext httpContext,
+            ILogger<AdminAudit> auditLogger,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {
-            var configuredKey = configuration["Settlement:ApiKey"];
-            if (string.IsNullOrWhiteSpace(configuredKey))
-            {
-                return Results.Problem(
-                    title: "Liquidación no configurada",
-                    detail: "Falta Settlement:ApiKey en la configuración del servidor.",
-                    statusCode: StatusCodes.Status503ServiceUnavailable);
-            }
+            AdminAccess.LogPrivilegedAction(auditLogger, user, httpContext, "resettle_market", request.MarketId);
 
-            if (!EventsEndpoints.HasValidSettlementKey(httpRequest, configuredKey))
-            {
-                return Results.Problem(
-                    title: "No autorizado",
-                    detail: "El header X-Settlement-Key es obligatorio para re-liquidar un mercado.",
-                    statusCode: StatusCodes.Status401Unauthorized);
-            }
-
+            // ResettledBy del body se ignora: el actor es la identidad del token.
             var command = new ResettleMarketCommand(
                 MarketId.From(request.MarketId),
                 SelectionId.From(request.NewWinnerSelectionId),
                 request.NewResult,
                 request.Reason,
-                request.ResettledBy,
+                AdminAccess.ActorLabel(user),
                 request.IdempotencyKey);
 
             var result = await mediator.Send(command, cancellationToken);
@@ -251,15 +229,23 @@ public static class BetsEndpoints
             });
         })
         .WithName("ResettleMarket")
+        .RequireAuthorization(AdminAccess.PolicyName)
         .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden)
         .Produces(StatusCodes.Status422UnprocessableEntity);
 
         // Update odds (internal/feed)
         group.MapPost("/odds", async (
             [FromBody] UpdateOddsRequest request,
+            ClaimsPrincipal user,
+            HttpContext httpContext,
+            ILogger<AdminAudit> auditLogger,
             IMediator mediator,
             CancellationToken cancellationToken) =>
         {
+            AdminAccess.LogPrivilegedAction(auditLogger, user, httpContext, "update_odds", request.Updates.Count);
+
             var updates = request.Updates.Select(u => new OddsUpdateItem(
                 SelectionId.From(u.SelectionId),
                 u.Value,
@@ -282,7 +268,10 @@ public static class BetsEndpoints
             });
         })
         .WithName("UpdateOdds")
-        .Produces(StatusCodes.Status200OK);
+        .RequireAuthorization(AdminAccess.PolicyName)
+        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status401Unauthorized)
+        .Produces(StatusCodes.Status403Forbidden);
     }
 
     private static async Task<IResult> PlaceBetAsync(

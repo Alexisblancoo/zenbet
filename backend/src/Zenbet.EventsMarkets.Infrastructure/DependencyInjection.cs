@@ -82,6 +82,10 @@ public static class DependencyInjection
                 "Auth:SigningKey debe estar configurado con al menos 32 caracteres.");
         }
 
+        // El primer admin se aprovisiona solo desde configuración del servidor.
+        services.Configure<AdminBootstrapOptions>(configuration.GetSection(AdminBootstrapOptions.SectionName));
+        services.AddHostedService<AdminBootstrapSeeder>();
+
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<IAuthTokenService, HmacAuthTokenService>();
         services.AddScoped<IAuthService, AuthService>();

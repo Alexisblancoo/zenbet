@@ -170,7 +170,13 @@ builder.Services.AddAuthentication(BearerTokenAuthenticationHandler.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, BearerTokenAuthenticationHandler>(
         BearerTokenAuthenticationHandler.SchemeName,
         _ => { });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Operaciones que mueven dinero o cuotas: solo sesión autenticada con rol admin.
+    options.AddPolicy(AdminAccess.PolicyName, policy => policy
+        .RequireAuthenticatedUser()
+        .RequireRole(AdminAccess.Role));
+});
 
 builder.Services.AddMediatR(cfg =>
 {
@@ -203,10 +209,10 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     const string knownExampleSigningKey = "e8e72c60620f262e75cdacfa004fa1cc59b4ff14435a225c54deff7a6c676359";
-    const string knownExampleSettlementKey = "5d37d3fd58bd182dda72486f4ec207e5";
+    const string knownExampleRgsSecret = "zenbet-rgs-hmac-sha256-shared-secret-key-2026";
 
     var signingKey = app.Configuration["Auth:SigningKey"];
-    var settlementKey = app.Configuration["Settlement:ApiKey"];
+    var rgsSecret = app.Configuration["Rgs:SharedSecret"];
 
     var startupErrors = new List<string>();
     if (string.IsNullOrWhiteSpace(signingKey) || signingKey.Length < 32)
@@ -218,13 +224,14 @@ if (!app.Environment.IsDevelopment())
         startupErrors.Add("Auth:SigningKey sigue siendo el valor de ejemplo de .env.example/docker-compose.yml.");
     }
 
-    if (string.IsNullOrWhiteSpace(settlementKey))
+    // RGS firma callbacks que acreditan premios: un secreto público permite falsificarlos.
+    if (string.IsNullOrWhiteSpace(rgsSecret) || rgsSecret.Length < 32)
     {
-        startupErrors.Add("Settlement:ApiKey falta.");
+        startupErrors.Add("Rgs:SharedSecret falta o tiene menos de 32 caracteres.");
     }
-    else if (settlementKey == knownExampleSettlementKey)
+    else if (rgsSecret == knownExampleRgsSecret)
     {
-        startupErrors.Add("Settlement:ApiKey sigue siendo el valor de ejemplo de .env.example/docker-compose.yml.");
+        startupErrors.Add("Rgs:SharedSecret sigue siendo el valor de ejemplo versionado en appsettings.");
     }
 
     if (startupErrors.Count > 0)

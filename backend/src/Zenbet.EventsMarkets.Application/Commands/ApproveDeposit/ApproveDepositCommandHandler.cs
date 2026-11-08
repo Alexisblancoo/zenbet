@@ -66,6 +66,20 @@ public sealed class ApproveDepositCommandHandler
                     "Este depósito no requiere aprobación manual.");
             }
 
+            // Principio de cuatro ojos: nadie acredita su propio depósito, ni
+            // siquiera un administrador.
+            if (transaction.UserId.Value == request.ApproverUserId)
+            {
+                await SafeRollbackAsync(cancellationToken);
+                _logger.LogWarning(
+                    "Aprobación propia bloqueada: el usuario {UserId} intentó aprobar su depósito {TransactionId}.",
+                    request.ApproverUserId,
+                    request.TransactionId);
+                return Failure(
+                    ApproveDepositError.SelfApprovalForbidden,
+                    "No puedes aprobar tu propio depósito.");
+            }
+
             if (transaction.Status == TransactionStatus.Approved)
             {
                 var currentWallet = await _walletRepository.GetByIdAsync(

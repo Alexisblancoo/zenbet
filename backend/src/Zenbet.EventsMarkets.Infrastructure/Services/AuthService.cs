@@ -120,8 +120,10 @@ public sealed class AuthService : IAuthService
         var accountId = Guid.NewGuid();
         var walletId = WalletId.New();
 
-        var isFirstUser = !await _dbContext.UserAccounts.AnyAsync(cancellationToken);
-        var role = isFirstUser || username.Equals("admin", StringComparison.OrdinalIgnoreCase) ? "admin" : "player";
+        // El registro público SIEMPRE crea jugadores. Los administradores se
+        // aprovisionan solo mediante AdminBootstrapSeeder (configuración del
+        // servidor); nunca por el orden de registro ni por el nombre elegido.
+        const string role = "player";
 
         var account = new UserAccount(
             accountId,
@@ -136,14 +138,14 @@ public sealed class AuthService : IAuthService
 
         var wallet = new Wallet(walletId, UserId.From(accountId));
 
-        // La economía arranca en $0.00 para jugadores o con saldo administrativo.
-        var initialBalance = role == "admin" ? 10000m : _options.Value.InitialBalance;
+        // La economía arranca en $0.00 salvo que la configuración defina un bono.
+        var initialBalance = _options.Value.InitialBalance;
         if (initialBalance > 0m)
         {
             var welcomeBonus = wallet.Deposit(
                 new Money(initialBalance),
-                role == "admin" ? "Fondos iniciales de Administrador" : "Bono de bienvenida",
-                role == "admin" ? "ADMIN-FUNDS" : "WELCOME-BONUS");
+                "Bono de bienvenida",
+                "WELCOME-BONUS");
             welcomeBonus.Complete();
         }
 
