@@ -52,6 +52,12 @@ public sealed class Market : AggregateRoot<MarketId>
     public decimal? Line { get; private set; }
     public int DisplayOrder { get; private set; }
     public MarketProvenance? Provenance { get; private set; }
+
+    /// <summary>
+    /// Una línea "de referencia" (modelo, no ejecutable) no admite apuestas: solo se puede apostar a cuotas fijadas por
+    /// el operador o procedentes de una fuente publicada. Sin procedencia = mercado gestionado por el operador.
+    /// </summary>
+    public bool IsExecutable => Provenance is null || Provenance.Kind != OddsSourceKind.Model;
     public Money MaxLiabilityLimit { get; private set; }
     public bool IsSuspendedByRisk { get; private set; }
     public MarketStatus Status => _status;

@@ -48,7 +48,9 @@ public enum OddsSourceKind
     Bookmaker = 1,
     Aggregator = 2,
     Exchange = 3,
-    Model = 4
+    Model = 4,
+    /// <summary>Cuota fijada por el trader de ZenBet con margen propio (ejecutable).</summary>
+    Operator = 5
 }
 
 public enum MarketType
