@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using FluentValidation;
 using Hangfire;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -118,6 +121,37 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddValidatorsFromAssemblyContaining<PlaceBetCommandValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<PlaceBetRequestValidator>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+// Observabilidad mínima viable: tracing + métricas de ASP.NET Core y
+// HttpClient. Siempre exporta a consola (gratis, sin infraestructura nueva);
+// si OTEL_EXPORTER_OTLP_ENDPOINT está configurado, además exporta OTLP hacia
+// un collector real (Grafana/Jaeger/etc.) sin cambiar código.
+var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]
+    ?? Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("zenbet-api"))
+    .WithTracing(tracing =>
+    {
+        tracing.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddConsoleExporter();
+
+        if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+        {
+            tracing.AddOtlpExporter();
+        }
+    })
+    .WithMetrics(metrics =>
+    {
+        metrics.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation();
+
+        if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+        {
+            metrics.AddOtlpExporter();
+        }
+    });
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
