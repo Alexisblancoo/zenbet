@@ -235,6 +235,10 @@ public sealed class PayoutWorkerConcurrencyTests : IAsyncLifetime
         // comando de liquidación resuelven el agregado por ese id.
         var market = @event.AddMarket(marketId, "Match Winner", MarketType.MatchWinner, selections);
 
+        // El test cubre el pago concurrente de 100 apuestas ganadoras, no el circuit breaker
+        // de riesgo: con el limite por defecto el mercado se suspendia antes de colocarlas todas.
+        market.ConfigureMaxLiabilityLimit(new Money(1_000_000m));
+
         _dbContext.Wallets.AddRange(wallets);
         _dbContext.Events.Add(@event);
         await _dbContext.SaveChangesAsync();
