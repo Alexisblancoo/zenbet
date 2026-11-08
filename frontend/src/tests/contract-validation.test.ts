@@ -3,11 +3,13 @@ import { ProblemDetailsException } from '@/api';
 import { describeBetError } from '@/services/betService';
 import {
   UniversalMatchAnalysisSchema,
-  MOCK_SOCCER_ANALYSIS,
-  MOCK_BASKETBALL_ANALYSIS,
-  MOCK_TENNIS_ANALYSIS,
-  MOCK_BOXING_ANALYSIS,
 } from '@/modules/Sportsbook/components/UniversalAnalysisCard';
+import {
+  SOCCER_ANALYSIS_FIXTURE,
+  BASKETBALL_ANALYSIS_FIXTURE,
+  TENNIS_ANALYSIS_FIXTURE,
+  BOXING_ANALYSIS_FIXTURE,
+} from '@/tests/fixtures/matchAnalysis';
 import {
   UserDashboardDataSchema,
   WalletBalanceSchema,
@@ -29,8 +31,8 @@ import {
    ========================================================================== */
 
 describe('Sportsbook Contracts: UniversalMatchAnalysisSchema', () => {
-  it('debe validar exitosamente el mock de Fútbol (Soccer) con métricas 1X2 y posesión', () => {
-    const result = UniversalMatchAnalysisSchema.safeParse(MOCK_SOCCER_ANALYSIS);
+  it('debe validar exitosamente el fixture de Fútbol (Soccer) con métricas 1X2 y posesión', () => {
+    const result = UniversalMatchAnalysisSchema.safeParse(SOCCER_ANALYSIS_FIXTURE);
     expect(result.success).toBe(true);
     if (result.success && result.data.sportType === 'soccer') {
       expect(result.data.sportType).toBe('soccer');
@@ -42,8 +44,8 @@ describe('Sportsbook Contracts: UniversalMatchAnalysisSchema', () => {
     }
   });
 
-  it('debe validar exitosamente el mock de Básquetbol con spread y rebotes', () => {
-    const result = UniversalMatchAnalysisSchema.safeParse(MOCK_BASKETBALL_ANALYSIS);
+  it('debe validar exitosamente el fixture de Básquetbol con spread y rebotes', () => {
+    const result = UniversalMatchAnalysisSchema.safeParse(BASKETBALL_ANALYSIS_FIXTURE);
     expect(result.success).toBe(true);
     if (result.success && result.data.sportType === 'basketball') {
       expect(result.data.sportType).toBe('basketball');
@@ -51,8 +53,8 @@ describe('Sportsbook Contracts: UniversalMatchAnalysisSchema', () => {
     }
   });
 
-  it('debe validar exitosamente el mock de Tenis con aces y primer servicio', () => {
-    const result = UniversalMatchAnalysisSchema.safeParse(MOCK_TENNIS_ANALYSIS);
+  it('debe validar exitosamente el fixture de Tenis con aces y primer servicio', () => {
+    const result = UniversalMatchAnalysisSchema.safeParse(TENNIS_ANALYSIS_FIXTURE);
     expect(result.success).toBe(true);
     if (result.success && result.data.sportType === 'tennis') {
       expect(result.data.sportType).toBe('tennis');
@@ -61,8 +63,8 @@ describe('Sportsbook Contracts: UniversalMatchAnalysisSchema', () => {
     }
   });
 
-  it('debe validar exitosamente el mock de Boxeo / MMA con reach y takedown defense', () => {
-    const result = UniversalMatchAnalysisSchema.safeParse(MOCK_BOXING_ANALYSIS);
+  it('debe validar exitosamente el fixture de Boxeo / MMA con reach y takedown defense', () => {
+    const result = UniversalMatchAnalysisSchema.safeParse(BOXING_ANALYSIS_FIXTURE);
     expect(result.success).toBe(true);
     if (result.success && result.data.sportType === 'boxing') {
       expect(result.data.sportType).toBe('boxing');
@@ -73,9 +75,9 @@ describe('Sportsbook Contracts: UniversalMatchAnalysisSchema', () => {
 
   it('debe rechazar un evento con cuotas decimales inválidas (<= 1.0)', () => {
     const corruptSoccer = {
-      ...MOCK_SOCCER_ANALYSIS,
+      ...SOCCER_ANALYSIS_FIXTURE,
       odds1X2: {
-        ...MOCK_SOCCER_ANALYSIS.odds1X2,
+        ...SOCCER_ANALYSIS_FIXTURE.odds1X2,
         home: 0.95, // Violación de contrato: las cuotas decimales deben ser estrictamente > 1.0
       },
     };
@@ -90,7 +92,7 @@ describe('Sportsbook Contracts: UniversalMatchAnalysisSchema', () => {
 
   it('debe rechazar un evento de fútbol cuyas probabilidades de 1X2 no sumen ~100%', () => {
     const corruptProbabilities = {
-      ...MOCK_SOCCER_ANALYSIS,
+      ...SOCCER_ANALYSIS_FIXTURE,
       probabilities: {
         homeWin: 80,
         draw: 40,
@@ -103,7 +105,7 @@ describe('Sportsbook Contracts: UniversalMatchAnalysisSchema', () => {
   });
 
   it('debe rechazar un evento sin telemetría del LLM agnóstico', () => {
-    const missingTelemetry = { ...MOCK_SOCCER_ANALYSIS };
+    const missingTelemetry = { ...SOCCER_ANALYSIS_FIXTURE };
     delete (missingTelemetry as { llmTelemetry?: unknown }).llmTelemetry;
 
     const result = UniversalMatchAnalysisSchema.safeParse(missingTelemetry);
@@ -112,7 +114,7 @@ describe('Sportsbook Contracts: UniversalMatchAnalysisSchema', () => {
 
   it('debe rechazar deportes no admitidos en el discriminador', () => {
     const invalidSport = {
-      ...MOCK_SOCCER_ANALYSIS,
+      ...SOCCER_ANALYSIS_FIXTURE,
       sportType: 'waterpolo',
     };
 

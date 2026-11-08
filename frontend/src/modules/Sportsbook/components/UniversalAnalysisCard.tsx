@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useId, useMemo } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { z } from 'zod';
 import {
   Brain,
@@ -248,226 +248,7 @@ export type BoxingAnalysis = z.infer<typeof BoxingAnalysisSchema>;
 export type SportType = UniversalMatchAnalysis['sportType'];
 
 /* ==========================================================================
-   2. FIXTURES Y MOCKS HIPERREALISTAS POR DEPORTE
-   ========================================================================== */
-
-export const MOCK_SOCCER_ANALYSIS: SoccerAnalysis = {
-  sportType: 'soccer',
-  id: 'ucl-2026-realmadrid-mancity',
-  competition: 'UEFA Champions League // Cuartos de Final',
-  scheduledStartTime: '2026-11-05T20:00:00Z',
-  venue: 'Estadio Santiago Bernabéu, Madrid',
-  status: 'UPCOMING',
-  headline: 'DUELO DE TRANSICIÓN VERTICAL VS CONTROL POSICIONAL AXIAL',
-  summary:
-    'El Real Madrid explota transiciones supersónicas atacando los intervalos dejados por los laterales invertidos del City. Sin embargo, el Manchester City mantiene un diferencial de xG sostenido gracias a su tasa de recuperación tras pérdida en campo rival (8.4 recuperaciones altas por partido).',
-  modelConfidence: 'HIGH',
-  homeTeam: {
-    name: 'Real Madrid CF',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
-    leaguePosition: '1° LaLiga EA Sports',
-    formLast5: ['W', 'W', 'W', 'D', 'W'],
-  },
-  awayTeam: {
-    name: 'Manchester City FC',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg',
-    leaguePosition: '2° Premier League',
-    formLast5: ['W', 'D', 'W', 'W', 'W'],
-  },
-  metrics: {
-    possessionProjection: { homePercent: 44, awayPercent: 56 },
-    shotsOnTarget: { homeShots: 6, awayShots: 7 },
-    expectedGoals: { homeXG: 1.68, awayXG: 1.84 },
-    bttsProbabilityPercent: 71,
-  },
-  odds1X2: { home: 2.75, draw: 3.55, away: 2.45 },
-  probabilities: { homeWin: 36, draw: 26, awayWin: 38 },
-  tacticalKeys: [
-    'Aceleraciones de Vinicius Jr. y Mbappé atacando la espalda de Gvardiol en transiciones de menos de 4 pases.',
-    'Construcción axial de Rodri y De Bruyne forzando repliegue en bloque medio-bajo del Madrid.',
-    'Peligro en balones parados: 31% de los goles del Madrid en UCL provienen de córners o segundas jugadas.',
-  ],
-  recommendedBetAngle: {
-    marketType: 'Ambos Equipos Anotan & Total de Goles',
-    selectionName: 'BTTS: Sí & Más de 2.5 Goles',
-    suggestedLine: 'Cuota 1.95 (-105)',
-    confidenceGrade: 'A+',
-    riskLevel: 'MODERATE',
-    rationale: 'El City ha concedido en 5 de sus últimas 6 visitas europeas, mientras que el Madrid promedia 2.3 goles en el Bernabéu.',
-  },
-  llmTelemetry: {
-    modelIdentifier: 'Agnostic-DeepReason-Soccer-v4.1',
-    inferenceLatencyMs: 4890,
-    generatedAt: new Date().toISOString(),
-  },
-};
-
-export const MOCK_BASKETBALL_ANALYSIS: BasketballAnalysis = {
-  sportType: 'basketball',
-  id: 'nba-2026-celtics-warriors',
-  competition: 'NBA Regular Season // Primetime Showdown',
-  scheduledStartTime: '2026-11-06T00:30:00Z',
-  venue: 'TD Garden, Boston, MA',
-  status: 'UPCOMING',
-  headline: 'VOLUMEN PERIMETRAL Y DISPARIDAD EN REBOTE OFENSIVO',
-  summary:
-    'Boston lidera la liga en generación de tiros de 3 puntos sin marca (44.2 intentos por noche). Golden State depende de la rotación constante de pantallas indirectas para Curry, pero sufre una desventaja neta de -6.2 rebotes ante la envergadura de Porzingis y Horford.',
-  modelConfidence: 'HIGH',
-  homeTeam: {
-    name: 'Boston Celtics',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Boston_Celtics.svg',
-    conferenceRank: '1° Conferencia Este (12-2)',
-    offensiveRatingRank: 1,
-  },
-  awayTeam: {
-    name: 'Golden State Warriors',
-    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg',
-    conferenceRank: '3° Conferencia Oeste (10-4)',
-    offensiveRatingRank: 5,
-  },
-  metrics: {
-    threePointPct: { homePct: 39.4, awayPct: 37.8 },
-    projectedRebounds: { homeRebounds: 47, awayRebounds: 41 },
-    paceRating: { projectedPossessions: 101.4, paceStyle: 'FAST_BREAK' },
-    overUnderTotalLine: 232.5,
-  },
-  oddsMoneyline: { home: 1.54, away: 2.58 },
-  spread: { favoredTeam: 'home', points: -5.5, decimal: 1.92 },
-  probabilities: { homeWin: 64, awayWin: 36 },
-  tacticalKeys: [
-    'Intercambio en asignaciones defensivas perimetrales de Jrue Holiday y White asfixiando tiradores secundarios.',
-    'Boston genera 1.28 puntos por posesión cuando ataca el mismatch en poste bajo con Tatum.',
-    'Warriors necesitan encestar al menos 18 triples con +40% de acierto para compensar el déficit en la pintura.',
-  ],
-  recommendedBetAngle: {
-    marketType: 'Puntos de Desventaja (Handicap / Spread)',
-    selectionName: 'Boston Celtics -5.5 Puntos',
-    suggestedLine: 'Cuota 1.92 (-109)',
-    confidenceGrade: 'A',
-    riskLevel: 'LOW',
-    rationale: 'Boston cubre el spread en el 72% de sus duelos en el TD Garden ante rivales con descanso regular.',
-  },
-  llmTelemetry: {
-    modelIdentifier: 'Agnostic-DeepReason-Hoops-v3.2',
-    inferenceLatencyMs: 4410,
-    generatedAt: new Date().toISOString(),
-  },
-};
-
-export const MOCK_TENNIS_ANALYSIS: TennisAnalysis = {
-  sportType: 'tennis',
-  id: 'wimbledon-2026-alcaraz-sinner',
-  competition: 'Wimbledon Championships // Grand Slam Final',
-  scheduledStartTime: '2026-07-12T13:00:00Z',
-  venue: 'Centre Court, All England Club, Londres',
-  status: 'UPCOMING',
-  headline: 'VELOCIDAD DE PISTA Y RESISTENCIA EN INTERCAMBIOS DE FONDO',
-  summary:
-    'Sinner domina la velocidad de bola plana de fondo de pista (132 km/h de media de revés), pero Alcaraz contrarresta con cambios de altura, voleas de aproximación y un ratio de conversión de puntos con segundo saque del 62% sobre césped.',
-  modelConfidence: 'HIGH',
-  surface: 'GRASS',
-  playerOne: {
-    name: 'Carlos Alcaraz',
-    country: 'ESP',
-    atpRanking: 1,
-    photoUrl: 'https://a.espncdn.com/i/headshots/tennis/players/full/4422204.png',
-    dominantHand: 'Right',
-  },
-  playerTwo: {
-    name: 'Jannik Sinner',
-    country: 'ITA',
-    atpRanking: 2,
-    photoUrl: 'https://a.espncdn.com/i/headshots/tennis/players/full/4421946.png',
-    dominantHand: 'Right',
-  },
-  metrics: {
-    firstServePct: { playerOne: 67, playerTwo: 70 },
-    projectedAces: { playerOne: 11, playerTwo: 16 },
-    breakPointConversionPct: { playerOne: 45, playerTwo: 41 },
-  },
-  oddsWinner: { playerOne: 1.88, playerTwo: 1.94 },
-  probabilities: { playerOneWin: 52, playerTwoWin: 48 },
-  projectedSets: 'Alcaraz 3-2 en sets (Más de 41.5 Juegos)',
-  tacticalKeys: [
-    'Efectividad de dejadas (drop shots) de Alcaraz castigando el posicionamiento retrasado de Sinner.',
-    'Profundidad del servicio con kick de Sinner limitando la agresividad del resto español.',
-    'Desgaste físico acumulado: Alcaraz promedia 38 minutos menos por partido en las rondas previas.',
-  ],
-  recommendedBetAngle: {
-    marketType: 'Total de Juegos en el Partido',
-    selectionName: 'Más de 39.5 Juegos Totales',
-    suggestedLine: 'Cuota 1.90 (-111)',
-    confidenceGrade: 'A+',
-    riskLevel: 'LOW',
-    rationale: 'Se proyecta un duelo a 4 o 5 sets donde la paridad al servicio llevará al menos 2 mangas al tie-break.',
-  },
-  llmTelemetry: {
-    modelIdentifier: 'Agnostic-DeepReason-Court-v2.9',
-    inferenceLatencyMs: 5120,
-    generatedAt: new Date().toISOString(),
-  },
-};
-
-export const MOCK_BOXING_ANALYSIS: BoxingAnalysis = {
-  sportType: 'boxing',
-  id: 'wbc-2026-beterbiev-bivol',
-  competition: 'WBC / IBF / WBO / WBA // Campeonato Indiscutido Semipesado',
-  scheduledStartTime: '2026-10-12T22:30:00Z',
-  venue: 'Kingdom Arena, Riad, Arabia Saudita',
-  status: 'UPCOMING',
-  headline: 'DEMOLICIÓN POR PRESIÓN Y CASTIGO AL CUERPO VS ESGRIMA DE ELITE',
-  summary:
-    'Beterbiev impone una tasa de finalización letal cortando el ring y desgastando brazos y costillas con golpes curvos cortos. Bivol debe mantener el ritmo de su jab en retroceso circular durante los 36 minutos para desarmar el avance frontal del noqueador.',
-  modelConfidence: 'HIGH',
-  weightClass: 'Light Heavyweight (175 lbs)',
-  scheduledRounds: 12,
-  redCorner: {
-    name: 'Artur Beterbiev',
-    nickname: 'The Beast',
-    record: '21-0-0',
-    reachInches: 73,
-    photoUrl: 'https://a.espncdn.com/i/headshots/boxing/players/full/290885.png',
-    fighterStyle: 'PRESSURE_FIGHTER',
-  },
-  blueCorner: {
-    name: 'Dmitry Bivol',
-    nickname: 'The Master',
-    record: '23-1-0',
-    reachInches: 72,
-    photoUrl: 'https://a.espncdn.com/i/headshots/boxing/players/full/317549.png',
-    fighterStyle: 'OUT_BOXER',
-  },
-  metrics: {
-    reachAdvantageInches: 1,
-    takedownDefenseOrGuardPct: { redCorner: 84, blueCorner: 91 },
-    significantStrikesPerMin: { redCorner: 5.4, blueCorner: 6.2 },
-    clashDynamic: 'Potencia de KO Implacable vs Desplazamiento y Jab de Alta Precisión',
-  },
-  oddsWinner: { red: 1.85, blue: 1.98, draw: 16.0 },
-  probabilities: { redWin: 54, blueWin: 46 },
-  projectedMethod: 'DECISION',
-  tacticalKeys: [
-    'Capacidad de Beterbiev para atrapar a Bivol en las cuerdas en asaltos 7 a 11 con ganchos al plexo.',
-    'Salidas laterales de Bivol con el pie adelantado evitando quedar plantado frente a la mano derecha recta.',
-    'Puntuación round a round: Los jueces valorarán el daño contundente sobre el volumen de toques limpios.',
-  ],
-  recommendedBetAngle: {
-    marketType: 'Método de Victoria Exacto',
-    selectionName: 'Dmitry Bivol por Decisión o Beterbiev por KO (Double Chance)',
-    suggestedLine: 'Cuota 1.78 (-128)',
-    confidenceGrade: 'A',
-    riskLevel: 'MODERATE',
-    rationale: 'Si la pelea llega a las tarjetas favorece a Bivol; si termina antes del límite será por la pegada devastadora de Artur.',
-  },
-  llmTelemetry: {
-    modelIdentifier: 'Agnostic-DeepReason-Combat-v5.0',
-    inferenceLatencyMs: 4720,
-    generatedAt: new Date().toISOString(),
-  },
-};
-
-/* ==========================================================================
-   3. EFECTO CSS HALFTONE GRUNGE & LOGO CONTAINERS
+   2. EFECTO CSS HALFTONE GRUNGE & LOGO CONTAINERS
    ========================================================================== */
 
 /**
@@ -523,7 +304,7 @@ function HalftoneLogoContainer({
 }
 
 /* ==========================================================================
-   4. SUB-COMPONENTES DE LAYOUT POR DEPORTE (FACTORY PRODUCTS)
+   3. SUB-COMPONENTES DE LAYOUT POR DEPORTE (FACTORY PRODUCTS)
    ========================================================================== */
 
 /* ----------------- A. SOCCER LAYOUT ----------------- */
@@ -915,7 +696,7 @@ function RingLayout({ data }: { data: BoxingAnalysis }) {
 }
 
 /* ==========================================================================
-   5. SKELETON LOADING Y ERROR BOUNDARY
+   4. SKELETON LOADING Y ERROR BOUNDARY
    ========================================================================== */
 
 function UniversalAnalysisSkeleton({ sport }: { sport: SportType }) {
@@ -1038,12 +819,12 @@ function UniversalAnalysisError({
 }
 
 /* ==========================================================================
-   6. COMPONENTE FACTORY PRINCIPAL: UniversalAnalysisCard
+   5. COMPONENTE FACTORY PRINCIPAL: UniversalAnalysisCard
    ========================================================================== */
 
 export interface UniversalAnalysisCardProps {
-  /** Payload de análisis o mock inyectado */
-  analysisData?: unknown;
+  /** Payload real de análisis. Sin dato no se renderiza tarjeta: nunca se rellena con mocks. */
+  analysisData: unknown;
   /** Selector de deporte para demostración interactiva */
   selectedSport?: SportType;
   /** Latencia simulada en ms (5000ms según requerimiento) */
@@ -1075,21 +856,7 @@ export default function UniversalAnalysisCard({
 
   const containerId = useId();
 
-  // Mocks por defecto según el deporte activo
-  const defaultMock = useMemo(() => {
-    switch (activeSport) {
-      case 'soccer':
-        return MOCK_SOCCER_ANALYSIS;
-      case 'basketball':
-        return MOCK_BASKETBALL_ANALYSIS;
-      case 'tennis':
-        return MOCK_TENNIS_ANALYSIS;
-      case 'boxing':
-        return MOCK_BOXING_ANALYSIS;
-    }
-  }, [activeSport]);
-
-  const rawPayload = analysisData ?? defaultMock;
+  const rawPayload = analysisData;
 
   // Simulación asíncrona de 5s del LLM con validación Zod
   const executeInference = () => {
