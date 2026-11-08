@@ -45,7 +45,9 @@ import {
   formatWeightDivision,
   isEventHeroEligible,
   isPubliclyListable,
+  isReferenceLine,
   isTerminalEventStatus,
+  REFERENCE_LINE_NOTICE,
   ufcCardNumber,
   UFC_BILLING_SECTIONS,
   UFC_MARKET_FAMILIES,
@@ -195,26 +197,29 @@ function HeroPick({
 }: HeroPickProps) {
   const odds = quote && quote.odds > 1 ? quote.odds : selection.decimalOdds;
   const isRed = corner === 'red';
-  const isSelected = selected && !closed;
+  const referenceLine = isReferenceLine(market);
+  const isDisabled = closed || referenceLine;
+  const isSelected = selected && !isDisabled;
 
   return (
     <button
       type='button'
       onClick={() => onToggle(market, selection)}
-      disabled={closed}
+      disabled={isDisabled}
       aria-pressed={isSelected}
-      aria-label={`${selection.name}: ${formatDecimalOdds(odds)} decimal, ${formatAmericanOdds(odds)} americana${isSelected ? ', seleccionada' : ''}${closed ? ', mercado cerrado' : ''}`}
+      aria-label={`${selection.name}: ${formatDecimalOdds(odds)} decimal, ${formatAmericanOdds(odds)} americana${isSelected ? ', seleccionada' : ''}${closed ? ', mercado cerrado' : ''}${referenceLine ? ', cuota en revisión, no apostable' : ''}`}
       data-selected={isSelected}
       data-trend={quote?.trend ?? 'unchanged'}
       data-closed={closed}
+      data-reference-line={referenceLine}
       className={`hero-pick group relative flex min-h-[68px] min-w-0 flex-col justify-between gap-2 overflow-hidden rounded-lg border p-3 text-left transition duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage ${
-        closed
+        isDisabled
           ? 'cursor-not-allowed border-white/[0.05] bg-[#050505] opacity-55 grayscale'
           : isRed
             ? 'border-crimson/25 bg-crimson/[0.05] hover:border-crimson/50 hover:bg-crimson/[0.09]'
             : 'border-sage/25 bg-sage/[0.05] hover:border-sage/50 hover:bg-sage/[0.09]'
       } ${
-        closed
+        isDisabled
           ? ''
           : 'data-[selected=true]:border-lime-400/80 data-[selected=true]:bg-lime-400/[0.1] data-[selected=true]:shadow-[0_0_24px_-14px_rgb(212_255_63_/_0.95)]'
       }`}
@@ -232,7 +237,7 @@ function HeroPick({
           <Check size={12} strokeWidth={3} className='text-lime-400' aria-hidden='true' />
         ) : (
           <span className='font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
-            {closed ? 'Cerrado' : '2 vías'}
+            {referenceLine ? 'REF' : closed ? 'Cerrado' : '2 vías'}
           </span>
         )}
       </span>
@@ -247,19 +252,27 @@ function HeroPick({
               isSelected ? 'text-lime-400' : 'text-metallic-slate'
             }`}
           >
-            {isSelected ? 'En boleto' : closed ? 'Mercado cerrado' : 'Toca para agregar'}
+            {isSelected ? 'En boleto' : isDisabled ? (referenceLine ? REFERENCE_LINE_NOTICE : 'Mercado cerrado') : 'Toca para agregar'}
           </span>
         </span>
         <span className='flex shrink-0 items-baseline gap-1.5'>
-          <span
-            key={quote?.sequence ?? 'snapshot'}
-            className={`odds-number text-lg ${isSelected ? 'text-lime-400' : 'text-white'}`}
-          >
-            {formatDecimalOdds(odds)}
-          </span>
-          <span className='font-mono text-[8px] font-semibold text-metallic-slate'>
-            {formatAmericanOdds(odds)}
-          </span>
+          {referenceLine ? (
+            <span className='font-mono text-[9px] font-bold uppercase tracking-wide text-amber-300'>
+              {REFERENCE_LINE_NOTICE}
+            </span>
+          ) : (
+            <>
+              <span
+                key={quote?.sequence ?? 'snapshot'}
+                className={`odds-number text-lg ${isSelected ? 'text-lime-400' : 'text-white'}`}
+              >
+                {formatDecimalOdds(odds)}
+              </span>
+              <span className='font-mono text-[8px] font-semibold text-metallic-slate'>
+                {formatAmericanOdds(odds)}
+              </span>
+            </>
+          )}
         </span>
       </span>
     </button>
@@ -396,7 +409,7 @@ const MainEventHero = memo(function MainEventHero({
   const resultLabel = fightResultLabel(event.result);
 
   const toggle = (market: UfcMarket, selection: UfcSelection) => {
-    if (isClosed) return;
+    if (isClosed || isReferenceLine(market)) return;
 
     if (selectedIds.includes(selection.id)) {
       onRemoveSelection(selection.id);

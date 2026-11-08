@@ -7,7 +7,9 @@ import {
   findMarket,
   findSelectionByCode,
   formatAmericanOdds,
+  isReferenceLine,
   isTerminalEventStatus,
+  REFERENCE_LINE_NOTICE,
   shortFighterName,
   UFC_MARKET_FAMILIES,
   type UfcEvent,
@@ -117,6 +119,8 @@ export const MarketTile = memo(function MarketTile({
   }, [liveOdds]);
 
   const disabled = closed || selection.settled || market.status !== 'open';
+  const referenceLine = isReferenceLine(market);
+  const notBettable = disabled || referenceLine;
   const trendTone =
     trend === 'up' ? 'text-odds-up' : trend === 'down' ? 'text-odds-down' : 'text-metallic-slate';
   const selected = isSelected && !closed;
@@ -125,15 +129,20 @@ export const MarketTile = memo(function MarketTile({
     <button
       type='button'
       onClick={() => onToggle(market, selection)}
-      disabled={disabled}
+      disabled={notBettable}
       aria-pressed={selected}
-      aria-label={`${selection.name}: ${formatDecimalOdds(liveOdds)} decimal, ${formatAmericanOdds(liveOdds)} americana${selected ? ', seleccionada' : ''}${closed ? ', mercado cerrado' : ''}`}
-      title={`${selection.name} · ${formatDecimalOdds(liveOdds)} (${formatAmericanOdds(liveOdds)})`}
+      aria-label={`${selection.name}: ${formatDecimalOdds(liveOdds)} decimal, ${formatAmericanOdds(liveOdds)} americana${selected ? ', seleccionada' : ''}${closed ? ', mercado cerrado' : ''}${referenceLine ? ', cuota en revisión, no apostable' : ''}`}
+      title={
+        referenceLine
+          ? `${selection.name} · ${REFERENCE_LINE_NOTICE}`
+          : `${selection.name} · ${formatDecimalOdds(liveOdds)} (${formatAmericanOdds(liveOdds)})`
+      }
       data-selected={selected}
       data-trend={trend}
       data-closed={closed}
+      data-reference-line={referenceLine}
       className={`market-tile group relative min-w-0 transition-all duration-150 ${isFlashing ? 'zb-odds-lime-flash' : ''} ${method ? 'market-tile--method' : ''} ${
-        closed
+        closed || referenceLine
           ? 'cursor-not-allowed border-white/[0.045] bg-[#050505] opacity-55 grayscale'
           : disabled
             ? 'cursor-not-allowed opacity-40'
@@ -154,19 +163,25 @@ export const MarketTile = memo(function MarketTile({
           </div>
           <div className='flex w-full items-baseline justify-between gap-1'>
             <span className='font-mono text-[7px] font-bold text-metallic-slate/35 tracking-wider'>
-              КОЭФ
+              {referenceLine ? 'REF' : 'КОЭФ'}
             </span>
-            <span
-              key={quote?.sequence ?? 'snapshot'}
-              className={`odds-number font-odds text-[12px] font-bold tabular-nums ${
-                selected ? 'text-lime-400' : 'text-white'
-              }`}
-            >
-              {formatDecimalOdds(liveOdds)}
-            </span>
+            {referenceLine ? (
+              <span className='truncate font-mono text-[8px] font-bold uppercase tracking-wide text-amber-300'>
+                {REFERENCE_LINE_NOTICE}
+              </span>
+            ) : (
+              <span
+                key={quote?.sequence ?? 'snapshot'}
+                className={`odds-number font-odds text-[12px] font-bold tabular-nums ${
+                  selected ? 'text-lime-400' : 'text-white'
+                }`}
+              >
+                {formatDecimalOdds(liveOdds)}
+              </span>
+            )}
           </div>
           <span className={`self-end truncate font-mono text-[7px] font-semibold ${trendTone}`}>
-            {formatAmericanOdds(liveOdds)}
+            {referenceLine ? 'No apostable' : formatAmericanOdds(liveOdds)}
           </span>
         </>
       ) : (
@@ -199,23 +214,39 @@ export const MarketTile = memo(function MarketTile({
             </span>
           </span>
           <span className='flex shrink-0 flex-col items-end gap-0.5'>
-            <span className='flex items-baseline gap-1'>
-              <span className='font-mono text-[7px] font-bold text-metallic-slate/35 tracking-wider'>
-                КОЭФ
-              </span>
-              <span className={trendTone}>{trendIcon(trend)}</span>
-              <span
-                key={quote?.sequence ?? 'snapshot'}
-                className={`odds-number font-odds text-[13px] font-bold tabular-nums sm:text-[14px] ${
-                  selected ? 'text-lime-400' : 'text-white'
-                }`}
-              >
-                {formatDecimalOdds(liveOdds)}
-              </span>
-            </span>
-            <span className='hidden font-mono text-[8px] font-semibold text-metallic-slate sm:block'>
-              {formatAmericanOdds(liveOdds)}
-            </span>
+            {referenceLine ? (
+              <>
+                <span className='font-mono text-[7px] font-bold text-metallic-slate/35 tracking-wider'>
+                  REF
+                </span>
+                <span className='max-w-[9rem] truncate font-mono text-[8px] font-bold uppercase tracking-wide text-amber-300'>
+                  {REFERENCE_LINE_NOTICE}
+                </span>
+                <span className='hidden font-mono text-[8px] font-semibold text-metallic-slate sm:block'>
+                  No apostable
+                </span>
+              </>
+            ) : (
+              <>
+                <span className='flex items-baseline gap-1'>
+                  <span className='font-mono text-[7px] font-bold text-metallic-slate/35 tracking-wider'>
+                    КОЭФ
+                  </span>
+                  <span className={trendTone}>{trendIcon(trend)}</span>
+                  <span
+                    key={quote?.sequence ?? 'snapshot'}
+                    className={`odds-number font-odds text-[13px] font-bold tabular-nums sm:text-[14px] ${
+                      selected ? 'text-lime-400' : 'text-white'
+                    }`}
+                  >
+                    {formatDecimalOdds(liveOdds)}
+                  </span>
+                </span>
+                <span className='hidden font-mono text-[8px] font-semibold text-metallic-slate sm:block'>
+                  {formatAmericanOdds(liveOdds)}
+                </span>
+              </>
+            )}
           </span>
         </>
       )}
