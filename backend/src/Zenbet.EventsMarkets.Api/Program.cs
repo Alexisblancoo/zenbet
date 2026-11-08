@@ -105,6 +105,16 @@ builder.Services.AddSignalR(options =>
 // el claim wallet_id del token para que Clients.User solo alcance al dueño.
 builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, WalletUserIdProvider>();
 
+// Compresión de respuesta (Brotli/Gzip): el feed de eventos/odds es JSON
+// repetitivo que comprime muy bien; en conexiones móviles de LatAm el ahorro
+// de bytes se nota directamente en el tiempo de respuesta percibido.
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+
 // Add ProblemDetails for standardized error responses
 builder.Services.AddProblemDetails(options =>
 {
@@ -240,11 +250,25 @@ app.Use(async (context, next) =>
         context.Response.Headers.Remove("X-Framework-Version");
         context.Response.Headers.Remove("X-Runtime");
         context.Response.Headers.Remove("X-Generator");
+
+        // Cabeceras de seguridad básicas. CSP se deja fuera deliberadamente:
+        // Swagger UI y el dashboard de Hangfire usan scripts inline y una CSP
+        // estricta los rompe; definirla bien es su propio cambio (ver Roadmap).
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers["X-Frame-Options"] = "DENY";
+        context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        if (context.Request.IsHttps)
+        {
+            context.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+        }
+
         return Task.CompletedTask;
     });
 
     await next();
 });
+
+app.UseResponseCompression();
 
 // Explicit Routing must precede CORS for endpoint-specific policies
 app.UseRouting();
