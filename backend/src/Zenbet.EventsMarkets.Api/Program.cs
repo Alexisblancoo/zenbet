@@ -153,6 +153,44 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+// Fail-fast fuera de Development: nunca arrancar con los secretos de ejemplo
+// de .env.example/docker-compose.yml, ni con una clave de firma demasiado corta.
+if (!app.Environment.IsDevelopment())
+{
+    const string knownExampleSigningKey = "e8e72c60620f262e75cdacfa004fa1cc59b4ff14435a225c54deff7a6c676359";
+    const string knownExampleSettlementKey = "5d37d3fd58bd182dda72486f4ec207e5";
+
+    var signingKey = app.Configuration["Auth:SigningKey"];
+    var settlementKey = app.Configuration["Settlement:ApiKey"];
+
+    var startupErrors = new List<string>();
+    if (string.IsNullOrWhiteSpace(signingKey) || signingKey.Length < 32)
+    {
+        startupErrors.Add("Auth:SigningKey falta o tiene menos de 32 caracteres.");
+    }
+    else if (signingKey == knownExampleSigningKey)
+    {
+        startupErrors.Add("Auth:SigningKey sigue siendo el valor de ejemplo de .env.example/docker-compose.yml.");
+    }
+
+    if (string.IsNullOrWhiteSpace(settlementKey))
+    {
+        startupErrors.Add("Settlement:ApiKey falta.");
+    }
+    else if (settlementKey == knownExampleSettlementKey)
+    {
+        startupErrors.Add("Settlement:ApiKey sigue siendo el valor de ejemplo de .env.example/docker-compose.yml.");
+    }
+
+    if (startupErrors.Count > 0)
+    {
+        throw new InvalidOperationException(
+            "Arranque abortado fuera de Development por secretos inseguros: " +
+            string.Join(" ", startupErrors) +
+            " Genera valores nuevos (ej. `openssl rand -hex 32`) y defínelos en el entorno real.");
+    }
+}
+
 // Apply Exception Handler first
 app.UseExceptionHandler();
 

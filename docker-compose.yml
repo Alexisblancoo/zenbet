@@ -9,7 +9,9 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-zenbet_events_markets}
       POSTGRES_USER: ${POSTGRES_USER:-zenbet}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zenbet_secret_pass_2026}
+      # Sin valor por defecto: un secreto real nunca debe tener un fallback
+      # hardcodeado. Define POSTGRES_PASSWORD en tu .env (ver .env.example).
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Debes definir POSTGRES_PASSWORD en tu archivo .env}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -36,9 +38,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:5000
-      ConnectionStrings__EventsMarkets: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-zenbet_events_markets};Username=${POSTGRES_USER:-zenbet};Password=${POSTGRES_PASSWORD:-zenbet_secret_pass_2026}"
-      Auth__SigningKey: ${JWT_SIGNING_KEY:-e8e72c60620f262e75cdacfa004fa1cc59b4ff14435a225c54deff7a6c676359}
-      Settlement__ApiKey: ${SETTLEMENT_API_KEY:-5d37d3fd58bd182dda72486f4ec207e5}
+      ConnectionStrings__EventsMarkets: "Host=postgres;Port=5432;Database=${POSTGRES_DB:-zenbet_events_markets};Username=${POSTGRES_USER:-zenbet};Password=${POSTGRES_PASSWORD:?Debes definir POSTGRES_PASSWORD en tu archivo .env}"
+      # Sin valores por defecto: ver SecretsStartupValidation en Program.cs,
+      # que además rechaza estos dos ejemplos conocidos si llegaran a usarse
+      # fuera de Development.
+      Auth__SigningKey: ${JWT_SIGNING_KEY:?Debes definir JWT_SIGNING_KEY en tu archivo .env (ver .env.example)}
+      Settlement__ApiKey: ${SETTLEMENT_API_KEY:?Debes definir SETTLEMENT_API_KEY en tu archivo .env (ver .env.example)}
       Seeding__Ufc__Enabled: "true"
       Seeding__Ufc__ApplyMigrations: "true"
       Seeding__Ufc__ForceRefresh: "false"
