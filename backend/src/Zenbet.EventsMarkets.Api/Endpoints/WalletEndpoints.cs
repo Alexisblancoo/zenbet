@@ -313,18 +313,20 @@ public static class WalletEndpoints
                     detail: "El monto del retiro debe ser mayor a cero.");
             }
 
-            return Results.Ok(new
-            {
-                success = true,
-                walletId,
-                amount = request.Amount,
-                status = "COMPLETED",
-                message = "Retiro procesado con éxito.",
-                timestamp = DateTimeOffset.UtcNow
-            });
+            // Antes respondía "COMPLETED" sin debitar saldo ni registrar transacción.
+            // Hasta que exista el flujo real (débito en Wallet.Withdraw + pago bancario
+            // + conciliación), la respuesta honesta es que el retiro no está disponible.
+            return Results.Problem(
+                statusCode: StatusCodes.Status501NotImplemented,
+                title: "Retiros aún no disponibles",
+                detail: "Los retiros todavía no están habilitados. Tu saldo no fue modificado.",
+                extensions: new Dictionary<string, object?>
+                {
+                    ["code"] = "WITHDRAWALS_NOT_AVAILABLE",
+                });
         })
         .WithName("WithdrawFunds")
-        .Produces(StatusCodes.Status200OK)
+        .Produces(StatusCodes.Status501NotImplemented)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)
         .Produces(StatusCodes.Status422UnprocessableEntity);

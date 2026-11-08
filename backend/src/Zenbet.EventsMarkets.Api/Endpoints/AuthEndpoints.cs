@@ -12,7 +12,7 @@ public static class AuthEndpoints
     {
         var group = app.MapGroup("/api/auth")
             .WithTags("Auth")
-            .RequireRateLimiting("BettingPolicy");
+            .RequireRateLimiting("AuthPolicy");
 
         group.MapPost("/register", async (
             AuthRegisterRequest request,

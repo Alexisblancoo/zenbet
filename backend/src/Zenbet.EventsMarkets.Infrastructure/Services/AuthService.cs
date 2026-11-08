@@ -26,6 +26,8 @@ public sealed class AuthService : IAuthService
         @"^[A-Za-z0-9._-]{3,24}$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
+    private const int AdminTokenLifetimeMinutes = 8 * 60;
+
     private readonly EventsMarketsDbContext _dbContext;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IAuthTokenService _tokenService;
@@ -220,6 +222,13 @@ public sealed class AuthService : IAuthService
         var lifetimeMinutes = _options.Value.TokenLifetimeMinutes > 0
             ? _options.Value.TokenLifetimeMinutes
             : 60;
+
+        // Un token admin robado (p. ej. por XSS: hoy vive en localStorage) mueve
+        // dinero; se limita a una jornada aunque la configuración permita más.
+        if (account.Role == "admin")
+        {
+            lifetimeMinutes = Math.Min(lifetimeMinutes, AdminTokenLifetimeMinutes);
+        }
 
         var token = _tokenService.Issue(
             new AuthTokenPayload(

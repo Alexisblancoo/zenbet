@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using FluentValidation;
-using Hangfire;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -61,6 +61,25 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Detrás de nginx, RemoteIpAddress sería la IP del proxy para TODOS los clientes:
+// el rate limit anónimo quedaría global y los logs de auditoría sin IP real.
+// Solo se confía en X-Forwarded-For si llega desde una red de proxy conocida
+// (por defecto redes privadas, p. ej. la red de Docker), y solo el último salto.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 1;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+
+    var trusted = builder.Configuration["ForwardedHeaders:TrustedNetworks"]
+        ?? "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1/128";
+    foreach (var cidr in trusted.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+    {
+        options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(cidr));
+    }
+});
+
 // Add Rate Limiting - Sliding Window policy for /api/v1/bets
 builder.Services.AddRateLimiter(options =>
 {
@@ -76,6 +95,19 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
+    // Login/registro: frena fuerza bruta y relleno de credenciales por IP real del
+    // cliente (requiere ForwardedHeaders detrás de nginx). 10 intentos/minuto por IP.
+    // El bloqueo por cuenta necesita columnas nuevas: ver ADR de auth.
+    options.AddPolicy("AuthPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.OnRejected = async (context, cancellationToken) =>
     {
@@ -84,7 +116,7 @@ builder.Services.AddRateLimiter(options =>
         {
             Status = StatusCodes.Status429TooManyRequests,
             Title = "Too Many Requests",
-            Detail = "Rate limit exceeded. Maximum 5 requests per second allowed.",
+            Detail = "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
             Type = "https://tools.ietf.org/html/rfc6585#section-4",
             Instance = context.HttpContext.Request.Path
         };
@@ -243,6 +275,9 @@ if (!app.Environment.IsDevelopment())
     }
 }
 
+// Primero: resolver la IP/esquema reales del cliente antes de rate limit, auth y logs.
+app.UseForwardedHeaders();
+
 // Apply Exception Handler first
 app.UseExceptionHandler();
 
@@ -259,8 +294,8 @@ app.Use(async (context, next) =>
         context.Response.Headers.Remove("X-Generator");
 
         // Cabeceras de seguridad básicas. CSP se deja fuera deliberadamente:
-        // Swagger UI y el dashboard de Hangfire usan scripts inline y una CSP
-        // estricta los rompe; definirla bien es su propio cambio (ver Roadmap).
+        // Swagger UI usa scripts inline y una CSP estricta lo rompe; la CSP del
+        // frontend se define en nginx (ver Roadmap).
         context.Response.Headers["X-Content-Type-Options"] = "nosniff";
         context.Response.Headers["X-Frame-Options"] = "DENY";
         context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
@@ -297,10 +332,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-
-    // Dashboard de Hangfire solo en Development: no hay todavía una política de
-    // autorización de admin para exponerlo fuera de ahí (ver Roadmap Fase 0).
-    app.UseHangfireDashboard("/hangfire");
 }
 else
 {

@@ -10,6 +10,12 @@ using Microsoft.AspNetCore.SignalR;
 /// </summary>
 public sealed class OddsHub : Hub
 {
+    /// <summary>
+    /// Tope por invocación en lote. El hub es anónimo y sin rate limit; una pantalla
+    /// real muestra decenas de mercados, no miles.
+    /// </summary>
+    internal const int MaxBatchSize = 200;
+
     public async Task JoinMarketGroup(string marketId)
     {
         var id = Normalize(marketId);
@@ -31,6 +37,7 @@ public sealed class OddsHub : Hub
     public async Task JoinMarketGroups(IReadOnlyList<string> marketIds)
     {
         if (marketIds is null || marketIds.Count == 0) return;
+        if (marketIds.Count > MaxBatchSize) throw new HubException($"Máximo {MaxBatchSize} mercados por solicitud.");
 
         foreach (var marketId in marketIds)
         {
@@ -45,6 +52,7 @@ public sealed class OddsHub : Hub
     public async Task LeaveMarketGroups(IReadOnlyList<string> marketIds)
     {
         if (marketIds is null || marketIds.Count == 0) return;
+        if (marketIds.Count > MaxBatchSize) throw new HubException($"Máximo {MaxBatchSize} mercados por solicitud.");
 
         foreach (var marketId in marketIds)
         {
@@ -77,6 +85,7 @@ public sealed class OddsHub : Hub
     public async Task JoinEventGroups(IReadOnlyList<string> eventIds)
     {
         if (eventIds is null || eventIds.Count == 0) return;
+        if (eventIds.Count > MaxBatchSize) throw new HubException($"Máximo {MaxBatchSize} eventos por solicitud.");
 
         foreach (var eventId in eventIds)
         {
@@ -91,6 +100,7 @@ public sealed class OddsHub : Hub
     public async Task LeaveEventGroups(IReadOnlyList<string> eventIds)
     {
         if (eventIds is null || eventIds.Count == 0) return;
+        if (eventIds.Count > MaxBatchSize) throw new HubException($"Máximo {MaxBatchSize} eventos por solicitud.");
 
         foreach (var eventId in eventIds)
         {
