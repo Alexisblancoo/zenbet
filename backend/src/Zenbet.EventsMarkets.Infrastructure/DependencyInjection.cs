@@ -1,9 +1,12 @@
 namespace Zenbet.EventsMarkets.Infrastructure;
 
+using Hangfire;
+using Hangfire.PostgreSql;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NodaTime;
 using Zenbet.EventsMarkets.Application.Behaviors;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Repositories;
@@ -86,6 +89,25 @@ public static class DependencyInjection
         // Risk Management
         services.AddScoped<IRiskManagementService, EfRiskManagementService>();
 
+        // Reloj inyectable (NodaTime) para que el código nuevo que necesite el
+        // instante actual sea testeable sin congelar DateTimeOffset.UtcNow.
+        // Nota: el código existente sigue usando DateTimeOffset.UtcNow; migrarlo
+        // es un cambio aparte, deliberadamente fuera de esta pasada para no tocar
+        // rutas de liquidación/ledger ya probadas.
+        services.AddSingleton<IClock>(SystemClock.Instance);
+
+        // Hangfire con almacenamiento en el mismo PostgreSQL: deja disponible un
+        // runner de jobs con reintentos y dashboard para trabajo FUTURO
+        // (liquidaciones, reportes, jobs AML). Los workers actuales
+        // (OutboxProcessorBackgroundService, PayoutWorker, etc.) NO se migran en
+        // esta pasada: ya están probados y moverlos es un cambio de riesgo propio.
+        services.AddHangfire(hangfireConfig => hangfireConfig
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString)));
+        services.AddHangfireServer();
+
         // MediatR Pipeline Behaviors
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RiskValidationBehavior<,>));
 
@@ -99,8 +121,12 @@ public static class DependencyInjection
         services.AddHostedService<PayoutWorker>();
 
         services.Configure<MmaSyncOptions>(configuration.GetSection("MmaSync"));
-        services.AddSingleton<HttpClient>();
-        services.AddTransient<IMmaDataProvider, HttpMmaDataProvider>();
+        // AddHttpClient (en vez del HttpClient singleton anterior) + un resilience
+        // handler estándar (retry con backoff, circuit breaker y timeout) para que
+        // un proveedor de feed externo lento o caído no cuelgue el worker de sync
+        // ni agote el pool de sockets.
+        services.AddHttpClient<IMmaDataProvider, HttpMmaDataProvider>()
+            .AddStandardResilienceHandler();
         services.AddHostedService<EventSyncBackgroundService>();
 
         // Ciclo de vida de combates + reloj en vivo (SignalR FightHub).

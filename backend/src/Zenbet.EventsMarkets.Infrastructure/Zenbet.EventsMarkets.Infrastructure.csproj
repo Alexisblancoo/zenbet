@@ -12,8 +12,15 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.8" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.9.0" />
+    <PackageReference Include="NodaTime" Version="3.2.2" />
+    <PackageReference Include="Hangfire.Core" Version="1.8.18" />
+    <PackageReference Include="Hangfire.NetCore" Version="1.8.18" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.20.10" />
+    <!-- Hangfire.Core trae Newtonsoft.Json 11.0.1 (GHSA-5crp-9r3c-p9vr, severidad alta); se fija una versión parcheada. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>

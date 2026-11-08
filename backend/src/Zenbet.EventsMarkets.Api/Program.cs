@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using FluentValidation;
+using Hangfire;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -231,6 +232,10 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // Dashboard de Hangfire solo en Development: no hay todavía una política de
+    // autorización de admin para exponerlo fuera de ahí (ver Roadmap Fase 0).
+    app.UseHangfireDashboard("/hangfire");
 }
 else
 {
