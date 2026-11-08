@@ -54,14 +54,33 @@ public sealed class ExecutableMarketBehaviorTests
     }
 
     [Fact]
-    public async Task A_Market_Without_Provenance_Is_Operator_Managed_And_Accepts_Bets()
+    public async Task A_Market_Without_Provenance_Is_Not_Bettable()
     {
         var (command, repository) = Scenario(provenance: null);
+        var behavior = CreateBehavior(repository, allowReferenceLines: false);
+        var nextCalled = false;
+
+        var result = await behavior.Handle(command, () => { nextCalled = true; return Task.FromResult(Ok()); }, CancellationToken.None);
+
+        Assert.False(nextCalled);
+        Assert.False(result.Success);
+    }
+
+    [Theory]
+    [InlineData(OddsSourceKind.Unknown)]
+    [InlineData(OddsSourceKind.Bookmaker)]
+    [InlineData(OddsSourceKind.Aggregator)]
+    [InlineData(OddsSourceKind.Exchange)]
+    [InlineData(OddsSourceKind.Model)]
+    public async Task Only_Operator_Priced_Markets_Are_Bettable(OddsSourceKind kind)
+    {
+        var (command, repository) = Scenario(new MarketProvenance("Fuente externa", kind, kind is OddsSourceKind.Bookmaker or OddsSourceKind.Aggregator or OddsSourceKind.Exchange ? "https://example.com/odds" : null, Now));
         var behavior = CreateBehavior(repository, allowReferenceLines: false);
 
         var result = await behavior.Handle(command, () => Task.FromResult(Ok()), CancellationToken.None);
 
-        Assert.True(result.Success);
+        Assert.False(result.Success);
+        Assert.Equal("REFERENCE_LINE_NOT_BETTABLE", result.ErrorCode);
     }
 
     [Fact]

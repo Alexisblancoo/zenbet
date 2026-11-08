@@ -54,10 +54,10 @@ public sealed class Market : AggregateRoot<MarketId>
     public MarketProvenance? Provenance { get; private set; }
 
     /// <summary>
-    /// Una línea "de referencia" (modelo, no ejecutable) no admite apuestas: solo se puede apostar a cuotas fijadas por
-    /// el operador o procedentes de una fuente publicada. Sin procedencia = mercado gestionado por el operador.
+    /// Solo se puede apostar a cuotas fijadas por el operador (ZenBet) con margen propio. Cualquier otra procedencia
+    /// (modelo, agregador, casa, exchange, desconocida) o la ausencia de procedencia NO es ejecutable: fail-closed.
     /// </summary>
-    public bool IsExecutable => Provenance is null || Provenance.Kind != OddsSourceKind.Model;
+    public bool IsExecutable => Provenance is { Kind: OddsSourceKind.Operator };
     public Money MaxLiabilityLimit { get; private set; }
     public bool IsSuspendedByRisk { get; private set; }
     public MarketStatus Status => _status;
