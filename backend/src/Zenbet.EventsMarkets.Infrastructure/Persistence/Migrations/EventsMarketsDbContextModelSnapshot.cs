@@ -18,7 +18,7 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -400,8 +400,10 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(0m)
                         .HasColumnName("total_staked");
 
-                    b.ComplexProperty<Dictionary<string, object>>("CurrentOdd", "Zenbet.EventsMarkets.Domain.Aggregates.Selection.CurrentOdd#Odd", b1 =>
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "CurrentOdd", "Zenbet.EventsMarkets.Domain.Aggregates.Selection.CurrentOdd#Odd", b1 =>
                         {
+                            b1.IsRequired();
+
                             b1.Property<string>("Provider")
                                 .IsRequired()
                                 .HasMaxLength(50)
