@@ -318,7 +318,8 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
         var result = await mediator.Send(command);
         Assert.NotNull(result);
         Assert.False(result.Success);
-        Assert.Contains("amount", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+        // El mensaje del dominio esta en espanol ("El monto de la apuesta debe ser positivo.").
+        Assert.Contains("monto", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -450,6 +451,12 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
             .ToList();
 
         var market = @event.AddMarket("Match Winner", MarketType.MatchWinner, selections);
+
+        // Estos tests verifican que la billetera no se sobregira bajo concurrencia, no el
+        // motor de riesgo (circuit breaker al 95% del limite, cubierto en Risk/). Con el
+        // limite por defecto de 10,000 el mercado se suspendia tras ~38-48 apuestas y el
+        // test media la suspension en lugar del saldo.
+        market.ConfigureMaxLiabilityLimit(new Money(1_000_000m));
 
         _dbContext.Wallets.Add(wallet);
         _dbContext.Events.Add(@event);
