@@ -309,6 +309,20 @@ export function isTerminalEventStatus(status: string): boolean {
 }
 
 /**
+ * Visibilidad pública de un combate.
+ *
+ * Un combate vencido sin resultado oficial es un hueco de datos, no historial:
+ * publicarlo obligaría a etiquetarlo como "Finalizado" sin ganador ni método,
+ * que es información inventada. Se oculta del listado público hasta que
+ * operaciones registre el resultado (o llegue por SignalR).
+ */
+export function isPubliclyListable(
+  event: Pick<UfcEvent, 'isExpired' | 'result'>,
+): boolean {
+  return !event.isExpired || event.result !== null;
+}
+
+/**
  * Elegibilidad estricta para el Hero: el combate debe seguir vivo y su
  * ventana estimada no puede haber vencido. `isExpired` es la fuente principal;
  * `endsAt` actúa como red de seguridad local.

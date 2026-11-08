@@ -44,6 +44,7 @@ import {
   formatSnapshotAt,
   formatWeightDivision,
   isEventHeroEligible,
+  isPubliclyListable,
   isTerminalEventStatus,
   ufcCardNumber,
   UFC_BILLING_SECTIONS,
@@ -675,12 +676,16 @@ export default function MmaEventsPage() {
 
     // El agregado de cartelera es una red de seguridad: si un update de pelea
     // se pierde, un `ReceiveCardUpdate` final igual cierra todos sus mercados.
-    return updated.map((event) => {
-      const cardUpdate = fightHub.cardUpdates[cardKeyForEvent(event)];
-      if (!cardUpdate || cardUpdate.status !== 'finished') return event;
-      if (event.isExpired && !event.isBettingOpen) return event;
-      return { ...event, isExpired: true, isBettingOpen: false };
-    });
+    return updated
+      .map((event) => {
+        const cardUpdate = fightHub.cardUpdates[cardKeyForEvent(event)];
+        if (!cardUpdate || cardUpdate.status !== 'finished') return event;
+        if (event.isExpired && !event.isBettingOpen) return event;
+        return { ...event, isExpired: true, isBettingOpen: false };
+      })
+      // Un combate vencido sin resultado oficial no se publica: mostrarlo como
+      // "Finalizado" sin ganador sería inventar el desenlace.
+      .filter(isPubliclyListable);
   }, [sourceEvents, fightHub.updates, fightHub.clocks, fightHub.cardUpdates, nowMs]);
 
   const mmaEvents = useMemo(
