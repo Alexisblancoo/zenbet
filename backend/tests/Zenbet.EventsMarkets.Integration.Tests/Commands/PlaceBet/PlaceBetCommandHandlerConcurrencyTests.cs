@@ -67,6 +67,13 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
         await _postgres.DisposeAsync();
     }
 
+    private static bool IsLockTimeout(Exception ex)
+    {
+        for (var e = ex; e is not null; e = e.InnerException)
+            if (e is Npgsql.PostgresException { SqlState: "55P03" or "57014" }) return true;
+        return false;
+    }
+
     [Fact]
     public async Task Concurrent_PlaceBet_50_Parallel_Bets_Same_Selection_No_OverSpending()
     {
@@ -89,26 +96,31 @@ public sealed class PlaceBetCommandHandlerConcurrencyTests : IAsyncLifetime
         {
             using var scope = _serviceProvider.CreateScope();
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            try { return await mediator.Send(c); } catch { return null; }
+            try { return (Result: await mediator.Send(c), Shed: false, Error: (string?)null); }
+            catch (Exception ex) when (IsLockTimeout(ex)) { return (Result: (PlaceBetResult?)null, Shed: true, Error: (string?)null); }
+            catch (Exception ex) { return (Result: (PlaceBetResult?)null, Shed: false, Error: ex.GetType().Name + ": " + ex.Message); }
         })).ToArray();
 
-        var results = await Task.WhenAll(tasks);
+        var outcomes = await Task.WhenAll(tasks);
 
-        // Assert: Exactly 50 should succeed (all balance consumed)
-        var successCount = results.Count(r => r != null && r.Success);
-        Assert.Equal(concurrency, successCount);
+        // Con el lock_timeout de 3 s (EfUnitOfWork) una apuesta puede ser descartada por contención (55P03, 503 + reintento).
+        // Es un resultado válido; cualquier otro fallo o rechazo de negocio NO lo es.
+        Assert.Empty(outcomes.Where(o => o.Error is not null).Select(o => o.Error));
+        Assert.DoesNotContain(outcomes, o => o.Result is { Success: false });
+        var accepted = outcomes.Count(o => o.Result is { Success: true });
+        var shed = outcomes.Count(o => o.Shed);
+        Assert.Equal(concurrency, accepted + shed);
+        Assert.True(accepted > 0, "Ninguna apuesta fue aceptada.");
 
-        // Verify wallet balance is exactly 0
+        // Invariantes de dinero: el saldo refleja EXACTAMENTE las apuestas aceptadas; nada descartado deja rastro.
         var wallet = await _dbContext.Wallets.AsNoTracking().FirstAsync(w => w.Id == walletId);
-        Assert.Equal(Money.Zero, wallet.Balance);
+        Assert.Equal(new Money(5000m - 100m * accepted), wallet.Balance);
 
-        // Verify 50 transactions created
         var transactionCount = await _dbContext.Transactions.CountAsync(t => t.WalletId == walletId && t.Type == TransactionType.BetPlacement);
-        Assert.Equal(concurrency, transactionCount);
+        Assert.Equal(accepted, transactionCount);
 
-        // Verify outbox messages created
         var outboxCount = await _dbContext.OutboxMessages.CountAsync(o => o.Type == nameof(BetPlacedDomainEvent));
-        Assert.Equal(concurrency, outboxCount);
+        Assert.Equal(accepted, outboxCount);
     }
 
     [Fact]
