@@ -20,6 +20,11 @@ public sealed class EfUnitOfWork : IUnitOfWork
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        // Un lock que no se obtiene en 3 s falla con 55P03 en vez de esperar hasta el timeout del
+        // comando (30 s) reteniendo una conexión del pool. La API lo responde como 503 reintentable.
+        // SET LOCAL solo vive hasta el fin de esta transacción.
+        await _dbContext.Database.ExecuteSqlRawAsync("SET LOCAL lock_timeout = '3000ms';", cancellationToken);
     }
 
     public async Task CommitAsync(CancellationToken cancellationToken = default)
@@ -30,8 +35,23 @@ public sealed class EfUnitOfWork : IUnitOfWork
 
     public async Task RollbackAsync(CancellationToken cancellationToken = default)
     {
-        await _dbContext.Database.RollbackTransactionAsync(cancellationToken);
-        _dbContext.ChangeTracker.Clear();
+        try
+        {
+            await _dbContext.Database.RollbackTransactionAsync(cancellationToken);
+        }
+        catch (Exception exception) when (exception is ObjectDisposedException
+            or InvalidOperationException
+            or TimeoutException
+            or Npgsql.NpgsqlException)
+        {
+            // La transacción ya estaba rota (timeout del comando o conexión caída): PostgreSQL la aborta
+            // y libera sus locks. Antes este rollback lanzaba ObjectDisposedException y enmascaraba el
+            // error real, que el jugador veía como un 500 sin saber si su apuesta quedó registrada.
+        }
+        finally
+        {
+            _dbContext.ChangeTracker.Clear();
+        }
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
