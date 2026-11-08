@@ -45,6 +45,9 @@ services:
       # Secreto HMAC de la pasarela RGS. Vacío = los callbacks RGS se rechazan.
       Rgs__SharedSecret: ${RGS_SHARED_SECRET:-}
       # Result suggestions (feeds PROPOSE, an admin confirms). Off unless you opt in and provide the keys.
+      # Real calendar: MMA_SYNC_ENABLED=true MMA_SYNC_PROVIDER=UfCalendar (+ UFCALENDAR_API_KEY). Cards arrive without markets.
+      MmaSync__Enabled: "${MMA_SYNC_ENABLED:-false}"
+      MmaSync__Provider: "${MMA_SYNC_PROVIDER:-Http}"
       ResultSuggestions__Enabled: "${RESULT_SUGGESTIONS_ENABLED:-false}"
       UfCalendar__ApiKey: ${UFCALENDAR_API_KEY:-}
       ApiSports__ApiKey: ${APISPORTS_API_KEY:-}

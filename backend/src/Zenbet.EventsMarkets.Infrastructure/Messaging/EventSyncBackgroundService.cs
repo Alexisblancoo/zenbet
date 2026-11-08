@@ -31,7 +31,7 @@ public sealed class EventSyncBackgroundService : BackgroundService
             return;
         }
 
-        if (!Uri.TryCreate(_options.FeedUrl, UriKind.Absolute, out _))
+        if (!_options.UsesUfCalendar && !Uri.TryCreate(_options.FeedUrl, UriKind.Absolute, out _))
         {
             _logger.LogError("MMA event synchronization is enabled but MmaSync:FeedUrl is not a valid absolute URI.");
             return;

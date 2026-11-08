@@ -7,14 +7,13 @@ using Zenbet.EventsMarkets.Application.Interfaces;
 
 /// <summary>
 /// UFCalendar HTTP adapter (calendar + results). The free plan allows 1,000 requests/month and 10/min, so every
-/// response is cached: the calendar for 6 h and each event for 2 min. NOT registered in DI yet: wiring and the
+/// response is cached: the calendar for CalendarCacheMinutes (12 h by default) and each event for 2 min. NOT registered in DI yet: wiring and the
 /// result-suggestion flow (feed proposes, admin confirms against a second source) are a separate reviewed change.
 /// </summary>
 public sealed class UfCalendarClient : IMmaDataProvider, IFightResultsProvider
 {
     public string ProviderName => UfCalendarOptions.ProviderName;
 
-    private static readonly TimeSpan CalendarTtl = TimeSpan.FromHours(6);
     private static readonly TimeSpan EventTtl = TimeSpan.FromMinutes(2);
 
     private readonly HttpClient _http;
@@ -32,7 +31,7 @@ public sealed class UfCalendarClient : IMmaDataProvider, IFightResultsProvider
     {
         var cached = await _cache.GetOrCreateAsync("ufcalendar:upcoming", async entry =>
         {
-            entry.AbsoluteExpirationRelativeToNow = CalendarTtl;
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Math.Max(1, _options.CalendarCacheMinutes));
             var list = UfCalendarParser.ParseEventList(
                 await GetStringAsync($"events?org={Uri.EscapeDataString(_options.Organization)}", cancellationToken));
             var snapshots = new List<MmaEventSnapshot>();

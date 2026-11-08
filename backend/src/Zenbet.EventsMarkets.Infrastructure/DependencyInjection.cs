@@ -112,8 +112,17 @@ public static class DependencyInjection
         // handler estándar (retry con backoff, circuit breaker y timeout) para que
         // un proveedor de feed externo lento o caído no cuelgue el worker de sync
         // ni agote el pool de sockets.
-        services.AddHttpClient<IMmaDataProvider, HttpMmaDataProvider>()
-            .AddStandardResilienceHandler();
+        if (string.Equals(configuration["MmaSync:Provider"], "UfCalendar", StringComparison.OrdinalIgnoreCase))
+        {
+            // Real calendar from UFCalendar (registered below as a typed client). Cards arrive WITHOUT markets: ZenBet
+            // prices its own, so nothing is bettable until an operator opens and prices the markets.
+            services.AddTransient<IMmaDataProvider>(sp => sp.GetRequiredService<Providers.UfCalendar.UfCalendarClient>());
+        }
+        else
+        {
+            services.AddHttpClient<IMmaDataProvider, HttpMmaDataProvider>()
+                .AddStandardResilienceHandler();
+        }
         services.AddHostedService<EventSyncBackgroundService>();
 
         // Result suggestions: feeds PROPOSE, an admin confirms. Order matters: the first provider is the primary feed.
