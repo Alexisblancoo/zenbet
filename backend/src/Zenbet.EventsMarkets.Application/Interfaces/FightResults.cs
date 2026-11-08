@@ -31,8 +31,10 @@ public sealed record FightResultSnapshot(
 
 public interface IFightResultsProvider
 {
-    /// <summary>Fight statuses and (when finished) results of one event, identified by the provider's event slug.</summary>
-    Task<IReadOnlyList<FightResultSnapshot>> GetEventResultsAsync(string eventSlug, CancellationToken cancellationToken = default);
+    string ProviderName { get; }
+
+    /// <summary>Outcomes of every bout the provider lists within about a day of <paramref name="at"/>.</summary>
+    Task<IReadOnlyList<FightResultSnapshot>> GetResultsAroundAsync(DateTimeOffset at, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Pairs the same bout across providers: accent-insensitive names, order-insensitive, start within a tolerance.</summary>

@@ -350,6 +350,7 @@ app.MapAuthEndpoints();
 app.MapBetsEndpoints();
 app.MapWalletEndpoints();
 app.MapEventsEndpoints();
+app.MapAdminResultProposalsEndpoints();
 app.MapPromotionsEndpoints();
 app.MapUpcomingEventsEndpoint();
 app.MapFootballEndpoints();

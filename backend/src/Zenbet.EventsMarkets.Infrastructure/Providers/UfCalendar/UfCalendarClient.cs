@@ -12,6 +12,8 @@ using Zenbet.EventsMarkets.Application.Interfaces;
 /// </summary>
 public sealed class UfCalendarClient : IMmaDataProvider, IFightResultsProvider
 {
+    public string ProviderName => UfCalendarOptions.ProviderName;
+
     private static readonly TimeSpan CalendarTtl = TimeSpan.FromHours(6);
     private static readonly TimeSpan EventTtl = TimeSpan.FromMinutes(2);
 
@@ -42,6 +44,22 @@ public sealed class UfCalendarClient : IMmaDataProvider, IFightResultsProvider
             return (IReadOnlyList<MmaEventSnapshot>)snapshots;
         });
         return cached ?? Array.Empty<MmaEventSnapshot>();
+    }
+
+
+    public async Task<IReadOnlyList<FightResultSnapshot>> GetResultsAroundAsync(DateTimeOffset at, CancellationToken cancellationToken = default)
+    {
+        var from = at.UtcDateTime.Date.AddDays(-1).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        var to = at.UtcDateTime.Date.AddDays(1).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        var listJson = await _cache.GetOrCreateAsync($"ufcalendar:list:{from}:{to}", async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = EventTtl;
+            return await GetStringAsync($"events?org={Uri.EscapeDataString(_options.Organization)}&from={from}&to={to}", cancellationToken);
+        }) ?? throw new InvalidDataException("UFCalendar returned no body.");
+        var results = new List<FightResultSnapshot>();
+        foreach (var ev in UfCalendarParser.ParseEventList(listJson))
+            results.AddRange(await GetEventResultsAsync(ev.Slug, cancellationToken));
+        return results;
     }
 
     public async Task<IReadOnlyList<FightResultSnapshot>> GetEventResultsAsync(string eventSlug, CancellationToken cancellationToken = default)

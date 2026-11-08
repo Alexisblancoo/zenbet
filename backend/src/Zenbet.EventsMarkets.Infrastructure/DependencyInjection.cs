@@ -116,6 +116,21 @@ public static class DependencyInjection
             .AddStandardResilienceHandler();
         services.AddHostedService<EventSyncBackgroundService>();
 
+        // Result suggestions: feeds PROPOSE, an admin confirms. Order matters: the first provider is the primary feed.
+        services.AddMemoryCache();
+        services.Configure<Providers.UfCalendar.UfCalendarOptions>(configuration.GetSection("UfCalendar"));
+        services.Configure<Providers.ApiSports.ApiSportsOptions>(configuration.GetSection("ApiSports"));
+        services.Configure<Providers.BigBalls.BigBallsOptions>(configuration.GetSection("BigBallsData"));
+        services.Configure<ResultSuggestionOptions>(configuration.GetSection("ResultSuggestions"));
+        services.AddHttpClient<Providers.UfCalendar.UfCalendarClient>().AddStandardResilienceHandler();
+        services.AddHttpClient<Providers.ApiSports.ApiSportsClient>().AddStandardResilienceHandler();
+        services.AddHttpClient<Providers.BigBalls.BigBallsClient>().AddStandardResilienceHandler();
+        services.AddTransient<IFightResultsProvider>(sp => sp.GetRequiredService<Providers.UfCalendar.UfCalendarClient>());
+        services.AddTransient<IFightResultsProvider>(sp => sp.GetRequiredService<Providers.ApiSports.ApiSportsClient>());
+        services.AddTransient<IFightResultsProvider>(sp => sp.GetRequiredService<Providers.BigBalls.BigBallsClient>());
+        services.AddScoped<IFightResultProposalRepository, FightResultProposalRepository>();
+        services.AddHostedService<FightResultSuggestionWorker>();
+
         // Ciclo de vida de combates + reloj en vivo (SignalR FightHub).
         services.Configure<FightLiveUpdateOptions>(configuration.GetSection("FightLiveUpdates"));
         services.AddHostedService<FightLiveUpdateWorker>();

@@ -44,6 +44,11 @@ services:
       Auth__SigningKey: ${JWT_SIGNING_KEY:?Debes definir JWT_SIGNING_KEY en tu archivo .env (ver .env.example)}
       # Secreto HMAC de la pasarela RGS. Vacío = los callbacks RGS se rechazan.
       Rgs__SharedSecret: ${RGS_SHARED_SECRET:-}
+      # Result suggestions (feeds PROPOSE, an admin confirms). Off unless you opt in and provide the keys.
+      ResultSuggestions__Enabled: "${RESULT_SUGGESTIONS_ENABLED:-false}"
+      UfCalendar__ApiKey: ${UFCALENDAR_API_KEY:-}
+      ApiSports__ApiKey: ${APISPORTS_API_KEY:-}
+      BigBallsData__ApiKey: ${BIGBALLS_API_KEY:-}
       # Primer administrador (opcional, se crea solo si no existe ningún admin).
       # Retira la contraseña del entorno tras el primer arranque.
       Admin__Bootstrap__Username: ${ADMIN_BOOTSTRAP_USERNAME:-}
