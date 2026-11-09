@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Zenbet.EventsMarkets.Application.Behaviors;
 using Zenbet.EventsMarkets.Application.Interfaces;
 using Zenbet.EventsMarkets.Domain.Repositories;
+using Zenbet.EventsMarkets.Infrastructure.Concurrency;
 using Zenbet.EventsMarkets.Infrastructure.Messaging;
 using Zenbet.EventsMarkets.Infrastructure.Persistence;
 using Zenbet.EventsMarkets.Infrastructure.Persistence.Outbox;
@@ -94,6 +95,10 @@ public static class DependencyInjection
 
         // Risk Management
         services.AddScoped<IRiskManagementService, EfRiskManagementService>();
+
+        // Cola en memoria por mercado: evita que las apuestas de un mercado caliente agoten el pool.
+        services.Configure<MarketBetGateOptions>(configuration.GetSection(MarketBetGateOptions.SectionName));
+        services.AddSingleton<IMarketBetGate, MarketBetGate>();
 
         // MediatR Pipeline Behaviors
         // Primero: rechaza apuestas sobre líneas de referencia (no ejecutables) antes de cualquier otro trabajo.

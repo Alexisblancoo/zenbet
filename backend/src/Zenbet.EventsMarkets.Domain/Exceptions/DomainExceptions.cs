@@ -212,6 +212,24 @@ public sealed class KycVerificationRequiredException : DomainException
 
 
 /// <summary>
+/// El sistema está saturado para esta operación (cola de un mercado llena, espera agotada o
+/// bloqueo de base de datos no disponible a tiempo). Es transitoria y segura de reintentar con la
+/// MISMA clave de idempotencia: no se registró ninguna apuesta.
+/// </summary>
+public sealed class ServiceBusyException : DomainException
+{
+    public int RetryAfterSeconds { get; }
+    public string Code { get; }
+
+    public ServiceBusyException(string message, int retryAfterSeconds = 1)
+        : base(message)
+    {
+        RetryAfterSeconds = retryAfterSeconds;
+        Code = "SERVICE_BUSY";
+    }
+}
+
+/// <summary>
 /// La cotización pedida es inválida (probabilidades que no suman 1, margen fuera de rango, selecciones que no
 /// coinciden con el mercado...). Se rechaza completa: nunca se publica un mercado a medio cotizar.
 /// </summary>

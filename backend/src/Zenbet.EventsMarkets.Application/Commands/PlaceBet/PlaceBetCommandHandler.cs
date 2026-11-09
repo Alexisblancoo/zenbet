@@ -23,6 +23,7 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
     private readonly IIdempotencyService _idempotencyService;
     private readonly ILogger<PlaceBetCommandHandler> _logger;
     private readonly IRiskManagementService? _riskManagementService;
+    private readonly IMarketBetGate? _marketBetGate;
 
     public PlaceBetCommandHandler(
         IWalletRepository walletRepository,
@@ -34,7 +35,8 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
         IOutboxWriter outboxWriter,
         IIdempotencyService idempotencyService,
         ILogger<PlaceBetCommandHandler> logger,
-        IRiskManagementService? riskManagementService = null)
+        IRiskManagementService? riskManagementService = null,
+        IMarketBetGate? marketBetGate = null)
     {
         _walletRepository = walletRepository;
         _selectionRepository = selectionRepository;
@@ -46,9 +48,31 @@ public sealed class PlaceBetCommandHandler : IRequestHandler<PlaceBetCommand, Pl
         _idempotencyService = idempotencyService;
         _logger = logger;
         _riskManagementService = riskManagementService;
+        _marketBetGate = marketBetGate;
     }
 
     public async Task<PlaceBetResult> Handle(PlaceBetCommand request, CancellationToken cancellationToken)
+    {
+        if (_marketBetGate is null)
+        {
+            return await HandleCoreAsync(request, cancellationToken);
+        }
+
+        // Turno en memoria por mercado ANTES de abrir la transacción: quien espera no retiene una
+        // conexión del pool. Si la cola está llena o la espera se agota, lanza ServiceBusyException
+        // (503 reintentable con la misma clave de idempotencia; no se registró nada).
+        var marketId = await _marketRepository.GetMarketIdBySelectionAsync(request.SelectionId, cancellationToken);
+        if (marketId is null)
+        {
+            // Selección inexistente: el flujo normal responde con el mensaje de dominio.
+            return await HandleCoreAsync(request, cancellationToken);
+        }
+
+        using var turn = await _marketBetGate.EnterAsync(marketId.Value, cancellationToken);
+        return await HandleCoreAsync(request, cancellationToken);
+    }
+
+    private async Task<PlaceBetResult> HandleCoreAsync(PlaceBetCommand request, CancellationToken cancellationToken)
     {
         var payloadHash = IdempotencyPayloadHasher.Compute(new
         {

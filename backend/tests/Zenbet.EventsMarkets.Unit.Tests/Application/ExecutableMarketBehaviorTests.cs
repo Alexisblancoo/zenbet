@@ -155,6 +155,9 @@ public sealed class ExecutableMarketBehaviorTests
             return Task.FromResult(_market);
         }
 
+        public Task<MarketId?> GetMarketIdBySelectionAsync(SelectionId selectionId, CancellationToken cancellationToken = default)
+            => Task.FromResult(_market?.Id);
+
         public Task<Market?> GetByIdAsync(MarketId id, CancellationToken cancellationToken = default)
             => Task.FromResult(_market);
 

@@ -48,6 +48,8 @@ public interface IMarketRepository
     Task<Market?> GetByIdAsync(MarketId id, CancellationToken cancellationToken = default);
     Task<Market?> GetByIdWithSelectionsAsync(MarketId id, CancellationToken cancellationToken = default);
     Task<Market?> GetBySelectionIdAsync(SelectionId selectionId, CancellationToken cancellationToken = default);
+    /// <summary>Consulta mínima (una columna) para saber a qué mercado pertenece una selección.</summary>
+    Task<MarketId?> GetMarketIdBySelectionAsync(SelectionId selectionId, CancellationToken cancellationToken = default);
     Task AddAsync(Market market, CancellationToken cancellationToken = default);
     Task UpdateAsync(Market market, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Market>> GetByEventIdAsync(EventId eventId, CancellationToken cancellationToken = default);
