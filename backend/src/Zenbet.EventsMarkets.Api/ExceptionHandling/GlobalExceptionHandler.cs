@@ -64,6 +64,11 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
     {
         return exception switch
         {
+            InvalidPricingException ex => (StatusCodes.Status422UnprocessableEntity,
+                "Cotización inválida",
+                ex.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.5.22"),
+
             IdempotencyConflictException ex => (StatusCodes.Status409Conflict,
                 "Idempotency-Key conflict",
                 ex.Message,

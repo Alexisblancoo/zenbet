@@ -96,6 +96,9 @@ public static class DependencyInjection
         services.AddScoped<IRiskManagementService, EfRiskManagementService>();
 
         // MediatR Pipeline Behaviors
+        // Primero: rechaza apuestas sobre líneas de referencia (no ejecutables) antes de cualquier otro trabajo.
+        services.Configure<BettingOptions>(configuration.GetSection(BettingOptions.SectionName));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExecutableMarketBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RiskValidationBehavior<,>));
 
         // Notification service (can be overridden by API layer for SignalR)

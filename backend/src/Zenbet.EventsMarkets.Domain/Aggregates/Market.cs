@@ -52,6 +52,12 @@ public sealed class Market : AggregateRoot<MarketId>
     public decimal? Line { get; private set; }
     public int DisplayOrder { get; private set; }
     public MarketProvenance? Provenance { get; private set; }
+
+    /// <summary>
+    /// Solo se puede apostar a cuotas fijadas por el operador (ZenBet) con margen propio. Cualquier otra procedencia
+    /// (modelo, agregador, casa, exchange, desconocida) o la ausencia de procedencia NO es ejecutable: fail-closed.
+    /// </summary>
+    public bool IsExecutable => Provenance is { Kind: OddsSourceKind.Operator };
     public Money MaxLiabilityLimit { get; private set; }
     public bool IsSuspendedByRisk { get; private set; }
     public MarketStatus Status => _status;
