@@ -65,6 +65,8 @@ services:
       Seeding__Ufc__ApplyMigrations: "true"
       Seeding__Ufc__ForceRefresh: "false"
       Seeding__Football__Enabled: "${SEED_FOOTBALL_DEMO:-false}"
+      # Las lineas "de referencia" (cuotas de modelo, no ejecutables) no admiten apuestas salvo opt-in explicito.
+      Betting__AllowReferenceLines: "${ALLOW_REFERENCE_LINES:-false}"
     ports:
       - "5005:5000"
     healthcheck:

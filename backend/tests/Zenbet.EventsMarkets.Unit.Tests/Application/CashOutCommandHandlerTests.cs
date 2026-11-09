@@ -293,6 +293,9 @@ public sealed class CashOutCommandHandlerTests
         public Task<Market?> GetBySelectionIdAsync(SelectionId selectionId, CancellationToken cancellationToken = default)
             => Task.FromResult<Market?>(_market);
 
+        public Task<MarketId?> GetMarketIdBySelectionAsync(SelectionId selectionId, CancellationToken cancellationToken = default)
+            => Task.FromResult<MarketId?>(_market.Id);
+
         public Task AddAsync(Market market, CancellationToken cancellationToken = default)
             => Task.CompletedTask;
 
