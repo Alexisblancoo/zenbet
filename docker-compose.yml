@@ -49,9 +49,16 @@ services:
       Admin__Bootstrap__Username: ${ADMIN_BOOTSTRAP_USERNAME:-}
       Admin__Bootstrap__Email: ${ADMIN_BOOTSTRAP_EMAIL:-}
       Admin__Bootstrap__Password: ${ADMIN_BOOTSTRAP_PASSWORD:-}
-      Seeding__Ufc__Enabled: "true"
+      # Las migraciones ya no dependen de la siembra de datos.
+      Database__MigrateOnStartup: "true"
+      # Datos DEMO (cartelera UFC de referencia y partidos de fútbol ficticios): apagados por defecto.
+      # Para una demostración local: SEED_UFC_DEMO=true / SEED_FOOTBALL_DEMO=true en tu .env.
+      Seeding__Ufc__Enabled: "${SEED_UFC_DEMO:-false}"
       Seeding__Ufc__ApplyMigrations: "true"
       Seeding__Ufc__ForceRefresh: "false"
+      Seeding__Football__Enabled: "${SEED_FOOTBALL_DEMO:-false}"
+      # Las lineas "de referencia" (cuotas de modelo, no ejecutables) no admiten apuestas salvo opt-in explicito.
+      Betting__AllowReferenceLines: "${ALLOW_REFERENCE_LINES:-false}"
     ports:
       - "5005:5000"
     healthcheck:

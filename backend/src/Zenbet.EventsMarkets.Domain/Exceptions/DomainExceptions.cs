@@ -228,3 +228,18 @@ public sealed class ServiceBusyException : DomainException
         Code = "SERVICE_BUSY";
     }
 }
+
+/// <summary>
+/// La cotización pedida es inválida (probabilidades que no suman 1, margen fuera de rango, selecciones que no
+/// coinciden con el mercado...). Se rechaza completa: nunca se publica un mercado a medio cotizar.
+/// </summary>
+public sealed class InvalidPricingException : DomainException
+{
+    public string Code { get; }
+
+    public InvalidPricingException(string message)
+        : base(message)
+    {
+        Code = "INVALID_PRICING";
+    }
+}

@@ -80,6 +80,11 @@ public static class DependencyInjection
                 "Auth:SigningKey debe estar configurado con al menos 32 caracteres.");
         }
 
+        // Migraciones al arrancar, SIN depender de ningún seeder. Debe registrarse antes que cualquier otro
+        // servicio en segundo plano: su StartAsync se espera completo y, si falla, la aplicación no arranca.
+        services.Configure<DatabaseMigrationOptions>(configuration.GetSection(DatabaseMigrationOptions.SectionName));
+        services.AddHostedService<DatabaseMigrationHostedService>();
+
         // El primer admin se aprovisiona solo desde configuración del servidor.
         services.Configure<AdminBootstrapOptions>(configuration.GetSection(AdminBootstrapOptions.SectionName));
         services.AddHostedService<AdminBootstrapSeeder>();
@@ -96,6 +101,9 @@ public static class DependencyInjection
         services.AddSingleton<IMarketBetGate, MarketBetGate>();
 
         // MediatR Pipeline Behaviors
+        // Primero: rechaza apuestas sobre líneas de referencia (no ejecutables) antes de cualquier otro trabajo.
+        services.Configure<BettingOptions>(configuration.GetSection(BettingOptions.SectionName));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExecutableMarketBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RiskValidationBehavior<,>));
 
         // Notification service (can be overridden by API layer for SignalR)
@@ -125,8 +133,14 @@ public static class DependencyInjection
         services.AddHostedService<UfcCardSeeder>();
 
         // Datos oficiales y ciclo de vida de Fútbol (SignalR FootballHub / OddsHub).
-        services.AddHostedService<FootballDataSeeder>();
-        services.AddHostedService<FootballLiveWorker>();
+        // Los partidos de fútbol sembrados son DATOS DE DEMOSTRACIÓN (horarios relativos a la hora actual,
+        // marcadores y cuotas fijos) y el worker "live" les avanza el minuto por reloj hasta el 90'. Con dinero
+        // real eso es apostar sobre partidos inventados: solo se activan con Seeding:Football:Enabled=true.
+        if (configuration.GetValue<bool>("Seeding:Football:Enabled"))
+        {
+            services.AddHostedService<FootballDataSeeder>();
+            services.AddHostedService<FootballLiveWorker>();
+        }
 
         return services;
     }

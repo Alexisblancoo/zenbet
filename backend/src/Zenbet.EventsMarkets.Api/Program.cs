@@ -353,6 +353,7 @@ app.MapHub<WalletHub>("/wallet-hub").RequireCors("DevelopmentCors").DisableRateL
 // envolverlos con otro MapGroup: eso duplicaba /api/v1/bets en la ruta real.
 app.MapAuthEndpoints();
 app.MapBetsEndpoints();
+app.MapAdminMarketsEndpoints();
 app.MapWalletEndpoints();
 app.MapEventsEndpoints();
 app.MapPromotionsEndpoints();
