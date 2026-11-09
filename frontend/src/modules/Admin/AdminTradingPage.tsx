@@ -77,7 +77,7 @@ function MarketPricer({ market, onPriced }: MarketPricerProps) {
   const [rows, setRows] = useState<readonly PricerRow[]>(() => initialRows(market));
   const [margin, setMargin] = useState(DEFAULT_MARGIN_PERCENT);
   const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const preview = useMemo((): { data: MarketPricingPreview | null; error: string | null } => {
     try {
@@ -129,15 +129,11 @@ function MarketPricer({ market, onPriced }: MarketPricerProps) {
         })),
         note: `Cotizado desde la consola de trading · margen solicitado ${margin}%`,
       });
-      setFeedback({
-        kind: 'ok',
-        text: `Mercado cotizado · margen efectivo ${result.overroundPercent.toFixed(2)}%${
-          result.idempotentReplay ? ' · replica idempotente' : ''
-        }`,
-      });
+      // El éxito se anuncia en la página: `onPriced` recarga la cartelera y este
+      // componente se desmonta, así que un mensaje local se perdería.
       onPriced(result);
     } catch (error) {
-      setFeedback({ kind: 'error', text: describeFailure(error) });
+      setFeedback(describeFailure(error));
     } finally {
       setSubmitting(false);
     }
@@ -267,19 +263,11 @@ function MarketPricer({ market, onPriced }: MarketPricerProps) {
       )}
       {feedback && (
         <p
-          className={`mt-2 flex items-start gap-1.5 border px-2 py-1.5 text-[10px] leading-relaxed ${
-            feedback.kind === 'ok'
-              ? 'border-lime-400/40 bg-lime-400/[0.06] text-lime-200'
-              : 'border-crimson/40 bg-crimson/[0.06] text-crimson-300'
-          }`}
-          role='status'
+          className='mt-2 flex items-start gap-1.5 border border-crimson/40 bg-crimson/[0.06] px-2 py-1.5 text-[10px] leading-relaxed text-crimson-300'
+          role='alert'
         >
-          {feedback.kind === 'ok' ? (
-            <CheckCircle2 size={11} className='mt-0.5 shrink-0' aria-hidden='true' />
-          ) : (
-            <AlertTriangle size={11} className='mt-0.5 shrink-0' aria-hidden='true' />
-          )}
-          {feedback.text}
+          <AlertTriangle size={11} className='mt-0.5 shrink-0' aria-hidden='true' />
+          {feedback}
         </p>
       )}
     </div>
@@ -328,6 +316,7 @@ export default function AdminTradingPage() {
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [lastPricedAt, setLastPricedAt] = useState<string | null>(null);
+  const [pricedNotice, setPricedNotice] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -352,7 +341,11 @@ export default function AdminTradingPage() {
 
   const onPriced = useCallback((result: PriceMarketResponse) => {
     setLastPricedAt(new Date().toISOString());
-    void result;
+    setPricedNotice(
+      `Mercado cotizado · margen efectivo ${result.overroundPercent.toFixed(2)}%${
+        result.idempotentReplay ? ' · replica idempotente' : ''
+      }`,
+    );
     setReloadToken((token) => token + 1);
   }, []);
 
@@ -391,6 +384,16 @@ export default function AdminTradingPage() {
           Recargar
         </button>
       </header>
+
+      {pricedNotice && (
+        <p
+          className='mt-3 flex items-start gap-1.5 border border-lime-400/40 bg-lime-400/[0.06] px-2 py-1.5 text-[10px] leading-relaxed text-lime-200'
+          role='status'
+        >
+          <CheckCircle2 size={11} className='mt-0.5 shrink-0' aria-hidden='true' />
+          {pricedNotice}
+        </p>
+      )}
 
       {lastPricedAt && (
         <p className='mt-3 font-mono text-[9px] uppercase tracking-wide text-lime-300'>
