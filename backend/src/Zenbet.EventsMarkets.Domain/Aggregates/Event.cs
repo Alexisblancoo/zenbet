@@ -121,6 +121,25 @@ public sealed class Event : AggregateRoot<EventId>
             !string.Equals(Competition, normalizedCompetition, StringComparison.Ordinal) ||
             boutChanged;
 
+        // Otro peleador en una esquina o distinto número de asaltos = otro combate para los mercados ya abiertos:
+        // sus selecciones (red/blue, línea de asaltos) apuntarían a algo que ya no es. Sin cotizar → se anulan (no pueden
+        // tener apuestas; reabrir crea mercados correctos). Cotizados → se suspenden y requieren decisión humana.
+        var identityChanged = bout is not null && Bout is not null &&
+            (!string.Equals(Bout.Red.Id, bout.Red.Id, StringComparison.Ordinal) ||
+             !string.Equals(Bout.Blue.Id, bout.Blue.Id, StringComparison.Ordinal) ||
+             Bout.ScheduledRounds != bout.ScheduledRounds);
+        if (identityChanged)
+        {
+            foreach (var market in _markets)
+            {
+                if (market.Status != MarketStatus.Open)
+                    continue;
+                if (market.IsAwaitingPricing)
+                    market.Void("El combate cambió (peleador o asaltos) antes de cotizar.", "sync");
+                else
+                    market.Suspend("El combate cambió (peleador o asaltos): revisar antes de reabrir.");
+            }
+        }
         Name = name.Trim();
         StartTime = startTime;
         Competition = normalizedCompetition;

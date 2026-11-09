@@ -50,7 +50,9 @@ public enum OddsSourceKind
     Exchange = 3,
     Model = 4,
     /// <summary>Cuota fijada por el trader de ZenBet con margen propio (ejecutable).</summary>
-    Operator = 5
+    Operator = 5,
+    /// <summary>Mercado abierto por el operador y aún sin cotizar: no se publica ni admite apuestas hasta PriceMarket.</summary>
+    Pending = 6
 }
 
 public enum MarketType

@@ -66,8 +66,15 @@ internal static class EventReadMapper
             FightRealtimeMapper.ToResult(@event));
     }
 
+    /// <summary>
+    /// Mercados visibles al público: los que aún esperan cotización del trader no se publican (sus cuotas son un marcador),
+    /// ni ninguno con una cuota ≤ 1.0 (no es apostable y rompería la conversión a cuota americana de TODO el listado).
+    /// </summary>
+    private static IEnumerable<Market> PublicMarkets(Event @event) =>
+        @event.Markets.Where(market => !market.IsAwaitingPricing && market.Selections.All(s => s.CurrentOdd.Value > 1.0m));
+
     private static IReadOnlyList<MarketDto> MapMarkets(Event @event) =>
-        @event.Markets
+        PublicMarkets(@event)
             .OrderBy(market => market.DisplayOrder)
             .ThenBy(market => market.Name, StringComparer.Ordinal)
             .Select(ToDto)
@@ -75,7 +82,7 @@ internal static class EventReadMapper
 
     private static DateTimeOffset? LastOddsUpdate(Event @event)
     {
-        var lastOddsUpdate = @event.Markets
+        var lastOddsUpdate = PublicMarkets(@event)
             .SelectMany(market => market.Selections)
             .Select(selection => selection.CurrentOdd.Timestamp)
             .DefaultIfEmpty()

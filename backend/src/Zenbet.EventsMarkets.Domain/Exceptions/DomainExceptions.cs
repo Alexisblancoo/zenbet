@@ -243,3 +243,15 @@ public sealed class InvalidPricingException : DomainException
         Code = "INVALID_PRICING";
     }
 }
+
+/// <summary>No se pueden abrir mercados en este evento (no es MMA, ya empezó, está cerrado...).</summary>
+public sealed class MarketOpeningRejectedException : DomainException
+{
+    public string Code { get; }
+
+    public MarketOpeningRejectedException(string message)
+        : base(message)
+    {
+        Code = "MARKET_OPENING_REJECTED";
+    }
+}
