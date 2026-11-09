@@ -905,7 +905,9 @@ export default function MmaEventsPage() {
   const familyPulse = UFC_MARKET_FAMILIES.map((family) => {
     const markets = activeEvents
       .map((event) => findMarket(event, family.key))
-      .filter((market): market is UfcMarket => market !== null);
+      // `findMarket` devuelve `undefined` cuando la familia no existe; sin este
+      // filtro, `markets.reduce` revienta al leer `selections` de `undefined`.
+      .filter((market): market is UfcMarket => market !== undefined);
 
     return {
       ...family,
