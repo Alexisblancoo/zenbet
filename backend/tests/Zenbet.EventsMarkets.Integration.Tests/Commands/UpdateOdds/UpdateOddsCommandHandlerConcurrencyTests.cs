@@ -4,7 +4,7 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ZenShim;
+using Testcontainers.PostgreSql;
 using Xunit;
 using MediatR;
 using Zenbet.EventsMarkets.Application.Commands.UpdateOdds;
