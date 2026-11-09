@@ -113,6 +113,11 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                 ex.Message,
                 "https://tools.ietf.org/html/rfc9110#section-15.5.22"),
 
+            MarketOpeningRejectedException ex => (StatusCodes.Status422UnprocessableEntity,
+                "No se pueden abrir mercados",
+                ex.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.5.22"),
+
             IdempotencyConflictException ex => (StatusCodes.Status409Conflict,
                 "Idempotency-Key conflict",
                 ex.Message,

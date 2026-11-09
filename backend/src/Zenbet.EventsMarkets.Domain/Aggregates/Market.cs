@@ -58,6 +58,9 @@ public sealed class Market : AggregateRoot<MarketId>
     /// (modelo, agregador, casa, exchange, desconocida) o la ausencia de procedencia NO es ejecutable: fail-closed.
     /// </summary>
     public bool IsExecutable => Provenance is { Kind: OddsSourceKind.Operator };
+
+    /// <summary>Abierto pero sin cotizar: sus cuotas son un marcador interno, nunca se muestran al público.</summary>
+    public bool IsAwaitingPricing => Provenance is { Kind: OddsSourceKind.Pending };
     public Money MaxLiabilityLimit { get; private set; }
     public bool IsSuspendedByRisk { get; private set; }
     public MarketStatus Status => _status;

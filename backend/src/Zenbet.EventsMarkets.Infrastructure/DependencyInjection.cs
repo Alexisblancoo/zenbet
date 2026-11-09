@@ -146,6 +146,7 @@ public static class DependencyInjection
         services.AddTransient<IFightResultsProvider>(sp => sp.GetRequiredService<Providers.ApiSports.ApiSportsClient>());
         services.AddTransient<IFightResultsProvider>(sp => sp.GetRequiredService<Providers.BigBalls.BigBallsClient>());
         services.AddScoped<IFightResultProposalRepository, FightResultProposalRepository>();
+        services.AddScoped<IPendingPricingReader, PendingPricingReader>();
         services.AddHostedService<FightResultSuggestionWorker>();
 
         // Ciclo de vida de combates + reloj en vivo (SignalR FightHub).
