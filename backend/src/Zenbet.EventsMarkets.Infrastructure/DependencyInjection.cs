@@ -120,9 +120,33 @@ public static class DependencyInjection
         // handler estándar (retry con backoff, circuit breaker y timeout) para que
         // un proveedor de feed externo lento o caído no cuelgue el worker de sync
         // ni agote el pool de sockets.
-        services.AddHttpClient<IMmaDataProvider, HttpMmaDataProvider>()
-            .AddStandardResilienceHandler();
+        if (string.Equals(configuration["MmaSync:Provider"], "UfCalendar", StringComparison.OrdinalIgnoreCase))
+        {
+            // Real calendar from UFCalendar (registered below as a typed client). Cards arrive WITHOUT markets: ZenBet
+            // prices its own, so nothing is bettable until an operator opens and prices the markets.
+            services.AddTransient<IMmaDataProvider>(sp => sp.GetRequiredService<Providers.UfCalendar.UfCalendarClient>());
+        }
+        else
+        {
+            services.AddHttpClient<IMmaDataProvider, HttpMmaDataProvider>()
+                .AddStandardResilienceHandler();
+        }
         services.AddHostedService<EventSyncBackgroundService>();
+
+        // Result suggestions: feeds PROPOSE, an admin confirms. Order matters: the first provider is the primary feed.
+        services.AddMemoryCache();
+        services.Configure<Providers.UfCalendar.UfCalendarOptions>(configuration.GetSection("UfCalendar"));
+        services.Configure<Providers.ApiSports.ApiSportsOptions>(configuration.GetSection("ApiSports"));
+        services.Configure<Providers.BigBalls.BigBallsOptions>(configuration.GetSection("BigBallsData"));
+        services.Configure<ResultSuggestionOptions>(configuration.GetSection("ResultSuggestions"));
+        services.AddHttpClient<Providers.UfCalendar.UfCalendarClient>().AddStandardResilienceHandler();
+        services.AddHttpClient<Providers.ApiSports.ApiSportsClient>().AddStandardResilienceHandler();
+        services.AddHttpClient<Providers.BigBalls.BigBallsClient>().AddStandardResilienceHandler();
+        services.AddTransient<IFightResultsProvider>(sp => sp.GetRequiredService<Providers.UfCalendar.UfCalendarClient>());
+        services.AddTransient<IFightResultsProvider>(sp => sp.GetRequiredService<Providers.ApiSports.ApiSportsClient>());
+        services.AddTransient<IFightResultsProvider>(sp => sp.GetRequiredService<Providers.BigBalls.BigBallsClient>());
+        services.AddScoped<IFightResultProposalRepository, FightResultProposalRepository>();
+        services.AddHostedService<FightResultSuggestionWorker>();
 
         // Ciclo de vida de combates + reloj en vivo (SignalR FightHub).
         services.Configure<FightLiveUpdateOptions>(configuration.GetSection("FightLiveUpdates"));

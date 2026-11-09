@@ -28,10 +28,28 @@ public sealed class UfCalendarParserTests
         Assert.Equal("ufc", ev.PromotionSlug);
         Assert.Equal(13, ev.Fights.Count); // 15 on the card, 2 cancelled
         Assert.DoesNotContain(ev.Fights, f => f.Name.Contains("Susurkaev") || f.Name.Contains("Sadykhov"));
-        Assert.Contains(ev.Fights, f => f.Name == "Ciryl Gane vs Josh Hokit" && f.Billing == "Main Card");
+        Assert.Contains(ev.Fights, f => f.Name == "Ciryl Gane vs Josh Hokit" && f.Billing == "Main" && f.Division == "heavyweight");
         Assert.All(ev.Fights, f => Assert.Empty(f.Markets)); // ZenBet prices its own markets
         Assert.All(ev.Fights, f => Assert.True(f.ScheduledRounds is 3 or 5));
         Assert.Equal(ev.Fights.Count, ev.Fights.Select(f => f.ExternalId).Distinct().Count());
+    }
+
+    [Fact]
+    public void Bouts_in_divisions_we_do_not_model_are_skipped_not_fatal()
+    {
+        const string json = """
+        {"data":{"id":1,"slug":"x","title":"T","org":"ufc","starts_at":"2026-01-01T00:00:00Z","card":[
+         {"id":1,"card_section":"main","scheduled_rounds":3,"status":"announced","division_slug":"catchweight","weight_class":"Catchweight",
+          "fighter_a":{"id":1,"name":"A One"},"fighter_b":{"id":2,"name":"B Two"}},
+         {"id":2,"card_section":"prelims","scheduled_rounds":3,"status":"announced","division_slug":"lightweight","weight_class":"Lightweight",
+          "fighter_a":{"id":3,"name":"C Three"},"fighter_b":{"id":4,"name":"D Four"}}]}}
+        """;
+
+        var ev = UfCalendarParser.ParseEventSnapshot(json);
+
+        var only = Assert.Single(ev.Fights);
+        Assert.Equal("C Three vs D Four", only.Name);
+        Assert.Equal("Prelims", only.Billing);
     }
 
     [Fact]

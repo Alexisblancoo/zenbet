@@ -52,7 +52,10 @@ public static class UfCalendarParser
             if (a is null || b is null) continue;
             var section = Str(bout, "card_section") ?? "main";
             var fightStart = SectionStart(e, section) ?? starts;
-            var division = Str(bout, "weight_class") ?? Unknown;
+            // Our catalog is keyed by slug; a bout in a division we do not model (catchweight, openweight...) is skipped
+            // instead of failing the whole card.
+            var division = Str(bout, "division_slug");
+            if (division is null || !Zenbet.EventsMarkets.Domain.ValueObjects.WeightDivisionCatalog.TryParse(division, out _)) continue;
             fights.Add(new MmaFightSnapshot(
                 ExternalId: $"{Provider.ToLowerInvariant()}:{Long(bout, "id")}",
                 Name: $"{a.Name} vs {b.Name}",
@@ -151,12 +154,13 @@ public static class UfCalendarParser
         _ => null,
     };
 
+    /// <summary>Values of the FightBilling enum (the synchronizer parses them by name).</summary>
     private static string BillingLabel(string section) => section switch
     {
-        "main" => "Main Card",
+        "main" => "Main",
         "prelims" => "Prelims",
-        "early_prelims" => "Early Prelims",
-        _ => section,
+        "early_prelims" => "EarlyPrelims",
+        _ => "Prelims",
     };
 
     private static JsonElement Data(JsonElement root) =>

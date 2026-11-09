@@ -76,6 +76,83 @@ namespace Zenbet.EventsMarkets.Infrastructure.Persistence.Migrations
                     b.ToTable("events", "events_markets");
                 });
 
+            modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.FightResultProposal", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Detail")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("detail");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_id");
+
+                    b.Property<int?>("Method")
+                        .HasColumnType("integer")
+                        .HasColumnName("method");
+
+                    b.Property<bool>("MethodCorroborated")
+                        .HasColumnType("boolean")
+                        .HasColumnName("method_corroborated");
+
+                    b.Property<string>("ReviewNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("review_note");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reviewed_at");
+
+                    b.Property<string>("ReviewedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reviewed_by");
+
+                    b.Property<int?>("Round")
+                        .HasColumnType("integer")
+                        .HasColumnName("round");
+
+                    b.Property<string>("SourcesSummary")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("sources_summary");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int?>("WinnerCorner")
+                        .HasColumnType("integer")
+                        .HasColumnName("winner_corner");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_fight_result_proposals_event_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_fight_result_proposals_status");
+
+                    b.ToTable("fight_result_proposals", "events_markets");
+                });
+
             modelBuilder.Entity("Zenbet.EventsMarkets.Domain.Aggregates.FightingEvent", b =>
                 {
                     b.Property<Guid>("Id")

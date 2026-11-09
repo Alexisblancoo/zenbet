@@ -27,6 +27,7 @@ public sealed class EventsMarketsDbContext : DbContext
     public DbSet<InboxMessage> InboxMessages { get; set; } = null!;
     public DbSet<DeadLetterEntry> DeadLetters { get; set; } = null!;
     public DbSet<UfcSeedState> UfcSeedStates { get; set; } = null!;
+    public DbSet<FightResultProposal> FightResultProposals { get; set; } = null!;
     public DbSet<FootballLeague> FootballLeagues { get; set; } = null!;
     public DbSet<FootballTeam> FootballTeams { get; set; } = null!;
     public DbSet<FootballMatch> FootballMatches { get; set; } = null!;
@@ -57,6 +58,7 @@ public sealed class EventsMarketsDbContext : DbContext
         modelBuilder.ApplyConfiguration(new InboxMessageConfiguration());
         modelBuilder.ApplyConfiguration(new DeadLetterConfiguration());
         modelBuilder.ApplyConfiguration(new UfcSeedStateConfiguration());
+        modelBuilder.ApplyConfiguration(new FightResultProposalConfiguration());
         modelBuilder.ApplyConfiguration(new FootballLeagueConfiguration());
         modelBuilder.ApplyConfiguration(new FootballTeamConfiguration());
         modelBuilder.ApplyConfiguration(new FootballMatchConfiguration());
