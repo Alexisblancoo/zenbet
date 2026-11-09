@@ -40,6 +40,8 @@ TestResults/
 
 # Local verification artifacts (Playwright captures, reports)
 artifacts/
+test-results/
+playwright-report/
 
 # Package cache
 *.nupkg
