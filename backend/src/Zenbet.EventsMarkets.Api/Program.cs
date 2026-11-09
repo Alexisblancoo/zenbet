@@ -96,15 +96,20 @@ builder.Services.AddRateLimiter(options =>
             }));
 
     // Login/registro: frena fuerza bruta y relleno de credenciales por IP real del
-    // cliente (requiere ForwardedHeaders detrás de nginx). 10 intentos/minuto por IP.
+    // cliente (requiere ForwardedHeaders detrás de nginx). Por defecto 10 intentos/minuto por IP;
+    // configurable (RateLimiting:Auth:PermitLimit / WindowSeconds) para pruebas de carga que deben
+    // sembrar cientos de usuarios desde una sola máquina. NO subirlo en producción.
     // El bloqueo por cuenta necesita columnas nuevas: ver ADR de auth.
+    var authPermitLimit = Math.Max(1, builder.Configuration.GetValue<int?>("RateLimiting:Auth:PermitLimit") ?? 10);
+    var authWindow = TimeSpan.FromSeconds(
+        Math.Max(1, builder.Configuration.GetValue<int?>("RateLimiting:Auth:WindowSeconds") ?? 60));
     options.AddPolicy("AuthPolicy", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 10,
-                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = authPermitLimit,
+                Window = authWindow,
                 QueueLimit = 0
             }));
 
@@ -348,6 +353,7 @@ app.MapHub<WalletHub>("/wallet-hub").RequireCors("DevelopmentCors").DisableRateL
 // envolverlos con otro MapGroup: eso duplicaba /api/v1/bets en la ruta real.
 app.MapAuthEndpoints();
 app.MapBetsEndpoints();
+app.MapAdminMarketsEndpoints();
 app.MapWalletEndpoints();
 app.MapEventsEndpoints();
 app.MapPromotionsEndpoints();

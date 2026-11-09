@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using Zenbet.EventsMarkets.Domain.Exceptions;
 
 namespace Zenbet.EventsMarkets.Api.ExceptionHandling;
@@ -53,6 +54,14 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
 
         problemDetails.Extensions["traceId"] = httpContext.TraceIdentifier;
 
+        if (statusCode == StatusCodes.Status503ServiceUnavailable)
+        {
+            // Saturación transitoria: nada se registró y reintentar con la MISMA clave de idempotencia es seguro.
+            var retryAfter = exception is ServiceBusyException busy ? busy.RetryAfterSeconds : 1;
+            httpContext.Response.Headers.RetryAfter = retryAfter.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            problemDetails.Extensions["code"] = "SERVICE_BUSY";
+        }
+
         httpContext.Response.StatusCode = statusCode;
         httpContext.Response.ContentType = "application/problem+json";
 
@@ -60,10 +69,50 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         return true;
     }
 
+    /// <summary>
+    /// Contención transitoria de PostgreSQL: lock no obtenido a tiempo (55P03), consulta cancelada (57014) o
+    /// comando expirado. No son errores del servidor en sentido estricto: el cliente debe reintentar.
+    /// </summary>
+    internal static bool IsTransientDatabaseContention(Exception exception)
+    {
+        for (var current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is PostgresException { SqlState: "55P03" or "57014" })
+            {
+                return true;
+            }
+
+            if (current is NpgsqlException { InnerException: TimeoutException })
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static (int StatusCode, string Title, string Detail, string Type) MapException(Exception exception)
     {
+        if (IsTransientDatabaseContention(exception))
+        {
+            return (StatusCodes.Status503ServiceUnavailable,
+                "Servicio ocupado",
+                "El sistema está ocupado. Tu operación no se registró; inténtalo de nuevo con la misma clave.",
+                "https://tools.ietf.org/html/rfc9110#section-15.6.4");
+        }
+
         return exception switch
         {
+            ServiceBusyException ex => (StatusCodes.Status503ServiceUnavailable,
+                "Servicio ocupado",
+                ex.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.6.4"),
+
+            InvalidPricingException ex => (StatusCodes.Status422UnprocessableEntity,
+                "Cotización inválida",
+                ex.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.5.22"),
+
             IdempotencyConflictException ex => (StatusCodes.Status409Conflict,
                 "Idempotency-Key conflict",
                 ex.Message,
