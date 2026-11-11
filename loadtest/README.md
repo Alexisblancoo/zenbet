@@ -77,6 +77,9 @@ mejora de latencia.
 
 ## Limitaciones conocidas
 
+- **Host compartido:** k6, el API y PostgreSQL corren en la misma máquina. El cliente de carga
+  compite por CPU/RAM con el servidor, así que las cifras comparan escenarios entre sí; no son
+  capacidad ni techo de throughput.
 - Se mide **Kestrel directo** (`:15005`), no la ruta con nginx. Los números no incluyen proxy
   ni TLS.
 - `cashout` es una ráfaga de 200 peticiones concurrentes: el `req/s` de k6 refleja la duración
