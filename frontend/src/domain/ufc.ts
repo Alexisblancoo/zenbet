@@ -343,7 +343,7 @@ export function isEventHeroEligible(event: UfcEvent, nowMs = Date.now()): boolea
   return (
     !event.isExpired &&
     !isTerminalEventStatus(event.status) &&
-    !hasReached(event.endsAt, nowMs)
+    !isLocallyExpired(event.status, event.endsAt, nowMs)
   );
 }
 
@@ -362,6 +362,19 @@ export function estimateFightEnd(startTime: string, scheduledRounds: number): st
 function hasReached(value: string, nowMs = Date.now()): boolean {
   const timestamp = new Date(value).getTime();
   return !Number.isNaN(timestamp) && timestamp <= nowMs;
+}
+
+/**
+ * Cierre por reloj local.
+ *
+ * Una pelea `live`/`suspended` puede superar su `endsAt` estimado (prórroga,
+ * decisión larga, retraso del operador). Mientras siga en curso, solo el
+ * servidor puede cerrarla: `isExpired`, un estado terminal o el resultado
+ * oficial. El reloj del navegador únicamente expira combates que ya no están
+ * en curso, es decir, la red de seguridad para estados programados sin update.
+ */
+function isLocallyExpired(status: string, endsAt: string, nowMs: number): boolean {
+  return !LIVE_EVENT_STATUSES.has(status.toLowerCase()) && hasReached(endsAt, nowMs);
 }
 
 function normalizeFightResult(value: unknown): UfcFightResult | null {
@@ -427,7 +440,7 @@ export function normalizeFightUpdate(payload: unknown): UfcFightUpdate | null {
 
   const isExpired =
     isTerminalEventStatus(status) ||
-    (readOptionalBoolean(raw.isExpired) ?? hasReached(endsAt));
+    (readOptionalBoolean(raw.isExpired) ?? isLocallyExpired(status, endsAt, Date.now()));
   const isBettingOpen =
     !isExpired &&
     status.toLowerCase() !== 'suspended' &&
@@ -473,18 +486,22 @@ export function applyFightUpdate(
   clock: UfcFightClock | null | undefined,
   nowMs = Date.now(),
 ): UfcEvent {
-  // Sin mensaje de SignalR todavía puede existir un cierre local por `endsAt`.
-  if (!update && !clock && !hasReached(event.endsAt, nowMs)) return event;
+  // Sin mensaje de SignalR todavía puede existir un cierre local por `endsAt`,
+  // pero solo para combates que ya no están en curso (ver `isLocallyExpired`).
+  if (!update && !clock && !isLocallyExpired(event.status, event.endsAt, nowMs)) {
+    return event;
+  }
 
   const nextStatus = update?.status ?? clock?.status ?? event.status;
   const nextEndsAt = update?.endsAt ?? clock?.endsAt ?? event.endsAt;
   // Un evento finalizado no vuelve a abrirse por un mensaje atrasado. El reloj
-  // local solo actúa como red de seguridad cuando el backend ya fijó `endsAt`.
+  // local solo actúa como red de seguridad cuando el backend ya fijó `endsAt`
+  // y el combate no está en curso.
   const nextExpired =
     event.isExpired ||
     isTerminalEventStatus(nextStatus) ||
     (update?.isExpired ?? false) ||
-    hasReached(nextEndsAt, nowMs);
+    isLocallyExpired(nextStatus, nextEndsAt, nowMs);
   const nextOpen =
     !nextExpired &&
     nextStatus.toLowerCase() !== 'suspended' &&
@@ -517,7 +534,8 @@ export function applyFightUpdates(
   const next = events.map((event) => {
     const update = updates[event.id];
     const clock = clocks[event.id];
-    const reachedEnd = !event.isExpired && hasReached(event.endsAt, nowMs);
+    const reachedEnd =
+      !event.isExpired && isLocallyExpired(event.status, event.endsAt, nowMs);
     if (!update && !clock && !reachedEnd) return event;
 
     changed = true;
@@ -762,7 +780,7 @@ function normalizeEvent(value: unknown): UfcEvent | null {
   const endsAt = readString(raw.endsAt) ?? estimateFightEnd(startTime, bout.scheduledRounds);
   const isExpired =
     isTerminalEventStatus(status) ||
-    (readOptionalBoolean(raw.isExpired) ?? hasReached(endsAt));
+    (readOptionalBoolean(raw.isExpired) ?? isLocallyExpired(status, endsAt, Date.now()));
   const isBettingOpen =
     !isExpired &&
     status.toLowerCase() !== 'suspended' &&
