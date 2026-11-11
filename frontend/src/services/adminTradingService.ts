@@ -6,7 +6,7 @@
  * inventa: cualquier rechazo se propaga con su RFC 7807.
  */
 
-import { apiClient, createUuidV4 } from '@/api';
+import { apiClient, createUuidV4, IDEMPOTENCY_HEADER } from '@/api';
 
 export const ADMIN_MARKETS_ENDPOINT = '/admin/markets';
 
@@ -39,14 +39,52 @@ export function adminPricingPath(marketId: string): string {
   return `${ADMIN_MARKETS_ENDPOINT}/${marketId}/pricing`;
 }
 
+/** Intento de envío: la clave se conserva mientras el formulario no cambie. */
+export interface PriceMarketAttempt {
+  readonly signature: string;
+  readonly idempotencyKey: string;
+}
+
+/** Huella determinista del envío (mercado + contenido de la cotización). */
+export function priceMarketSignature(
+  marketId: string,
+  request: PriceMarketRequest,
+): string {
+  return JSON.stringify([
+    marketId,
+    request.marginPercent,
+    request.selections.map((s) => [s.selectionId, s.fairProbability]),
+    request.note ?? null,
+  ]);
+}
+
+/**
+ * Reutiliza la clave si la huella coincide con el intento previo (reintento del
+ * mismo envío); si el formulario o el mercado cambiaron, genera una nueva.
+ */
+export function beginPriceMarketAttempt(
+  previous: PriceMarketAttempt | null,
+  signature: string,
+): PriceMarketAttempt {
+  if (previous !== null && previous.signature === signature) {
+    return previous;
+  }
+  return { signature, idempotencyKey: createUuidV4() };
+}
+
 export async function priceMarket(
   marketId: string,
   request: PriceMarketRequest,
+  idempotencyKey: string = createUuidV4(),
 ): Promise<PriceMarketResponse> {
-  return apiClient.post<PriceMarketResponse, unknown>(adminPricingPath(marketId), {
-    marginPercent: request.marginPercent,
-    selections: request.selections,
-    note: request.note ?? null,
-    idempotencyKey: createUuidV4(),
-  });
+  return apiClient.post<PriceMarketResponse, unknown>(
+    adminPricingPath(marketId),
+    {
+      marginPercent: request.marginPercent,
+      selections: request.selections,
+      note: request.note ?? null,
+      idempotencyKey,
+    },
+    { headers: { [IDEMPOTENCY_HEADER]: idempotencyKey } },
+  );
 }
