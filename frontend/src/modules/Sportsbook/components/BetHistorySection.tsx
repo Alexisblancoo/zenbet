@@ -78,8 +78,10 @@ function BetHistorySection({
   }, [activeTab, activeBets, settledBets, bets]);
 
   // Disparar toast flotante
+  const toastSeqRef = useRef(0);
   const pushToast = useCallback((toast: Omit<ToastNotification, 'id'>) => {
-    const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    toastSeqRef.current += 1;
+    const id = `toast-${Date.now()}-${toastSeqRef.current}`;
     const item: ToastNotification = { ...toast, id };
     setToasts((prev) => [item, ...prev].slice(0, 3));
 

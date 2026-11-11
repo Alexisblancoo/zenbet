@@ -581,6 +581,28 @@ export function parseFighterRecord(value: string | null | undefined): FighterRec
   };
 }
 
+export function formatFighterRecord(
+  rawRecord: string | null | undefined,
+  wins = 0,
+  losses = 0,
+  draws = 0,
+): string {
+  const trimmed = rawRecord?.trim() ?? '';
+  const upper = trimmed.toUpperCase();
+  if (
+    !trimmed ||
+    upper === 'N/D' ||
+    upper === 'N/A' ||
+    trimmed === '—' ||
+    trimmed === '-' ||
+    trimmed === '0-0-0' ||
+    trimmed === '0-0'
+  ) {
+    return wins + losses + draws > 0 ? `${wins}-${losses}-${draws}` : '—';
+  }
+  return trimmed;
+}
+
 const STANCE_LABELS: Readonly<Record<string, string>> = {
   orthodox: 'Ortodoxa',
   southpaw: 'Zurda',
@@ -605,8 +627,12 @@ function normalizeFighter(value: unknown): UfcFighter | null {
     readString(raw.weightDivision) ??
     'catchweight';
 
-  const record = readString(raw.record) ?? '—';
-  const recordBreakdown = parseFighterRecord(record);
+  const rawRecord = readString(raw.record);
+  const recordBreakdown = parseFighterRecord(rawRecord);
+  const wins = readNumber(raw.wins) ?? recordBreakdown.wins;
+  const losses = readNumber(raw.losses) ?? recordBreakdown.losses;
+  const draws = readNumber(raw.draws) ?? recordBreakdown.draws;
+  const record = formatFighterRecord(rawRecord, wins, losses, draws);
 
   return {
     id,
@@ -619,9 +645,9 @@ function normalizeFighter(value: unknown): UfcFighter | null {
     division,
     divisionLabel: readString(raw.divisionLabel) ?? division,
     imageUrl: readString(raw.imageUrl),
-    wins: readNumber(raw.wins) ?? recordBreakdown.wins,
-    losses: readNumber(raw.losses) ?? recordBreakdown.losses,
-    draws: readNumber(raw.draws) ?? recordBreakdown.draws,
+    wins,
+    losses,
+    draws,
     winRate: readNumber(raw.winRate) ?? recordBreakdown.winRate,
     reachInches: readNumber(raw.reachInches),
     stance: readString(raw.stance),
@@ -893,6 +919,7 @@ export function buildUfcCards(events: readonly UfcEvent[]): readonly UfcCard[] {
   const groups = new Map<string, UfcEvent[]>();
 
   for (const event of events) {
+    if (!isPubliclyListable(event)) continue;
     const key = cardKeyForEvent(event);
     const group = groups.get(key);
     if (group) group.push(event);

@@ -8,6 +8,7 @@ import {
   findMarket,
   findSelectionByCode,
   formatAmericanOdds,
+  formatFighterRecord,
   isReferenceLine,
   isTerminalEventStatus,
   REFERENCE_LINE_NOTICE,
@@ -230,7 +231,7 @@ function FightCard({
                     {shortFighterName(bout.red.name)}
                   </span>
                   <span className='block truncate font-mono text-[7px] text-metallic-slate'>
-                    {bout.red.record}
+                    {formatFighterRecord(bout.red.record, bout.red.wins, bout.red.losses, bout.red.draws)}
                   </span>
                 </div>
               </div>
@@ -279,7 +280,7 @@ function FightCard({
                     {shortFighterName(bout.blue.name)}
                   </span>
                   <span className='block truncate font-mono text-[7px] text-metallic-slate'>
-                    {bout.blue.record}
+                    {formatFighterRecord(bout.blue.record, bout.blue.wins, bout.blue.losses, bout.blue.draws)}
                   </span>
                 </div>
               </div>
@@ -304,6 +305,12 @@ function FightCard({
               </div>
             </button>
           </div>
+        </div>
+      )}
+
+      {!isFinished && (!moneyline || !redMoneyline || !blueMoneyline) && (
+        <div className='border-t border-white/[0.06] bg-[#0A0A0A] px-3 py-2.5 text-center font-mono text-[10px] font-bold uppercase tracking-wider text-metallic-slate'>
+          Cuotas próximamente
         </div>
       )}
 

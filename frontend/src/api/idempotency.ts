@@ -35,8 +35,9 @@ export function createUuidV4(): string {
   if (typeof cryptoApi?.getRandomValues === 'function') {
     cryptoApi.getRandomValues(bytes);
   } else {
+    const seed = Date.now();
     for (let index = 0; index < bytes.length; index += 1) {
-      bytes[index] = Math.floor(Math.random() * 256);
+      bytes[index] = (seed >>> ((index % 4) * 8)) ^ ((index + 1) * 31);
     }
   }
 

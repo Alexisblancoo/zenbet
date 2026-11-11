@@ -17,7 +17,6 @@ import {
   type CashOutResponseDto,
   type WalletBet,
   type WalletBetStatus,
-  type WalletBetType,
   type WalletSnapshot,
   type WalletTransaction,
   type WalletTransactionStatus,
@@ -203,7 +202,7 @@ function textOrEmpty(value: unknown): string {
   return typeof value === 'string' ? value : '';
 }
 
-function mapBet(wire: WalletBetWire): WalletBet {
+export function mapBet(wire: WalletBetWire): WalletBet {
   const id = requireString(wire.id ?? wire.transactionId, 'bet.id');
   const status = BET_STATUS_MAP[requireString(wire.status, 'bet.status').toLowerCase()];
   if (!status) throw new WalletContractError(`bet.status=${String(wire.status)}`);
@@ -212,19 +211,15 @@ function mapBet(wire: WalletBetWire): WalletBet {
   const odds = requireNumber(wire.odds, 'bet.odds');
   const potentialPayout = roundMoney(requireNumber(wire.potentialPayout, 'bet.potentialPayout'));
 
-  const cashOutAvailable =
-    typeof wire.cashOutAvailable === 'boolean'
-      ? wire.cashOutAvailable
-      : status === 'pending';
-
-  const defaultCashOut = status === 'pending'
-    ? roundMoney(stake * (odds > 1 ? 0.88 : 1.0))
-    : 0;
+  const cashOutAvailable = wire.cashOutAvailable === true;
 
   const currentCashOutValue =
-    typeof wire.currentCashOutValue === 'number' && Number.isFinite(wire.currentCashOutValue)
+    cashOutAvailable &&
+    typeof wire.currentCashOutValue === 'number' &&
+    Number.isFinite(wire.currentCashOutValue) &&
+    wire.currentCashOutValue > 0
       ? roundMoney(wire.currentCashOutValue)
-      : defaultCashOut;
+      : 0;
 
   const betCandidate: WalletBet = {
     id,
