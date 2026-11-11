@@ -1,15 +1,10 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import axios from 'axios';
 import { z } from 'zod';
 import { http } from '@/api/client';
 import {
   UniversalMatchAnalysisSchema,
   type UniversalMatchAnalysis,
   type SportType,
-  MOCK_SOCCER_ANALYSIS,
-  MOCK_BASKETBALL_ANALYSIS,
-  MOCK_TENNIS_ANALYSIS,
-  MOCK_BOXING_ANALYSIS,
 } from '@/modules/Sportsbook/components/UniversalAnalysisCard';
 
 /* ==========================================================================
@@ -30,42 +25,22 @@ export class ZodContractViolationError extends Error {
 }
 
 /* ==========================================================================
-   2. REPOSITORIO DE DATOS FALLBACK / DEMO
-   ========================================================================== */
-
-const FALLBACK_SPORT_DATA: Record<SportType, UniversalMatchAnalysis> = {
-  soccer: MOCK_SOCCER_ANALYSIS,
-  basketball: MOCK_BASKETBALL_ANALYSIS,
-  tennis: MOCK_TENNIS_ANALYSIS,
-  boxing: MOCK_BOXING_ANALYSIS,
-};
-
-/* ==========================================================================
-   3. DATA FETCHING CON PARSEO ESTRICTO DE AXIOS + ZOD
+   2. DATA FETCHING CON PARSEO ESTRICTO DE AXIOS + ZOD
    ========================================================================== */
 
 /**
  * Consulta la telemetría y análisis predictivo del deporte mediante Axios,
  * aplicando safeParse estricto de Zod antes de entregar la información al estado.
+ *
+ * Si la API no tiene el endpoint (404) o no responde, la consulta falla: no se
+ * sustituye por fixtures. Un análisis inventado nunca debe llegar a la UI.
  */
 export async function fetchSportEventsAnalysis(
   sportType: SportType,
 ): Promise<UniversalMatchAnalysis> {
-  let rawData: unknown;
-
-  try {
-    // Intento de conexión al backend de ZenBet (.NET 10 API)
-    const response = await http.get(`/sportsbook/events/${sportType}`);
-    rawData = response.data;
-  } catch (error) {
-    // En entornos de prueba, fallback o si el endpoint aún no está expuesto en backend
-    if (axios.isAxiosError(error) && (!error.response || error.response.status === 404)) {
-      rawData = FALLBACK_SPORT_DATA[sportType];
-    } else {
-      // Si la API respondió un error 500/401/403 real, se propaga
-      throw error;
-    }
-  }
+  // Cualquier error de red o HTTP se propaga a React Query.
+  const response = await http.get(`/sportsbook/events/${sportType}`);
+  const rawData: unknown = response.data;
 
   // REGLA DE ORO: safeParse estricto antes de entregar al frontend
   const parseResult = UniversalMatchAnalysisSchema.safeParse(rawData);
@@ -86,7 +61,7 @@ export async function fetchSportEventsAnalysis(
 }
 
 /* ==========================================================================
-   4. HOOK TANSTACK QUERY: useGetEvents
+   3. HOOK TANSTACK QUERY: useGetEvents
    ========================================================================== */
 
 export interface UseGetEventsOptions {
@@ -97,7 +72,7 @@ export interface UseGetEventsOptions {
 
 /**
  * Hook `useGetEvents`: Carga y sincroniza la telemetría deportiva mediante React Query v5.
- * Reemplaza directamente los mocks estáticos de UniversalAnalysisCard.
+ * Sin respuesta válida del backend la consulta queda en error; nunca sirve fixtures.
  *
  * @param sportType - Deporte activo ('soccer' | 'basketball' | 'tennis' | 'boxing')
  * @param options - Opciones de configuración de TanStack Query

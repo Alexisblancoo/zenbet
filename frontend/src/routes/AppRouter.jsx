@@ -13,7 +13,7 @@ const LoginPage = lazy(() => import('@/modules/Auth/LoginPage'));
 const WalletPage = lazy(() => import('@/pages/WalletPage'));
 const MyBetsPage = lazy(() => import('@/pages/MyBetsPage'));
 const ProfilePage = lazy(() => import('@/pages/ProfilePage'));
-const AdminBackoffice = lazy(() => import('@/modules/Admin/AdminBackoffice'));
+const AdminTradingPage = lazy(() => import('@/modules/Admin/AdminTradingPage'));
 
 export default function AppRouter() {
   return (
@@ -54,7 +54,7 @@ export default function AppRouter() {
           path='admin'
           element={
             <ProtectedRoute allowedRoles={['admin', 'Admin']}>
-              <AdminBackoffice />
+              <AdminTradingPage />
             </ProtectedRoute>
           }
         />

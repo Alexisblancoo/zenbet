@@ -309,6 +309,32 @@ export function isTerminalEventStatus(status: string): boolean {
 }
 
 /**
+ * Visibilidad pública de un combate.
+ *
+ * Un combate vencido sin resultado oficial es un hueco de datos, no historial:
+ * publicarlo obligaría a etiquetarlo como "Finalizado" sin ganador ni método,
+ * que es información inventada. Se oculta del listado público hasta que
+ * operaciones registre el resultado (o llegue por SignalR).
+ */
+export function isPubliclyListable(
+  event: Pick<UfcEvent, 'isExpired' | 'result'>,
+): boolean {
+  return !event.isExpired || event.result !== null;
+}
+
+/** Etiqueta visible para una cuota que todavía no puede apostarse. */
+export const REFERENCE_LINE_NOTICE = 'Cuota en revisión';
+
+/**
+ * Una línea "de referencia" (procedencia `model`) se publica como contexto,
+ * pero no es ejecutable: el servidor la rechaza con `REFERENCE_LINE_NOT_BETTABLE`.
+ * La UI debe deshabilitarla antes de que el jugador llegue a confirmar.
+ */
+export function isReferenceLine(market: UfcMarket | null | undefined): boolean {
+  return market?.source?.kind === 'model';
+}
+
+/**
  * Elegibilidad estricta para el Hero: el combate debe seguir vivo y su
  * ventana estimada no puede haber vencido. `isExpired` es la fuente principal;
  * `endsAt` actúa como red de seguridad local.

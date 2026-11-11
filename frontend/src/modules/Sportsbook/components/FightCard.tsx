@@ -8,7 +8,9 @@ import {
   findMarket,
   findSelectionByCode,
   formatAmericanOdds,
+  isReferenceLine,
   isTerminalEventStatus,
+  REFERENCE_LINE_NOTICE,
   shortFighterName,
   type UfcEvent,
   type UfcMarket,
@@ -78,6 +80,8 @@ function FightCard({
   const moneyline = useMemo(() => findMarket(event, 'moneyline'), [event]);
   const redMoneyline = useMemo(() => findSelectionByCode(moneyline, 'red'), [moneyline]);
   const blueMoneyline = useMemo(() => findSelectionByCode(moneyline, 'blue'), [moneyline]);
+  const referenceLine = isReferenceLine(moneyline);
+  const moneylineDisabled = isClosed || referenceLine;
 
   const extraSelectionsCount = useMemo(() => {
     return event.markets
@@ -86,7 +90,7 @@ function FightCard({
   }, [event]);
 
   const handleToggle = (market: UfcMarket, selection: UfcSelection) => {
-    if (isClosed) return;
+    if (isClosed || isReferenceLine(market)) return;
 
     if (selectedIds.includes(selection.id)) {
       onRemoveSelection(selection.id);
@@ -206,10 +210,11 @@ function FightCard({
             <button
               type='button'
               onClick={() => handleToggle(moneyline, redMoneyline)}
-              disabled={isClosed}
+              disabled={moneylineDisabled}
               aria-pressed={isRedSelected}
+              title={referenceLine ? REFERENCE_LINE_NOTICE : undefined}
               className={`flex items-center justify-between border p-2 text-left transition-all duration-150 ${
-                isClosed
+                moneylineDisabled
                   ? 'cursor-not-allowed border-white/[0.05] bg-[#050505] opacity-50'
                   : isRedSelected
                     ? 'border-lime-400 bg-lime-400/[0.09] shadow-[0_0_16px_-6px_rgba(212,255,63,0.7)]'
@@ -232,13 +237,21 @@ function FightCard({
 
               <div className='flex shrink-0 items-baseline gap-1'>
                 {isRedSelected && <Check size={11} strokeWidth={3} className='text-lime-400' />}
-                <span className='font-mono text-[7px] font-bold text-metallic-slate/35'>КОЭФ</span>
-                <span className={`font-odds text-sm font-bold tabular-nums ${isRedSelected ? 'text-lime-400' : 'text-white'}`}>
-                  {redOdds !== null ? formatDecimalOdds(redOdds) : '—'}
-                </span>
-                <span className='hidden font-mono text-[7px] text-metallic-slate/60 sm:inline'>
-                  {redOdds !== null ? formatAmericanOdds(redOdds) : ''}
-                </span>
+                {referenceLine ? (
+                  <span className='font-mono text-[8px] font-bold uppercase tracking-wide text-amber-300'>
+                    {REFERENCE_LINE_NOTICE}
+                  </span>
+                ) : (
+                  <>
+                    <span className='font-mono text-[7px] font-bold text-metallic-slate/35'>КОЭФ</span>
+                    <span className={`font-odds text-sm font-bold tabular-nums ${isRedSelected ? 'text-lime-400' : 'text-white'}`}>
+                      {redOdds !== null ? formatDecimalOdds(redOdds) : '—'}
+                    </span>
+                    <span className='hidden font-mono text-[7px] text-metallic-slate/60 sm:inline'>
+                      {redOdds !== null ? formatAmericanOdds(redOdds) : ''}
+                    </span>
+                  </>
+                )}
               </div>
             </button>
 
@@ -246,10 +259,11 @@ function FightCard({
             <button
               type='button'
               onClick={() => handleToggle(moneyline, blueMoneyline)}
-              disabled={isClosed}
+              disabled={moneylineDisabled}
               aria-pressed={isBlueSelected}
+              title={referenceLine ? REFERENCE_LINE_NOTICE : undefined}
               className={`flex items-center justify-between border p-2 text-left transition-all duration-150 ${
-                isClosed
+                moneylineDisabled
                   ? 'cursor-not-allowed border-white/[0.05] bg-[#050505] opacity-50'
                   : isBlueSelected
                     ? 'border-lime-400 bg-lime-400/[0.09] shadow-[0_0_16px_-6px_rgba(212,255,63,0.7)]'
@@ -272,13 +286,21 @@ function FightCard({
 
               <div className='flex shrink-0 items-baseline gap-1'>
                 {isBlueSelected && <Check size={11} strokeWidth={3} className='text-lime-400' />}
-                <span className='font-mono text-[7px] font-bold text-metallic-slate/35'>КОЭФ</span>
-                <span className={`font-odds text-sm font-bold tabular-nums ${isBlueSelected ? 'text-lime-400' : 'text-white'}`}>
-                  {blueOdds !== null ? formatDecimalOdds(blueOdds) : '—'}
-                </span>
-                <span className='hidden font-mono text-[7px] text-metallic-slate/60 sm:inline'>
-                  {blueOdds !== null ? formatAmericanOdds(blueOdds) : ''}
-                </span>
+                {referenceLine ? (
+                  <span className='font-mono text-[8px] font-bold uppercase tracking-wide text-amber-300'>
+                    {REFERENCE_LINE_NOTICE}
+                  </span>
+                ) : (
+                  <>
+                    <span className='font-mono text-[7px] font-bold text-metallic-slate/35'>КОЭФ</span>
+                    <span className={`font-odds text-sm font-bold tabular-nums ${isBlueSelected ? 'text-lime-400' : 'text-white'}`}>
+                      {blueOdds !== null ? formatDecimalOdds(blueOdds) : '—'}
+                    </span>
+                    <span className='hidden font-mono text-[7px] text-metallic-slate/60 sm:inline'>
+                      {blueOdds !== null ? formatAmericanOdds(blueOdds) : ''}
+                    </span>
+                  </>
+                )}
               </div>
             </button>
           </div>

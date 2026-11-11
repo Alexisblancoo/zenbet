@@ -11,5 +11,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  test: {
+    // Los E2E de Playwright viven en `e2e/` y se ejecutan con `npm run test:e2e`.
+    include: ['src/**/*.test.{ts,tsx}'],
+  },
 })
 
