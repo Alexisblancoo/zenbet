@@ -1,0 +1,39 @@
+# Aisla el stack de benchmark del stack de desarrollo/QA del host.
+# Uso:
+#   docker compose -p zenbet-t1 -f docker-compose.yml -f loadtest/compose.bench.yml \
+#     --profile full up -d --build
+#
+# No toca los contenedores ni el volumen `zenbet_postgres_data` del entorno normal.
+services:
+  postgres:
+    container_name: zenbet-t1-postgres
+    ports: !override
+      - "55432:5432"
+
+  backend:
+    container_name: zenbet-t1-backend
+    ports: !override
+      - "15005:5000"
+    environment:
+      # Datos DEMO deterministas solo para el benchmark. No usar en producción.
+      Seeding__Ufc__Enabled: "true"
+      Seeding__Football__Enabled: "false"
+      Betting__AllowReferenceLines: "true"
+      # La siembra de 200 usuarios se hace a <= 4 req/s; este límite alto solo
+      # aplica a /api/auth/* durante la preparación. Los escenarios de carga no
+      # llaman a /api/auth/*.
+      RateLimiting__Auth__PermitLimit: "${T1_AUTH_PERMIT_LIMIT:-300}"
+      RateLimiting__Auth__WindowSeconds: "60"
+
+  frontend:
+    container_name: zenbet-t1-frontend
+    ports: !override
+      - "18080:80"
+
+volumes:
+  postgres_data:
+    name: zenbet_t1_postgres_data
+
+networks:
+  zenbet-network:
+    name: zenbet-t1-network
