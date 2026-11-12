@@ -132,6 +132,10 @@ describe('Contratos reales de Backend — Nada Simulado', () => {
       status: 422,
       message: 'Cuotas próximamente',
     });
+    expect(describeBetError(new ProblemDetailsException({ status: 422, code: 'REFERENCE_LINE_NOT_BETTABLE' }))).toMatchObject({
+      code: 'REFERENCE_LINE',
+      status: 422,
+    });
   });
 
   it('(T3/T4/T5) auth base URL sin /v1, sin fallbacks mock y cartelera limpia', async () => {

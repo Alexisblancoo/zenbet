@@ -97,6 +97,10 @@ const FAILURE_COPY: Readonly<Record<BetFailureCode, { title: string; message: st
     title: 'Límite por apuesta excedido',
     message: 'El monto ingresado supera el límite máximo permitido por apuesta para tu cuenta.',
   },
+  SERVICE_BUSY: {
+    title: 'Mucha demanda',
+    message: 'Mucha demanda, reintenta en 1 s',
+  },
   EVENT_CLOSED: {
     title: 'Combate finalizado',
     message: 'Este combate ya no acepta apuestas. Elimina la selección para continuar.',
@@ -105,10 +109,6 @@ const FAILURE_COPY: Readonly<Record<BetFailureCode, { title: string; message: st
     title: 'Cuota en revisión',
     message:
       'Esta cuota es una línea de referencia del modelo y todavía no admite apuestas. Elige un mercado cotizado por el operador.',
-  },
-  SERVICE_BUSY: {
-    title: 'Mucha demanda',
-    message: 'Mucha demanda, reintenta en 1 s',
   },
   INVALID_STAKE: {
     title: 'Monto inválido',
@@ -280,6 +280,15 @@ function fromProblemDetails(problem: ProblemDetailsException): BetFailure {
   const status = problem.status;
   const code = problem.code ?? (problem.extensions?.code as string | undefined);
 
+  if (code === 'REFERENCE_LINE_NOT_BETTABLE') {
+    return createBetFailure('REFERENCE_LINE', {
+      status,
+      title: FAILURE_COPY.REFERENCE_LINE.title,
+      message: FAILURE_COPY.REFERENCE_LINE.message,
+      ...(fieldErrors.length > 0 ? { fieldErrors } : {}),
+    });
+  }
+
   if (status === 503 || code === 'SERVICE_BUSY') {
     const retrySeconds =
       problem.retryAfterSeconds && problem.retryAfterSeconds > 0
@@ -338,17 +347,6 @@ function fromProblemDetails(problem: ProblemDetailsException): BetFailure {
   }
 
   // Intercepción específica de cuota cambiada (Slippage exceeded) RFC 7807
-  // El servidor rechaza apuestas sobre líneas de referencia antes de abrir
-  // transacción. Se mapea primero: su `detail` también habla de "cuota".
-  if (code === 'REFERENCE_LINE_NOT_BETTABLE') {
-    return createBetFailure('REFERENCE_LINE', {
-      status,
-      title: FAILURE_COPY.REFERENCE_LINE.title,
-      message: problem.detail ?? FAILURE_COPY.REFERENCE_LINE.message,
-      ...(fieldErrors.length > 0 ? { fieldErrors } : {}),
-    });
-  }
-
   if (
     code === 'ODDS_CHANGED' ||
     code === 'SLIPPAGE_EXCEEDED' ||
