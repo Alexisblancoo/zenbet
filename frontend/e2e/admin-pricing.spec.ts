@@ -26,6 +26,12 @@ test.beforeEach(async ({ page }) => {
       body: JSON.stringify(pagePayload),
     }),
   );
+
+  // La consola incluye la cola de depósitos: se mockea para que la prueba de
+  // cotización no dependa de la red ni del estado de tesorería.
+  await page.route('**/api/v1/admin/dep**/pendientes', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+  );
 });
 
 test('cotiza el mercado contra el endpoint real y muestra el margen del servidor', async ({
