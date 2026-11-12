@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, RefreshCw, ShieldAlert, SlidersHorizontal } from 'lucide-react';
 
 import { isProblemDetailsException } from '@/api';
+import AdminDepositsPanel from './AdminDepositsPanel';
 import { isReferenceLine, marketSourceLabel, type UfcEvent, type UfcMarket, type UfcMarketSource } from '@/domain/ufc';
 import {
   impliedProbabilities,
@@ -466,6 +467,8 @@ export default function AdminTradingPage() {
           </ul>
         </section>
       )}
+
+      <AdminDepositsPanel />
     </div>
   );
 }
