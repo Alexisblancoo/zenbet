@@ -53,7 +53,9 @@ export function priceMarketSignature(
   return JSON.stringify([
     marketId,
     request.marginPercent,
-    request.selections.map((s) => [s.selectionId, s.fairProbability]),
+    [...request.selections]
+      .sort((a, b) => (a.selectionId < b.selectionId ? -1 : a.selectionId > b.selectionId ? 1 : 0))
+      .map((s) => [s.selectionId, s.fairProbability]),
     request.note ?? null,
   ]);
 }

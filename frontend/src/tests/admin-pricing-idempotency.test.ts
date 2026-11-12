@@ -128,4 +128,15 @@ describe('priceMarket · idempotencia por envío', () => {
 
     expect(otherMarket.idempotencyKey).not.toBe(firstAttempt.idempotencyKey);
   });
+
+  it('reordenar las selecciones no cambia la clave (el backend ordena antes de hashear)', () => {
+    const reordered: PriceMarketRequest = {
+      ...REQUEST,
+      selections: [...REQUEST.selections].reverse(),
+    };
+
+    expect(priceMarketSignature(MARKET_ID, reordered)).toBe(
+      priceMarketSignature(MARKET_ID, REQUEST),
+    );
+  });
 });
