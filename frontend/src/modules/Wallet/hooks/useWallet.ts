@@ -99,9 +99,10 @@ export const PlaceBetAcceptedResponseSchema = z.object({
 
 export type PlaceBetAcceptedResponse = z.infer<typeof PlaceBetAcceptedResponseSchema>;
 
-const pendingIdempotencyKeys = new Map<string, string>();
-const betSig = (i: PlaceBetInput) => `${i.walletId ?? ''}:${i.selectionId}:${i.stake}`;
-function resolveBetIdempotencyKey(input: PlaceBetInput): string {
+export const pendingIdempotencyKeys = new Map<string, string>();
+export const betSig = (i: PlaceBetInput) =>
+  `${i.walletId ?? ''}:${i.selectionId}:${i.stake}:${i.expectedOdds ?? i.oddsDecimal ?? ''}:${i.maxSlippagePercent ?? ''}:${i.minAcceptedOdds ?? ''}`;
+export function resolveBetIdempotencyKey(input: PlaceBetInput): string {
   const sig = betSig(input);
   const key = input.idempotencyKey?.trim() || pendingIdempotencyKeys.get(sig) || createIdempotencyKey();
   pendingIdempotencyKeys.set(sig, key);
@@ -399,12 +400,18 @@ export function usePlaceBet() {
     setSlippagePrompt(null);
 
     // Reintenta con la nueva cuota y nuevo ticket de transacción
-    mutation.mutate({
-      ...input,
+    const { idempotencyKey: _previousKey, ...baseInput } = input;
+    const retryInput: PlaceBetInput = {
+      ...baseInput,
       oddsDecimal: updatedOdds,
       expectedOdds: updatedOdds,
       minAcceptedOdds: undefined,
-      idempotencyKey: input.idempotencyKey ?? resolveBetIdempotencyKey(input),
+    };
+    const nextIdempotencyKey = resolveBetIdempotencyKey(retryInput);
+
+    mutation.mutate({
+      ...retryInput,
+      idempotencyKey: nextIdempotencyKey,
     });
   }, [slippagePrompt, mutation]);
 
