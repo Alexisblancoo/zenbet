@@ -8,7 +8,7 @@
  *   aparecen como "Esperando resultado" para que operaciones los complete.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, RefreshCw, ShieldAlert, SlidersHorizontal } from 'lucide-react';
 
 import { isProblemDetailsException } from '@/api';
@@ -23,7 +23,10 @@ import {
 } from '@/domain/trading';
 import { listUfcEvents } from '@/services/ufcService';
 import {
+  beginPriceMarketAttempt,
   priceMarket,
+  priceMarketSignature,
+  type PriceMarketAttempt,
   type PriceMarketResponse,
 } from '@/services/adminTradingService';
 import { formatLocalFightDateTime } from '@/utils/localTimezone';
@@ -78,6 +81,7 @@ function MarketPricer({ market, onPriced }: MarketPricerProps) {
   const [margin, setMargin] = useState(DEFAULT_MARGIN_PERCENT);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const attemptRef = useRef<PriceMarketAttempt | null>(null);
 
   const preview = useMemo((): { data: MarketPricingPreview | null; error: string | null } => {
     try {
@@ -121,14 +125,20 @@ function MarketPricer({ market, onPriced }: MarketPricerProps) {
     setSubmitting(true);
     setFeedback(null);
     try {
-      const result = await priceMarket(market.id, {
+      const request = {
         marginPercent: margin,
         selections: preview.data.selections.map((selection) => ({
           selectionId: selection.selectionId,
           fairProbability: selection.fairProbability,
         })),
         note: `Cotizado desde la consola de trading · margen solicitado ${margin}%`,
-      });
+      };
+      const attempt = beginPriceMarketAttempt(
+        attemptRef.current,
+        priceMarketSignature(market.id, request),
+      );
+      attemptRef.current = attempt;
+      const result = await priceMarket(market.id, request, attempt.idempotencyKey);
       // El éxito se anuncia en la página: `onPriced` recarga la cartelera y este
       // componente se desmonta, así que un mensaje local se perdería.
       onPriced(result);
