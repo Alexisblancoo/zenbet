@@ -440,6 +440,48 @@ function buildDescription(selection: BetSelection): string {
   return `${selection.eventName} · ${selection.selectionName}`.slice(0, MAX_DESCRIPTION_LENGTH);
 }
 
+export type PlaceBetSignatureInput = Omit<PlaceBetCommand, 'idempotencyKey'>;
+
+function buildPlaceBetWirePayload({
+  walletId,
+  selection,
+  stake,
+  promoCode,
+  expectedOdds,
+  maxSlippagePercent,
+  minAcceptedOdds,
+}: PlaceBetSignatureInput): PlaceBetWireRequest {
+  const amount = roundMoney(stake);
+  return {
+    walletId,
+    selectionId: selection.selectionId,
+    amount,
+    description: buildDescription(selection),
+    expectedOdds: expectedOdds ?? selection.odds,
+    ...(maxSlippagePercent !== undefined ? { maxSlippagePercent } : {}),
+    ...(minAcceptedOdds !== undefined ? { minAcceptedOdds } : {}),
+    ...(promoCode ? { promoCode } : {}),
+  };
+}
+
+/**
+ * Firma canónica de idempotencia construida con los mismos valores exactos que
+ * `placeBet` envía en el wire y que el backend hashea en `PlaceBetCommandHandler`.
+ */
+export function betIdempotencySignature(input: PlaceBetSignatureInput): string {
+  const wire = buildPlaceBetWirePayload(input);
+  return JSON.stringify([
+    wire.walletId,
+    wire.selectionId,
+    wire.amount,
+    wire.description,
+    wire.promoCode ?? null,
+    wire.expectedOdds ?? null,
+    wire.maxSlippagePercent ?? null,
+    wire.minAcceptedOdds ?? null,
+  ]);
+}
+
 export const betService = {
   async placeBet({
     walletId,
@@ -467,23 +509,22 @@ export const betService = {
       );
     }
 
-    const amount = roundMoney(stake);
-    if (!Number.isFinite(amount) || amount <= 0) {
+    const wirePayload = buildPlaceBetWirePayload({
+      walletId,
+      selection,
+      stake,
+      promoCode,
+      expectedOdds,
+      maxSlippagePercent,
+      minAcceptedOdds,
+    });
+    if (!Number.isFinite(wirePayload.amount) || wirePayload.amount <= 0) {
       throw new BetSlipError('INVALID_STAKE', FAILURE_COPY.INVALID_STAKE.title, FAILURE_COPY.INVALID_STAKE.message);
     }
 
     const response = await apiClient.post<PlaceBetWireResponse, PlaceBetWireRequest>(
       BET_ENDPOINTS.place,
-      {
-        walletId,
-        selectionId: selection.selectionId,
-        amount,
-        description: buildDescription(selection),
-        expectedOdds: expectedOdds ?? selection.odds,
-        ...(maxSlippagePercent !== undefined ? { maxSlippagePercent } : {}),
-        ...(minAcceptedOdds !== undefined ? { minAcceptedOdds } : {}),
-        ...(promoCode ? { promoCode } : {}),
-      },
+      wirePayload,
       {
         headers: { [IDEMPOTENCY_HEADER]: idempotencyKey },
       },

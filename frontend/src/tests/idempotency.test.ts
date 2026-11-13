@@ -73,6 +73,51 @@ describe('H1A: Firma betSig e Idempotencia en Apuestas', () => {
     expect(keyDifferentOdds).toBeTruthy();
     expect(keyDifferentOdds).not.toBe(keyAttempt1);
   });
+
+  it('con oddsDecimal fijo, cambiar solo expectedOdds produce distinta firma betSig', async () => {
+    const { betSig } = await import('@/modules/Wallet/hooks/useWallet');
+    const base = {
+      walletId: '11111111-2222-3333-4444-555555555555',
+      selectionId: 'sel-ufc-1234',
+      stake: 50,
+      oddsDecimal: 2.10,
+      expectedOdds: 2.101,
+      maxSlippagePercent: 2,
+      minAcceptedOdds: 2.05,
+    };
+    const changed = { ...base, expectedOdds: 2.104 };
+    expect(betSig(changed)).not.toBe(betSig(base));
+  });
+
+  it('cambiar solo maxSlippagePercent produce distinta firma betSig', async () => {
+    const { betSig } = await import('@/modules/Wallet/hooks/useWallet');
+    const base = {
+      walletId: '11111111-2222-3333-4444-555555555555',
+      selectionId: 'sel-ufc-1234',
+      stake: 50,
+      oddsDecimal: 2.10,
+      expectedOdds: 2.10,
+      maxSlippagePercent: 2,
+      minAcceptedOdds: 2.05,
+    };
+    const changed = { ...base, maxSlippagePercent: 5 };
+    expect(betSig(changed)).not.toBe(betSig(base));
+  });
+
+  it('cambiar solo minAcceptedOdds produce distinta firma betSig', async () => {
+    const { betSig } = await import('@/modules/Wallet/hooks/useWallet');
+    const base = {
+      walletId: '11111111-2222-3333-4444-555555555555',
+      selectionId: 'sel-ufc-1234',
+      stake: 50,
+      oddsDecimal: 2.10,
+      expectedOdds: 2.10,
+      maxSlippagePercent: 2,
+      minAcceptedOdds: 2.05,
+    };
+    const changed = { ...base, minAcceptedOdds: 1.98 };
+    expect(betSig(changed)).not.toBe(betSig(base));
+  });
 });
 
 interface MinimalDomNode {

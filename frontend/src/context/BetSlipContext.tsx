@@ -25,6 +25,7 @@ import { isTerminalEventStatus, type UfcFightClock, type UfcFightUpdate } from '
 import { useOddsHub } from '@/hooks/useOddsHub';
 import { formatDecimalOdds } from '@/domain/odds';
 import {
+  betIdempotencySignature,
   betService,
   createBetFailure,
   describeBetError,
@@ -476,11 +477,16 @@ export function BetSlipProvider({ children }: { children: ReactNode }) {
       const walletId = resolveWalletId(user);
       if (!walletId) return reject(createBetFailure('WALLET_NOT_LINKED'));
 
-      // Una misma intención (selección + cuota aceptada + stake + promo)
+      // Una misma intención (mismos campos exactos del wire que hashea el backend)
       // reutiliza la llave si el intento anterior murió sin respuesta. Cambiar
       // cualquier dato genera una llave nueva para no reutilizar efectos de
       // negocio.
-      const signature = `${selection.selectionId}|${selection.odds.toFixed(2)}|${normalizedStake.toFixed(2)}|${normalizedPromoCode ?? ''}`;
+      const signature = betIdempotencySignature({
+        walletId,
+        selection,
+        stake: normalizedStake,
+        promoCode: normalizedPromoCode,
+      });
       const idempotencyKey =
         attemptRef.current?.signature === signature
           ? attemptRef.current.key
