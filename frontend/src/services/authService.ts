@@ -1,4 +1,4 @@
-import { apiClient, ProblemDetailsException } from '@/api';
+import { API_BASE_URL, apiClient, ProblemDetailsException } from '@/api';
 import {
   normalizeAuthUser,
   type AuthSession,
@@ -17,18 +17,25 @@ export const AUTH_ENDPOINTS = {
 } as const;
 
 /**
- * Override opcional para entornos donde auth vive fuera del prefijo `VITE_API_URL`
- * (p. ej. la API legacy expone `/api/auth/*` mientras la nueva expone `/api/v1/auth/*`).
+ * El backend (`AuthEndpoints.cs`) expone `/api/auth/login` y `/api/auth/register`
+ * (sin `/v1`). Por defecto derivamos `/api` quitando el sufijo `/v1` de `VITE_API_URL`.
  */
-const AUTH_BASE_URL = (() => {
-  const explicit = import.meta.env.VITE_AUTH_URL?.trim();
-  if (explicit) return explicit.replace(/\/+$/, '');
+export function resolveAuthBaseUrl(
+  apiUrl: string = API_BASE_URL,
+  authUrl: string | undefined = import.meta.env.VITE_AUTH_URL,
+  legacyBaseUrl: string | undefined = import.meta.env.VITE_API_BASE_URL,
+): string {
+  const explicit = authUrl?.trim().replace(/\/+$/, '');
+  if (explicit) return explicit;
 
-  const legacyBase = import.meta.env.VITE_API_BASE_URL?.trim();
-  if (legacyBase) return legacyBase.replace(/\/+$/, '');
+  const legacyBase = legacyBaseUrl?.trim().replace(/\/+$/, '');
+  if (legacyBase) return legacyBase.replace(/\/v\d+$/i, '') || '/api';
 
-  return undefined;
-})();
+  const normalizedApi = apiUrl.trim().replace(/\/+$/, '');
+  return normalizedApi.replace(/\/v\d+$/i, '') || '/api';
+}
+
+export const AUTH_BASE_URL = resolveAuthBaseUrl();
 
 function authRequestConfig(): { baseURL: string } | undefined {
   return AUTH_BASE_URL ? { baseURL: AUTH_BASE_URL } : undefined;

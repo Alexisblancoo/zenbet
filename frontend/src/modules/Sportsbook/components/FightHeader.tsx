@@ -6,6 +6,7 @@ import {
   fightResultLabel,
   fightStatusLabel,
   formatFightClock,
+  formatFighterRecord,
   formatRank,
   formatWeightDivision,
   isTerminalEventStatus,
@@ -73,7 +74,9 @@ function ArenaCorner({
           ) : null}
         </p>
         <p className='mt-1 flex flex-wrap items-center gap-x-1.5 font-mono text-[8px] uppercase tracking-wide text-metallic-slate'>
-          <span className='text-metallic-titanium'>{fighter.record}</span>
+          <span className='text-metallic-titanium'>
+            {formatFighterRecord(fighter.record, fighter.wins, fighter.losses, fighter.draws)}
+          </span>
           <span className='h-2 w-px bg-white/10' aria-hidden='true' />
           <span>{formatRank(fighter)}</span>
           {fighter.countryCode ? (

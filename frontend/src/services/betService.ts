@@ -2,7 +2,9 @@
  * Casos de uso del boleto de apuestas.
  *
  * Contrato real: `POST /api/v1/bets` (baseURL ya incluye `/api/v1`) exige
- * `walletId`, `selectionId`, `amount`, `description` e `idempotencyKey` GUID.
+ * `walletId`, `selectionId`, `amount` y `description`. La clave de idempotencia
+ * se envía obligatoriamente en la cabecera `X-Idempotency-Key` (el backend no lee
+ * idempotencyKey en el body).
  * La UI nunca ve Axios: aquí se transforma todo fallo en `BetFailure`.
  */
 
@@ -35,7 +37,6 @@ interface PlaceBetWireRequest {
   readonly selectionId: string;
   readonly amount: number;
   readonly description: string;
-  readonly idempotencyKey: string;
   readonly promoCode?: string;
   readonly expectedOdds?: number;
   readonly maxSlippagePercent?: number;
@@ -96,6 +97,10 @@ const FAILURE_COPY: Readonly<Record<BetFailureCode, { title: string; message: st
   USER_LIMIT_EXCEEDED: {
     title: 'Límite por apuesta excedido',
     message: 'El monto ingresado supera el límite máximo permitido por apuesta para tu cuenta.',
+  },
+  SERVICE_BUSY: {
+    title: 'Mucha demanda',
+    message: 'Mucha demanda, reintenta en 1 s',
   },
   EVENT_CLOSED: {
     title: 'Combate finalizado',
@@ -274,6 +279,30 @@ function hasPropertyError(problem: ProblemDetailsException, property: string): b
 function fromProblemDetails(problem: ProblemDetailsException): BetFailure {
   const fieldErrors = mapFieldErrors(problem);
   const status = problem.status;
+  const code = problem.code ?? (problem.extensions?.code as string | undefined);
+
+  if (code === 'REFERENCE_LINE_NOT_BETTABLE') {
+    return createBetFailure('REFERENCE_LINE', {
+      status,
+      title: FAILURE_COPY.REFERENCE_LINE.title,
+      message: FAILURE_COPY.REFERENCE_LINE.message,
+      ...(fieldErrors.length > 0 ? { fieldErrors } : {}),
+    });
+  }
+
+  if (status === 503 || code === 'SERVICE_BUSY') {
+    const retrySeconds =
+      problem.retryAfterSeconds && problem.retryAfterSeconds > 0
+        ? Math.ceil(problem.retryAfterSeconds)
+        : 1;
+    return createBetFailure('SERVICE_BUSY', {
+      status: 503,
+      title: FAILURE_COPY.SERVICE_BUSY.title,
+      message: `Mucha demanda, reintenta en ${retrySeconds} s`,
+      retryAfterSeconds: retrySeconds,
+      ...(fieldErrors.length > 0 ? { fieldErrors } : {}),
+    });
+  }
 
   if (problem.isRateLimited) {
     return createBetFailure('RATE_LIMITED', {
@@ -289,10 +318,10 @@ function fromProblemDetails(problem: ProblemDetailsException): BetFailure {
     return createBetFailure('UNAUTHORIZED', { status });
   }
 
-  if (problem.isNetworkError || problem.isTimeout) {
+  if (status === 404 || problem.isNetworkError || problem.isTimeout) {
     return createBetFailure('NETWORK_ERROR', {
       status,
-      message: problem.detail ?? FAILURE_COPY.NETWORK_ERROR.message,
+      message: 'No pudimos registrar tu apuesta. No se descontó saldo.',
     });
   }
 
@@ -319,19 +348,6 @@ function fromProblemDetails(problem: ProblemDetailsException): BetFailure {
   }
 
   // Intercepción específica de cuota cambiada (Slippage exceeded) RFC 7807
-  const code = problem.code ?? (problem.extensions?.code as string | undefined);
-
-  // El servidor rechaza apuestas sobre líneas de referencia antes de abrir
-  // transacción. Se mapea primero: su `detail` también habla de "cuota".
-  if (code === 'REFERENCE_LINE_NOT_BETTABLE') {
-    return createBetFailure('REFERENCE_LINE', {
-      status,
-      title: FAILURE_COPY.REFERENCE_LINE.title,
-      message: problem.detail ?? FAILURE_COPY.REFERENCE_LINE.message,
-      ...(fieldErrors.length > 0 ? { fieldErrors } : {}),
-    });
-  }
-
   if (
     code === 'ODDS_CHANGED' ||
     code === 'SLIPPAGE_EXCEEDED' ||
@@ -408,10 +424,11 @@ export function describeBetError(error: unknown): BetFailure {
   return createBetFailure('UNKNOWN', message ? { message } : {});
 }
 
-/** Un fallo de transporte sin respuesta puede reintentarse con la misma llave. */
+/** Un fallo de transporte o contención 503 puede reintentarse con la misma llave. */
 export function isRetryableBetError(error: unknown): boolean {
   return (
-    isProblemDetailsException(error) && (error.isNetworkError || error.isTimeout)
+    isProblemDetailsException(error) &&
+    (error.isNetworkError || error.isTimeout || error.status === 503)
   );
 }
 
@@ -421,6 +438,48 @@ export function isRetryableBetError(error: unknown): boolean {
 
 function buildDescription(selection: BetSelection): string {
   return `${selection.eventName} · ${selection.selectionName}`.slice(0, MAX_DESCRIPTION_LENGTH);
+}
+
+export type PlaceBetSignatureInput = Omit<PlaceBetCommand, 'idempotencyKey'>;
+
+function buildPlaceBetWirePayload({
+  walletId,
+  selection,
+  stake,
+  promoCode,
+  expectedOdds,
+  maxSlippagePercent,
+  minAcceptedOdds,
+}: PlaceBetSignatureInput): PlaceBetWireRequest {
+  const amount = roundMoney(stake);
+  return {
+    walletId,
+    selectionId: selection.selectionId,
+    amount,
+    description: buildDescription(selection),
+    expectedOdds: expectedOdds ?? selection.odds,
+    ...(maxSlippagePercent !== undefined ? { maxSlippagePercent } : {}),
+    ...(minAcceptedOdds !== undefined ? { minAcceptedOdds } : {}),
+    ...(promoCode ? { promoCode } : {}),
+  };
+}
+
+/**
+ * Firma canónica de idempotencia construida con los mismos valores exactos que
+ * `placeBet` envía en el wire y que el backend hashea en `PlaceBetCommandHandler`.
+ */
+export function betIdempotencySignature(input: PlaceBetSignatureInput): string {
+  const wire = buildPlaceBetWirePayload(input);
+  return JSON.stringify([
+    wire.walletId,
+    wire.selectionId,
+    wire.amount,
+    wire.description,
+    wire.promoCode ?? null,
+    wire.expectedOdds ?? null,
+    wire.maxSlippagePercent ?? null,
+    wire.minAcceptedOdds ?? null,
+  ]);
 }
 
 export const betService = {
@@ -450,30 +509,29 @@ export const betService = {
       );
     }
 
-    const amount = roundMoney(stake);
-    if (!Number.isFinite(amount) || amount <= 0) {
+    const wirePayload = buildPlaceBetWirePayload({
+      walletId,
+      selection,
+      stake,
+      promoCode,
+      expectedOdds,
+      maxSlippagePercent,
+      minAcceptedOdds,
+    });
+    if (!Number.isFinite(wirePayload.amount) || wirePayload.amount <= 0) {
       throw new BetSlipError('INVALID_STAKE', FAILURE_COPY.INVALID_STAKE.title, FAILURE_COPY.INVALID_STAKE.message);
     }
 
     const response = await apiClient.post<PlaceBetWireResponse, PlaceBetWireRequest>(
       BET_ENDPOINTS.place,
-      {
-        walletId,
-        selectionId: selection.selectionId,
-        amount,
-        description: buildDescription(selection),
-        idempotencyKey,
-        expectedOdds: expectedOdds ?? selection.odds,
-        ...(maxSlippagePercent !== undefined ? { maxSlippagePercent } : {}),
-        ...(minAcceptedOdds !== undefined ? { minAcceptedOdds } : {}),
-        ...(promoCode ? { promoCode } : {}),
-      },
+      wirePayload,
       {
         headers: { [IDEMPOTENCY_HEADER]: idempotencyKey },
       },
     );
 
-    if (!response || response.success !== true) {
+    const betId = normalizeGuid(response?.betId) ?? readString(response?.betId);
+    if (!response || response.success !== true || !betId || betId === EMPTY_GUID) {
       throw new BetSlipError(
         'INVALID_RESPONSE',
         FAILURE_COPY.INVALID_RESPONSE.title,
@@ -481,16 +539,13 @@ export const betService = {
       );
     }
 
-    const betId = normalizeGuid(response.betId);
     const transactionId = normalizeGuid(response.transactionId);
-    const idempotentReplay =
-      response.idempotentReplay === true || !betId || betId === EMPTY_GUID;
 
     return {
-      betId: !betId || betId === EMPTY_GUID ? '' : betId,
+      betId,
       transactionId: transactionId === EMPTY_GUID ? '' : (transactionId ?? ''),
       newBalance: readNumber(response.newBalance),
-      idempotentReplay,
+      idempotentReplay: response.idempotentReplay === true,
     };
   },
 };

@@ -3,16 +3,11 @@ import { useQuery, useMutation, useQueryClient, type UseQueryResult } from '@tan
 import axios from 'axios';
 import { z } from 'zod';
 import { http } from '@/api/client';
+import { isProblemDetailsException, normalizeApiError } from '@/api/errors';
+import { createIdempotencyKey } from '@/api/idempotency';
 import {
   UserDashboardDataSchema,
-  UserProfileSchema,
-  WalletBalanceSchema,
-  LedgerEntrySchema,
   type UserDashboardData,
-  type UserProfile,
-  type WalletBalance,
-  type LedgerEntry,
-  MOCK_INITIAL_DASHBOARD_DATA,
 } from '@/modules/Wallet/components/UserDashboard';
 
 /* ==========================================================================
@@ -29,6 +24,19 @@ export class ZodContractViolationError extends Error {
     this.issues = issues;
     this.rawPayload = rawPayload;
     Object.setPrototypeOf(this, ZodContractViolationError.prototype);
+  }
+}
+
+export class PlaceBetError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly status = 0,
+    public readonly retryAfterSeconds?: number,
+  ) {
+    super(message);
+    this.name = 'PlaceBetError';
+    Object.setPrototypeOf(this, PlaceBetError.prototype);
   }
 }
 
@@ -54,7 +62,7 @@ export interface SlippagePromptState {
 }
 
 /* ==========================================================================
-   2. ESQUEMAS ZOD PARA DISPARO DE APUESTAS Y RESPUESTA 202 ACCEPTED
+   2. ESQUEMAS ZOD PARA DISPARO DE APUESTAS Y RESPUESTA
    ========================================================================== */
 
 export const PlaceBetInputSchema = z.object({
@@ -74,28 +82,32 @@ export const PlaceBetInputSchema = z.object({
 
 export type PlaceBetInput = z.infer<typeof PlaceBetInputSchema>;
 
-/**
- * Contrato 202 Accepted: El motor de apuestas recibe la orden de forma asíncrona,
- * emite un ticket y un ID de seguimiento, y procesa la reserva en el outbox/ledger.
- */
 export const PlaceBetAcceptedResponseSchema = z.object({
-  status: z.literal('ACCEPTED_PROCESSING'),
-  ticket: z.string().min(1, 'El ticket de apuesta es obligatorio'),
+  success: z.boolean().default(true),
+  status: z.enum(['CREATED', 'ACCEPTED_PROCESSING']).default('CREATED'),
   betId: z.string().min(1, 'El ID de apuesta es obligatorio'),
+  transactionId: z.string().nullable().optional(),
+  newBalance: z.number().nullable().optional(),
+  idempotentReplay: z.boolean().default(false),
   selectionId: z.string().min(1),
   stake: z.number().positive(),
   potentialPayout: z.number().positive().optional(),
   receivedAt: z.string(),
-  estimatedProcessingTimeMs: z.number().default(500),
-  message: z
-    .string()
-    .default(
-      'La apuesta ha sido aceptada por el motor de apuestas y está en cola de procesamiento (202 Accepted).'
-    ),
+  message: z.string().default('Apuesta registrada correctamente.'),
   newBalancePreview: z.number().optional(),
 });
 
 export type PlaceBetAcceptedResponse = z.infer<typeof PlaceBetAcceptedResponseSchema>;
+
+export const pendingIdempotencyKeys = new Map<string, string>();
+export const betSig = (i: PlaceBetInput) =>
+  `${i.walletId ?? ''}:${i.selectionId}:${i.stake}:${i.expectedOdds ?? i.oddsDecimal ?? ''}:${i.maxSlippagePercent ?? ''}:${i.minAcceptedOdds ?? ''}`;
+export function resolveBetIdempotencyKey(input: PlaceBetInput): string {
+  const sig = betSig(input);
+  const key = input.idempotencyKey?.trim() || pendingIdempotencyKeys.get(sig) || createIdempotencyKey();
+  pendingIdempotencyKeys.set(sig, key);
+  return key;
+}
 
 /* ==========================================================================
    3. DATA FETCHING: useGetUserProfile (Lectura del Saldo y Perfil)
@@ -106,19 +118,8 @@ export type PlaceBetAcceptedResponse = z.infer<typeof PlaceBetAcceptedResponseSc
  * aplicando safeParse estricto de Zod antes de entregar la data a TanStack Query.
  */
 export async function fetchUserProfile(): Promise<UserDashboardData> {
-  let rawData: unknown;
-
-  try {
-    const response = await http.get('/wallet');
-    rawData = response.data;
-  } catch (error) {
-    // Si la API aún no está disponible o responde 404 en desarrollo, usamos la semilla mock
-    if (axios.isAxiosError(error) && (!error.response || error.response.status === 404)) {
-      rawData = MOCK_INITIAL_DASHBOARD_DATA;
-    } else {
-      throw error;
-    }
-  }
+  const response = await http.get('/wallet');
+  const rawData: unknown = response.data;
 
   // REGLA DE ORO: safeParse estricto antes de entregar al frontend
   const parseResult = UserDashboardDataSchema.safeParse(rawData);
@@ -203,6 +204,7 @@ export async function placeBetRequest(input: PlaceBetInput): Promise<PlaceBetAcc
   }
 
   const validatedInput = inputValidation.data;
+  const idempotencyKey = resolveBetIdempotencyKey(validatedInput);
   let rawResponse: unknown;
 
   try {
@@ -220,87 +222,80 @@ export async function placeBetRequest(input: PlaceBetInput): Promise<PlaceBetAcc
         minAcceptedOdds: validatedInput.minAcceptedOdds,
       },
       {
-        headers: validatedInput.idempotencyKey
-          ? { 'X-Idempotency-Key': validatedInput.idempotencyKey }
-          : undefined,
+        headers: { 'X-Idempotency-Key': idempotencyKey },
       }
     );
 
-    if (response.status === 202 || response.status === 200) {
-      // Si el backend responde con DTO tradicional de ZenBet, adaptamos al contrato 202 Accepted
-      const backendData = response.data;
+    if (response.status === 201 || response.status === 200 || response.status === 202) {
+      const backendData = (response.data || {}) as Record<string, unknown>;
+      const rawBetId = typeof backendData.betId === 'string' ? backendData.betId.trim() : '';
+      if (!rawBetId) {
+        throw new ZodContractViolationError(
+          '[Zod Contract Failure] La respuesta 2xx no incluye betId del backend.',
+          [{ code: 'custom', message: 'betId requerido', path: ['betId'] }],
+          backendData
+        );
+      }
       rawResponse = {
-        status: 'ACCEPTED_PROCESSING',
-        ticket: backendData.ticket ?? `TKT-${Math.floor(100000 + Math.random() * 900000)}`,
-        betId: backendData.betId ?? `bet-${Date.now()}`,
+        success: backendData.success === true,
+        status: 'CREATED',
+        betId: rawBetId,
+        transactionId: typeof backendData.transactionId === 'string' ? backendData.transactionId : null,
+        newBalance: typeof backendData.newBalance === 'number' ? backendData.newBalance : null,
+        idempotentReplay: backendData.idempotentReplay === true,
         selectionId: validatedInput.selectionId,
         stake: validatedInput.stake,
         potentialPayout: validatedInput.oddsDecimal
           ? Math.round(validatedInput.stake * validatedInput.oddsDecimal * 100) / 100
           : undefined,
         receivedAt: new Date().toISOString(),
-        estimatedProcessingTimeMs: 400,
-        message: 'Apuesta aceptada por el backend .NET 10 y enrutada a la cola de procesamiento.',
-        newBalancePreview: backendData.newBalance ?? undefined,
+        message: 'Apuesta registrada correctamente.',
+        newBalancePreview: typeof backendData.newBalance === 'number' ? backendData.newBalance : undefined,
       };
     } else {
       rawResponse = response.data;
     }
   } catch (error) {
-    // Intercepción específica de error RFC 7807 de Cuota Cambiada (Slippage Tolerance Exceeded)
-    if (axios.isAxiosError(error) && error.response) {
-      const data = error.response.data as Record<string, unknown> | undefined;
-      const code =
-        data?.code ??
-        (data?.extensions as Record<string, unknown> | undefined)?.code;
-
-      if (
-        code === 'ODDS_CHANGED' ||
-        code === 'SLIPPAGE_EXCEEDED' ||
-        (typeof data?.type === 'string' && data.type.includes('odds-changed'))
-      ) {
-        const currentOdds =
-          Number(
-            data?.currentOdds ??
-              (data?.extensions as Record<string, unknown> | undefined)?.currentOdds
-          ) || 0;
-        const expectedOdds =
-          Number(
-            data?.expectedOdds ??
-              (data?.extensions as Record<string, unknown> | undefined)?.expectedOdds
-          ) || validatedInput.oddsDecimal;
-        const detail =
-          typeof data?.detail === 'string'
-            ? data.detail
-            : 'La cuota cambió durante el procesamiento excediendo la tolerancia permitida.';
-
-        throw new OddsChangedError(detail, currentOdds, expectedOdds);
-      }
-    }
-
-    // Si el endpoint devuelve 404 o falla la conexión en modo offline/sandbox,
-    // simulamos con total fidelidad el HTTP 202 Accepted del motor asíncrono
-    if (axios.isAxiosError(error) && (!error.response || error.response.status === 404)) {
-      // Simular latencia de red de 450ms
-      await new Promise((resolve) => setTimeout(resolve, 450));
-
-      rawResponse = {
-        status: 'ACCEPTED_PROCESSING',
-        ticket: `TKT-ASYNC-${Math.floor(100000 + Math.random() * 900000)}`,
-        betId: `bet-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        selectionId: validatedInput.selectionId,
-        stake: validatedInput.stake,
-        potentialPayout: validatedInput.oddsDecimal
-          ? Math.round(validatedInput.stake * validatedInput.oddsDecimal * 100) / 100
-          : undefined,
-        receivedAt: new Date().toISOString(),
-        estimatedProcessingTimeMs: 450,
-        message:
-          'Apuesta aceptada por el motor de apuestas (202 Accepted). Procesando confirmación en segundo plano.',
-      };
-    } else {
+    if (error instanceof ZodContractViolationError) {
       throw error;
     }
+
+    const problem = normalizeApiError(error);
+    const data = (axios.isAxiosError(error) ? error.response?.data : undefined) as Record<string, unknown> | undefined;
+    const ext = (data?.extensions ?? problem.extensions) as Record<string, unknown> | undefined;
+    const code = String(data?.code ?? ext?.code ?? (isProblemDetailsException(error) ? error.code : problem.code) ?? '');
+    const status = (axios.isAxiosError(error) ? error.response?.status : undefined) ?? problem.status ?? 0;
+
+    if (code === 'REFERENCE_LINE_NOT_BETTABLE') {
+      throw new PlaceBetError('Cuotas próximamente', 'REFERENCE_LINE_NOT_BETTABLE', status || 422);
+    }
+
+    if (
+      code === 'ODDS_CHANGED' ||
+      code === 'SLIPPAGE_EXCEEDED' ||
+      (typeof data?.type === 'string' && data.type.includes('odds-changed')) ||
+      problem.type.includes('odds-changed')
+    ) {
+      const currentOdds = Number(data?.currentOdds ?? ext?.currentOdds) || 0;
+      const expectedOdds = Number(data?.expectedOdds ?? ext?.expectedOdds) || validatedInput.oddsDecimal;
+      const detail =
+        typeof data?.detail === 'string'
+          ? data.detail
+          : problem.detail ?? 'La cuota cambió durante el procesamiento excediendo la tolerancia permitida.';
+      throw new OddsChangedError(detail, currentOdds, expectedOdds);
+    }
+
+    if (status === 503 || code === 'SERVICE_BUSY') {
+      const hdr = axios.isAxiosError(error) ? (error.response?.headers as Record<string, unknown> | undefined) : undefined;
+      const retrySeconds = Math.max(1, Math.ceil(Number(hdr?.['retry-after'] ?? hdr?.['Retry-After'] ?? problem.retryAfterSeconds) || 1));
+      throw new PlaceBetError(`Mucha demanda, reintenta en ${retrySeconds} s`, 'SERVICE_BUSY', 503, retrySeconds);
+    }
+
+    if (status === 404 || status === 0 || problem.isNetworkError || problem.isTimeout || (axios.isAxiosError(error) && !error.response)) {
+      throw new PlaceBetError('No pudimos registrar tu apuesta. No se descontó saldo.', status === 404 ? 'ENDPOINT_NOT_FOUND' : 'NETWORK_ERROR', status);
+    }
+
+    throw new PlaceBetError(problem.detail || 'No pudimos registrar tu apuesta. No se descontó saldo.', code || 'PLACE_BET_FAILED', status);
   }
 
   // REGLA DE ORO: safeParse estricto de la respuesta antes de devolver al frontend
@@ -318,6 +313,7 @@ export async function placeBetRequest(input: PlaceBetInput): Promise<PlaceBetAcc
     );
   }
 
+  pendingIdempotencyKeys.delete(betSig(validatedInput));
   return parseResult.data;
 }
 
@@ -361,7 +357,6 @@ export function usePlaceBet() {
               amount: -newBet.stake,
               currency: 'USD',
               description: newBet.description ?? `Apuesta en juego: Selección ${newBet.selectionId}`,
-              referenceTicket: `TKT-PENDING-${Date.now().toString().slice(-4)}`,
               selectionLabel: newBet.selectionId,
               oddsDecimal: newBet.oddsDecimal,
               timestamp: new Date().toISOString(),
@@ -388,7 +383,7 @@ export function usePlaceBet() {
           isOpen: true,
           currentOdds: err.currentOdds,
           expectedOdds: err.expectedOdds,
-          lastInput: newBet,
+          lastInput: { ...newBet, idempotencyKey: resolveBetIdempotencyKey(newBet) },
         });
       }
     },
@@ -405,12 +400,18 @@ export function usePlaceBet() {
     setSlippagePrompt(null);
 
     // Reintenta con la nueva cuota y nuevo ticket de transacción
-    mutation.mutate({
-      ...input,
+    const { idempotencyKey: _previousKey, ...baseInput } = input;
+    const retryInput: PlaceBetInput = {
+      ...baseInput,
       oddsDecimal: updatedOdds,
       expectedOdds: updatedOdds,
       minAcceptedOdds: undefined,
-      idempotencyKey: undefined,
+    };
+    const nextIdempotencyKey = resolveBetIdempotencyKey(retryInput);
+
+    mutation.mutate({
+      ...retryInput,
+      idempotencyKey: nextIdempotencyKey,
     });
   }, [slippagePrompt, mutation]);
 

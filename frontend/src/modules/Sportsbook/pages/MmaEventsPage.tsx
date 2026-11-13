@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   CalendarClock,
   Check,
-  Database,
   MapPin,
   RefreshCw,
   ShieldCheck,
@@ -39,6 +38,7 @@ import {
   formatCardLongDate,
   formatFightClock,
   formatFightDate,
+  formatFighterRecord,
   formatFighterStance,
   formatRank,
   formatSnapshotAt,
@@ -311,7 +311,9 @@ function ArenaFighter({ fighter, corner }: { readonly fighter: UfcFighter; reado
           isRed ? '' : 'justify-end'
         }`}
       >
-        <span className='text-white/80'>{fighter.record}</span>
+        <span className='text-white/80'>
+          {formatFighterRecord(fighter.record, fighter.wins, fighter.losses, fighter.draws)}
+        </span>
         <span className='h-2.5 w-px bg-white/10' aria-hidden='true' />
         <span>{formatRank(fighter)}</span>
         {fighter.countryCode ? (
@@ -514,7 +516,7 @@ const MainEventHero = memo(function MainEventHero({
         </div>
       </div>
 
-      {moneyline && red && blue && (
+      {moneyline && red && blue ? (
         <div className='relative grid grid-cols-1 gap-2 border-t border-white/[0.07] px-4 py-3 sm:grid-cols-2 sm:px-6 lg:px-8'>
           <HeroPick
             market={moneyline}
@@ -534,6 +536,10 @@ const MainEventHero = memo(function MainEventHero({
             onToggle={toggle}
             closed={isClosed}
           />
+        </div>
+      ) : (
+        <div className='relative border-t border-white/[0.07] px-4 py-3 text-center font-mono text-[10px] font-bold uppercase tracking-wider text-metallic-slate sm:px-6'>
+          Cuotas próximamente
         </div>
       )}
 

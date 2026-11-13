@@ -116,7 +116,7 @@ export const MOCK_LEDGER_ENTRIES: LedgerEntry[] = [
     amount: 420.0,
     currency: 'USD',
     description: 'Liquidación Ganadora: Ciryl Gane por KO/TKO en Round 3',
-    referenceTicket: 'TKT-UFC-9481',
+    referenceTicket: 'REF-UFC-9481',
     eventTitle: 'UFC 334: Ciryl Gane vs Josh Hokit',
     selectionLabel: 'Ciryl Gane (KO/TKO o DQ)',
     oddsDecimal: 2.1,
@@ -129,7 +129,7 @@ export const MOCK_LEDGER_ENTRIES: LedgerEntry[] = [
     amount: -150.0,
     currency: 'USD',
     description: 'Apuesta Simple: Ambos Equipos Anotan & Más de 2.5 Goles',
-    referenceTicket: 'TKT-UCL-4109',
+    referenceTicket: 'REF-UCL-4109',
     eventTitle: 'Real Madrid CF vs Manchester City FC',
     selectionLabel: 'BTTS: Sí & Over 2.5 Goles',
     oddsDecimal: 1.95,
@@ -142,7 +142,7 @@ export const MOCK_LEDGER_ENTRIES: LedgerEntry[] = [
     amount: -200.0,
     currency: 'USD',
     description: 'Apuesta Handicap: Boston Celtics -5.5 Puntos',
-    referenceTicket: 'TKT-NBA-3012',
+    referenceTicket: 'REF-NBA-3012',
     eventTitle: 'Boston Celtics vs Golden State Warriors',
     selectionLabel: 'Boston Celtics -5.5 Spread',
     oddsDecimal: 1.92,
@@ -478,7 +478,7 @@ export default function UserDashboard({
     setTimeout(() => {
       const addedAmount = depositAmount;
       const newTxId = `tx-dep-snbx-${Date.now().toString(36).toUpperCase()}`;
-      const newTicket = `DEP-SNBX-${Math.floor(1000 + Math.random() * 9000)}`;
+      const newTicket = `DEP-SNBX-${Date.now().toString().slice(-4)}`;
 
       const newLedgerEntry: LedgerEntry = {
         id: newTxId,

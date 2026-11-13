@@ -110,7 +110,7 @@ function TicketCard({ bet, onCashOutSuccess }: TicketCardProps) {
         ? 'Pagado'
         : 'Retorno';
 
-  const canCashOut = pending && (bet.cashOutAvailable || bet.currentCashOutValue > 0);
+  const canCashOut = pending && bet.cashOutAvailable && bet.currentCashOutValue > 0;
 
   return (
     <article className='group relative overflow-hidden rounded-sm border border-white/[0.09] bg-[#0A0A0A] shadow-[0_18px_45px_-32px_rgba(0,0,0,0.9)] transition-colors duration-150 hover:border-white/[0.16]'>
