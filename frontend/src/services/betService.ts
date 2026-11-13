@@ -2,7 +2,9 @@
  * Casos de uso del boleto de apuestas.
  *
  * Contrato real: `POST /api/v1/bets` (baseURL ya incluye `/api/v1`) exige
- * `walletId`, `selectionId`, `amount`, `description` e `idempotencyKey` GUID.
+ * `walletId`, `selectionId`, `amount` y `description`. La clave de idempotencia
+ * se envía obligatoriamente en la cabecera `X-Idempotency-Key` (el backend no lee
+ * idempotencyKey en el body).
  * La UI nunca ve Axios: aquí se transforma todo fallo en `BetFailure`.
  */
 
@@ -35,7 +37,6 @@ interface PlaceBetWireRequest {
   readonly selectionId: string;
   readonly amount: number;
   readonly description: string;
-  readonly idempotencyKey: string;
   readonly promoCode?: string;
   readonly expectedOdds?: number;
   readonly maxSlippagePercent?: number;
@@ -478,7 +479,6 @@ export const betService = {
         selectionId: selection.selectionId,
         amount,
         description: buildDescription(selection),
-        idempotencyKey,
         expectedOdds: expectedOdds ?? selection.odds,
         ...(maxSlippagePercent !== undefined ? { maxSlippagePercent } : {}),
         ...(minAcceptedOdds !== undefined ? { minAcceptedOdds } : {}),
